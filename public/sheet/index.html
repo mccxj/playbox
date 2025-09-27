@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Handsontable 分页与无限滚动 (官方钩子最终版)</title>
+    <link rel="stylesheet" href="https://s4.zstatic.net/npm/handsontable/styles/handsontable.min.css"/>
+    <link rel="stylesheet" href="https://s4.zstatic.net/npm/handsontable/styles/ht-theme-main.min.css"/>
+    <link rel="stylesheet" href="./index.css"/>
+
+</head>
+<body>
+
+<div class="container">
+    <h1>Handsontable 示例 (分页与无限滚动)</h1>
+    <div id="table-wrapper">
+        <div id="handsontable-container"></div>
+        <div id="loading-indicator" class="loader">正在加载更多数据...</div>
+    </div>
+</div>
+
+<script src="https://s4.zstatic.net/npm/handsontable/dist/handsontable.full.min.js"></script>
+<script src="https://s4.zstatic.net/npm/handsontable/languages/zh-CN.js"></script>
+
+<script>
+    const ALL_MOCK_DATA = Array.from({length: 100}, (_, i) => ({
+        id: i + 1, name: `员工 ${i + 1}`, department: ['技术部', '产品部', '设计部', '市场部'][i % 4],
+        position: `职位 ${i + 1}`, salary: 8000 + Math.floor(Math.random() * 12000),
+        entryDate: `2023-${String(Math.floor(i / 10) + 1).padStart(2, '0')}-${String(i % 28 + 1).padStart(2, '0')}`
+    }));
+
+    function mockApiEndpoint(page = 1, pageSize = 20) {
+        console.log(`正在请求第 ${page} 页数据...`);
+        return new Promise(resolve => {
+            setTimeout(() => {
+                const start = (page - 1) * pageSize;
+                const end = start + pageSize;
+                const data = ALL_MOCK_DATA.slice(start, end);
+                const response = {
+                    columns: [
+                        {data: 'id', type: 'numeric', title: 'ID', readOnly: true}, {data: 'name', title: '姓名'},
+                        {data: 'department', title: '部门', type: 'dropdown', source: ['技术部', '产品部', '设计部', '市场部']}, {data: 'position', title: '职位'},
+                        {data: 'salary', type: 'numeric', title: '薪资', numericFormat: {pattern: '0,0.00'}},
+                        {data: 'entryDate', type: 'date', title: '入职日期', dateFormat: 'YYYY-MM-DD'}
+                    ], data: data, hasMore: end < ALL_MOCK_DATA.length
+                };
+                resolve(response);
+            }, 500);
+        });
+    }
+
+    // --- 新增的模拟后端更新/创建/删除API ---
+    function mockUpdateData(changes) {
+        return new Promise((resolve, reject) => {
+            setTimeout(() => {
+                console.log('%c[MOCK API] 正在更新数据...', 'color: orange;', changes);
+                // 模拟90%的成功率
+                if (Math.random() > 0.1) {
+                    // 在实际应用中，你会在这里更新 ALL_MOCK_DATA
+                    resolve({ success: true, message: '数据更新成功！' });
+                } else {
+                    reject({ success: false, message: '服务器错误，更新失败！' });
+                }
+            }, 300);
+        });
+    }
+
+    function mockCreateData(rowData) {
+        return new Promise(resolve => {
+            setTimeout(() => {
+                // 在真实后端，数据库会生成ID
+                const newId = Math.max(...ALL_MOCK_DATA.map(r => r.id)) + 1;
+                const newRecord = { ...rowData, id: newId };
+                ALL_MOCK_DATA.push(newRecord);
+                console.log('%c[MOCK API] 正在创建新行...', 'color: green;', newRecord);
+                resolve({ success: true, message: '新行创建成功！', newId: newId });
+            }, 300);
+        });
+    }
+
+    function mockDeleteData(deletedRows) {
+        return new Promise(resolve => {
+            setTimeout(() => {
+                console.log('%c[MOCK API] 正在删除行...', 'color: red;', deletedRows);
+                // 在实际应用中，你会在这里从 ALL_MOCK_DATA 中删除数据
+                // 例如:
+                // const deletedIds = new Set(deletedRows.map(row => row.id));
+                // ALL_MOCK_DATA = ALL_MOCK_DATA.filter(row => !deletedIds.has(row.id));
+                resolve({ success: true, message: '行删除成功！' });
+            }, 300);
+        });
+    }
+
+    const container = document.getElementById('handsontable-container');
+    const loadingIndicator = document.getElementById('loading-indicator');
+    let hot;
+    let currentPage = 1;
+    let isLoading = false;
+    let hasMoreData = true;
+    let tableData = [];
+    let recentlyRemovedRows = [];
+
+    async function initializeAndLoadTable() {
+        isLoading = true;
+        loadingIndicator.style.display = 'block';
+
+        const initialResponse = await mockApiEndpoint(currentPage);
+        hasMoreData = initialResponse.hasMore;
+        tableData = initialResponse.data;
+
+        const dynamicColumns = initialResponse.columns.map(col => ({
+            data: col.data,
+            type: col.type,
+            readOnly: col.readOnly, 
+            source: col.source,     
+            numericFormat: col.numericFormat,
+            dateFormat: col.dateFormat
+        }));
+        const dynamicColHeaders = initialResponse.columns.map(col => col.title);
+
+        isLoading = false;
+        loadingIndicator.style.display = 'none';
+
+        hot = new Handsontable(container, {
+            themeName: 'ht-theme-main',
+            data: tableData,
+            rowHeaders: true,
+            colHeaders: dynamicColHeaders,
+            columns: dynamicColumns,
+            width: '100%',
+            height: '100%',
+            autoWrapRow: true,
+            autoWrapCol: true,
+            // stretchH: 'all',
+            fixedColumnsLeft: 1,
+            contextMenu: true,
+            customBorders: true,
+            dropdownMenu: true,
+            multiColumnSorting: true,
+            filters: true,
+            manualRowMove: true,
+            autoRowSize: true,
+            language: 'zh-CN',
+            licenseKey: 'non-commercial-and-evaluation',
+
+            afterScrollVertically: function () {
+                if (isLoading || !hasMoreData) {
+                    return;
+                }
+                const autoRowSizePlugin = hot.getPlugin('autoRowSize');
+                if (!autoRowSizePlugin.isEnabled()) {
+                    return;
+                }
+                const lastVisibleRow = autoRowSizePlugin.getLastVisibleRow();
+                const totalRows = hot.countRows();
+                // 当滚动到距离底部5行以内时，触发加载
+                if (totalRows > 0 && lastVisibleRow >= totalRows - 5) {
+                    console.log('%c触发加载下一页 (通过 afterScrollVertically)!', 'color: blue; font-weight: bold;');
+                    loadNextPage();
+                }
+            },
+
+            // --- 更新、创建、删除的回调 ---
+            afterChange: (changes, source) => {
+                if (source === 'loadData' || !changes) {
+                    return;
+                }
+                // changes 是一个数组，每个元素是 [row, prop, oldValue, newValue]
+                console.log('--- 内容被修改，准备调用API ---', changes);
+
+                // 在真实场景中，你可能想对changes做一些处理，比如只发送有意义的更新
+                mockUpdateData(changes)
+                    .then(response => {
+                        console.log(`%c[API SUCCESS] ${response.message}`, 'color: green;');
+                        // 可以在这里添加一些成功后的UI提示，比如一个短暂的 "已保存" 状态
+                    })
+                    .catch(error => {
+                        console.error(`%c[API ERROR] ${error.message}`, 'color: red;');
+                        // 关键：如果更新失败，应该通知用户并提供回滚操作
+                        // 例如: hot.setDataAtCell(changes.map(([row, prop, oldValue]) => [row, prop, oldValue]));
+                        alert('数据保存失败，请检查网络或联系管理员！');
+                    });
+            },
+
+            afterCreateRow: (index, amount, source) => {
+                // 只有通过UI操作（如右键菜单）创建行时才触发
+                if (source !== 'ContextMenu') return;
+
+                console.log(`--- 添加了 ${amount} 行在索引 ${index} ---`);
+
+                for (let i = 0; i < amount; i++) {
+                    const newRowIndex = index + i;
+                    // 注意：此时行刚刚创建，数据为空。
+                    // 更好的实践是在用户填写完必要数据后（例如在 afterChange 中判断）再调用创建API。
+                    // 但为了演示，我们在这里立即调用。
+                    const rowData = hot.getSourceDataAtRow(newRowIndex);
+
+                    mockCreateData(rowData)
+                        .then(response => {
+                            console.log(`%c[API SUCCESS] ${response.message}`, 'color: green;', `新ID: ${response.newId}`);
+                            // 关键：用后端返回的真实ID更新表格，防止前端ID和后端不一致
+                            // 使用 'loadData' 作为 source 可以防止触发不必要的 afterChange
+                            hot.setDataAtCell(newRowIndex, 0, response.newId, 'loadData');
+                        })
+                        .catch(error => {
+                            console.error(`%c[API ERROR] ${error.message}`, 'color: red;');
+                            alert('创建新行失败！');
+                            // 创建失败，可以选择立即移除这个新行
+                            hot.alter('remove_row', newRowIndex);
+                        });
+                }
+            },
+
+            beforeRemoveRow: (index, amount) => {
+                recentlyRemovedRows = []; // 清空旧数据
+                // 记录即将被删除的行的数据
+                for (let i = 0; i < amount; i++) {
+                    const rowData = hot.getSourceDataAtRow(index + i);
+                    // 如果行数据有效（例如有ID），才记录下来
+                    if (rowData && rowData.id) {
+                        recentlyRemovedRows.push(rowData);
+                    }
+                }
+                console.log('--- 即将删除，记录数据 ---', recentlyRemovedRows);
+            },
+
+            afterRemoveRow: (index, amount, physicalRows, source) => {
+                 // 只有通过UI操作（如右键菜单）删除行时才触发
+                if (source !== 'ContextMenu') return;
+
+                console.log(`--- 从索引 ${index} 删除了 ${amount} 行 ---`);
+
+                if (recentlyRemovedRows.length > 0) {
+                    mockDeleteData(recentlyRemovedRows)
+                        .then(response => {
+                            console.log(`%c[API SUCCESS] ${response.message}`, 'color: green;');
+                        })
+                        .catch(error => {
+                            console.error(`%c[API ERROR] ${error.message}`, 'color: red;');
+                            // 删除失败，需要考虑如何恢复数据。
+                            // 因为handsontable已经移除了行，恢复会比较复杂。
+                            // 最好是通知用户刷新页面。
+                            alert('删除行失败，请刷新页面！');
+                        })
+                        .finally(() => {
+                            recentlyRemovedRows = []; // 操作完成后清空
+                        });
+                }
+            }
+        });
+    }
+
+    // 使用“追加数据 + render”的正确加载逻辑
+    async function loadNextPage() {
+        if (isLoading) return;
+
+        isLoading = true;
+        loadingIndicator.style.display = 'block';
+        currentPage++;
+
+        const response = await mockApiEndpoint(currentPage);
+        hasMoreData = response.hasMore;
+
+        if (response.data.length > 0) {
+            // 获取当前的排序配置
+            const currentSortConfig = hot.getPlugin('multiColumnSorting').getSortConfig();
+            tableData.push(...response.data);
+            hot.loadData(tableData);
+
+            // 如果之前有排序，重新应用排序
+            if (currentSortConfig && currentSortConfig.length > 0) {
+                hot.getPlugin('multiColumnSorting').sort(currentSortConfig);
+            }
+        }
+
+        isLoading = false;
+        loadingIndicator.style.display = 'none';
+
+        if (!hasMoreData) {
+            console.log("所有数据已加载完毕。");
+        }
+    }
+
+    // 启动应用
+    initializeAndLoadTable();
+</script>
+
+</body>
+</html>
