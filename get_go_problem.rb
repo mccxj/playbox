@@ -100,7 +100,7 @@ end
 # end
 
 PROBLEM_IDS = (50000...100001).to_a
-MAX_THREADS = 20
+MAX_THREADS = 40
 
 queue = Queue.new
 PROBLEM_IDS.each { |id| queue << id }
