@@ -77,6 +77,7 @@ function SGFGameApp(args) {
     let sign = nextPlayer;
     const player = sign === 1 ? "B" : "W";
     let newBoard;
+    debugger;
     // 找到有沒有匹配的下法
     for (let node of gameTree.children) {
       if (node.data[player] && node.data[player].length > 0) {
@@ -86,9 +87,11 @@ function SGFGameApp(args) {
         if (ex !== null && ex === x && ey === y) {
           newBoard = boardState.makeMove(sign, [x, y], { preventOverwrite: true, preventSuicide: true });
           setGameTree(node);
-          for (let node of gameTree.children) {
-            if (node.data[-player] && node.data[-player].length > 0) {
-              let coord = node.data.player[0];
+          let tmpGameTree = node;
+          let tmpPlayer = sign === 1 ? "W" : "B";
+          for (let node of tmpGameTree.children) {
+            if (node.data[tmpPlayer] && node.data[tmpPlayer].length > 0) {
+              let coord = node.data[tmpPlayer][0];
               let [ex, ey] = sgfCoordToVertex(coord, boardSize);
               if (ex != null) {
                 newBoard = newBoard.makeMove(-sign, [ex, ey], { preventOverwrite: true, preventSuicide: true });
