@@ -99,6 +99,7 @@ function SGFGameApp(args) {
                 setBoardState(newBoard);
                 setNextPlayer(sign);
                 setGameState(1);
+                return;
               }
             }
           }
