@@ -21,13 +21,18 @@ default: &default
 
 
 development:
-  <<: *default
-  database: db/development.sqlite3
-  username: caixj 
-  password: 123456
-  host: 127.0.0.1 
-  port: 5432
-  min_messages: notice
+  primary:
+    <<: *default
+    database: db/development.sqlite3
+    username: caixj 
+    password: 123456
+    host: 127.0.0.1 
+    port: 5432
+    min_messages: notice
+  queue:
+    <<: *default
+    database: storage/development_queue.sqlite3
+    migrations_paths: db/queue_migrate
 test:
   <<: *default
   database: playbox_test
