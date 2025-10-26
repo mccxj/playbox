@@ -11,4 +11,20 @@
 # It's strongly recommended that you check this file into your version control system.
 
 ActiveRecord::Schema[8.1].define(version: 2025_10_26_002709) do
+  create_table "go_problems", force: :cascade do |t|
+    t.string "author_name"
+    t.string "author_rank_unit"
+    t.integer "author_rank_value"
+    t.datetime "created_at", precision: nil, default: -> { "CURRENT_TIMESTAMP" }
+    t.integer "elo"
+    t.string "genre", null: false
+    t.boolean "is_solved", default: false
+    t.integer "problem_api_id", null: false
+    t.integer "problem_level"
+    t.string "rank_unit"
+    t.integer "rank_value"
+    t.text "sgf", null: false
+    t.string "specific_genre"
+    t.datetime "updated_at", precision: nil, default: -> { "CURRENT_TIMESTAMP" }
+  end
 end

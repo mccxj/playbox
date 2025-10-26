@@ -1,0 +1,27 @@
+<h1>围棋题目详情</h1>
+
+<p><strong>ID:</strong> <%= @go_problem.problem_api_id %></p>
+<p><strong>类型:</strong> <%= @go_problem.genre.humanize %></p>
+<p><strong>难度（段位）:</strong>
+  <% if @go_problem.rank_value && @go_problem.rank_unit %>
+    <%= @go_problem.rank_value %><%= @go_problem.rank_unit %>
+  <% else %>
+    未知
+  <% end %>
+</p>
+<p><strong>ELO 评分:</strong> <%= @go_problem.elo %></p>
+<p><strong>出题人:</strong>
+  <% if @go_problem.author_name %>
+    <%= @go_problem.author_name %>
+    <% if @go_problem.author_rank_value && @go_problem.author_rank_unit %>
+      （<%= @go_problem.author_rank_value %><%= @go_problem.author_rank_unit %>）
+    <% end %>
+  <% else %>
+    未知
+  <% end %>
+</p>
+<%= link_to "返回题目列表", go_problems_path, class: "btn btn-secondary mt-3" %>
+
+<div data-controller="hello" data-hello-sgf-value="<%= @go_problem.sgf %>">
+  <div data-hello-target="root"></div>
+</div>

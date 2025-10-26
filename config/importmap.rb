@@ -4,6 +4,7 @@ pin "application"
 pin "@hotwired/stimulus", to: "stimulus.min.js"
 pin "@hotwired/stimulus-loading", to: "stimulus-loading.js"
 pin_all_from "app/javascript/controllers", under: "controllers"
+pin "components/SGFGameApp", to: "components/SGFGameApp.js"
 pin "@hotwired/turbo-rails", to: "turbo.min.js"
 
 pin "@sabaki/shudan", to: "https://esm.sh/@sabaki/shudan@1.7.1/es2022/shudan.mjs"

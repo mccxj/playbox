@@ -1,0 +1,2 @@
+module GoProblemsHelper
+end

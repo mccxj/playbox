@@ -1,0 +1,71 @@
+# app/views/go_problems/index.html.erb
+<h1>围棋题目列表</h1>
+
+<!-- 题目筛选表单（可选） -->
+<%= form_tag go_problems_path, method: :get, class: "mb-4" do %>
+  <div class="row g-3">
+    <div class="col-md-3">
+      <%= label_tag :genre, "题目类型：" %>
+      <%= select_tag :genre, 
+        options_for_select([["全部", ""], ["定式", "joseki"], ["术语", "elementary"], ["死活题", "life and death"], ["手筋", "tesuji"], ["官子", "endgame"], ["妙手", "best move"], ["布局", "fuseki"]], 
+        params[:genre]),
+        class: "form-select" %>
+    </div>
+    <div class="col-md-3">
+      <%= label_tag :rank_unit, "段位：" %>
+      <%= select_tag :rank_unit, 
+        options_for_select([["全部", ""], ["段", "dan"], ["级", "kyu"]], 
+        params[:rank_unit]),
+        class: "form-select" %>
+    </div>
+    <div class="col-md-2 align-self-end">
+      <%= submit_tag "筛选", class: "btn btn-primary" %>
+      <%= link_to "重置", go_problems_path, class: "btn btn-secondary ms-2" %>
+    </div>
+  </div>
+<% end %>
+
+<!-- 题目列表表格 -->
+<table class="table table-striped">
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>类型</th>
+      <th>难度（段位）</th>
+      <th>ELO 评分</th>
+      <th>出题人</th>
+    </tr>
+  </thead>
+  <tbody>
+    <% @go_problems.each do |problem| %>
+      <tr>
+        <td><%= link_to problem.problem_api_id, go_problem_path(problem) %></td>
+        <td><%= problem.genre.humanize %></td>
+        <td>
+          <% if problem.rank_value && problem.rank_unit %>
+            <%= problem.rank_value %><%= problem.rank_unit %>
+          <% else %>
+            未知
+          <% end %>
+        </td>
+        <td><%= problem.elo %></td>
+        <td>
+          <% if problem.author_name %>
+            <%= problem.author_name %>
+            <% if problem.author_rank_value && problem.author_rank_unit %>
+              （<%= problem.author_rank_value %><%= problem.author_rank_unit %>）
+            <% end %>
+          <% else %>
+            未知
+          <% end %>
+        </td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>
+
+<!-- 分页控件（使用 kaminari 的 helper） -->
+<%= paginate @go_problems, 
+  outer_window: 1,  # 首尾显示 1 个页码
+  inner_window: 2,  # 当前页前后显示 2 个页码
+  class: "pagination justify-content-center" %>

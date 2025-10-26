@@ -23,7 +23,7 @@ default: &default
 development:
   primary:
     <<: *default
-    database: db/development.sqlite3
+    database: db/go_problems.db
     username: caixj 
     password: 123456
     host: 127.0.0.1 
@@ -33,9 +33,6 @@ development:
     <<: *default
     database: storage/development_queue.sqlite3
     migrations_paths: db/queue_migrate
-test:
-  <<: *default
-  database: playbox_test
 
 # As with config/credentials.yml, you never want to store sensitive information,
 # like your database password, in your source code. If your source code is
