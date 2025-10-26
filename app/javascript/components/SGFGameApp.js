@@ -16,13 +16,13 @@ function sgfCoordToVertex(coord, size) {
 }
 
 function calculateSignMapFromTree(gameTree) {
-  const SIZE = parseInt(gameTree.data.SZ ? gameTree.data.SZ[0] : 19);
-  let currentBoard = Board.fromDimensions(SIZE);
+  const size = parseInt(gameTree.data.SZ ? gameTree.data.SZ[0] : 19);
+  let currentBoard = Board.fromDimensions(size);
 
   const processInitialStones = (color, stoneKey) => {
     if (gameTree.data[stoneKey] && gameTree.data[stoneKey].length > 0) {
       for (let coord of gameTree.data[stoneKey]) {
-        const [x, y] = sgfCoordToVertex(coord, SIZE);
+        const [x, y] = sgfCoordToVertex(coord, size);
         if (x !== null) {
           currentBoard = currentBoard.makeMove(color, [x, y], {
             preventOverwrite: false,
@@ -34,33 +34,17 @@ function calculateSignMapFromTree(gameTree) {
   };
   processInitialStones(1, 'AB'); // 黑棋
   processInitialStones(-1, 'AW'); // 白棋
-  // for (const node of gameTree.children) {
-  //   if (node.data.B && node.data.B.length > 0) {
-  //     const coord = node.data.B[0];
-  //     const [x, y] = sgfCoordToVertex(coord, SIZE);
-  //     if (x !== null) {
-  //       currentBoard = currentBoard.makeMove(1, [x, y], { preventOverwrite: false, preventSuicide: true });
-  //     }
-  //   }
-  //   if (node.data.W && node.data.W.length > 0) {
-  //     const coord = node.data.W[0];
-  //     const [x, y] = sgfCoordToVertex(coord, SIZE);
-  //     if (x !== null) {
-  //       currentBoard = currentBoard.makeMove(-1, [x, y], { preventOverwrite: false, preventSuicide: true });
-  //     }
-  //   }
-  // }
-  return { board: currentBoard, boardSize: SIZE };
+  currentBoard.nextPlay = (gameTree.data.PL === 'W' || gameTree.children[0].data.W) ? -1 : 1;
+  return { board: currentBoard, boardSize: size };
 }
 
 function SGFGameApp(args) {
-  const { initialBoard, initialBoardSize } = useMemo(() => {
+  const { initialBoard, initialBoardSize, initGameTree } = useMemo(() => {
     try {
-      console.log(args.sgf);
       const [gameTree] = parse(args.sgf);
       if (gameTree) {
         const { board, boardSize } = calculateSignMapFromTree(gameTree);
-        return { initialBoard: board, initialBoardSize: boardSize };
+        return { initialBoard: board, initialBoardSize: boardSize, initGameTree: gameTree };
       }
     } catch (error) {
       console.error("SGF 解析或处理失败:", error);
@@ -74,12 +58,14 @@ function SGFGameApp(args) {
   const [showCoordinates] = useState(true);
   const [nextPlayer, setNextPlayer] = useState(boardState.nextPlay);
   const [ghostStoneMap, setGhostStoneMap] = useState(null);
+  const [gameTree, setGameTree] = useState(initGameTree);
+  const [gameState, setGameState] = useState(0);
 
   const handleVertexMouseMove = (_, [x, y]) => {
     const markMap = Array.from({ length: boardSize }, () =>
       Array.from({ length: boardSize }, () => null)
     );
-    markMap[y][x] = { sign: 1 }
+    markMap[y][x] = { sign: nextPlayer }
     setGhostStoneMap(markMap)
   }
 
@@ -89,29 +75,55 @@ function SGFGameApp(args) {
 
   const handleVertexClick = (evt, [x, y]) => {
     let sign = nextPlayer;
-
-    let newBoard = boardState.makeMove(sign, [x, y], {
-      preventOverwrite: true,
-      preventSuicide: true
-    });
-
+    const player = sign === 1 ? "B" : "W";
+    let newBoard;
+    // 找到有沒有匹配的下法
+    for (let node of gameTree.children) {
+      if (node.data[player] && node.data[player].length > 0) {
+        let coord = node.data[player][0];
+        let [ex, ey] = sgfCoordToVertex(coord, boardSize);
+        // 找到了，可能是正確的，也可能是錯誤的分支
+        if (ex !== null && ex === x && ey === y) {
+          newBoard = boardState.makeMove(sign, [x, y], { preventOverwrite: true, preventSuicide: true });
+          setGameTree(node);
+          for (let node of gameTree.children) {
+            if (node.data[-player] && node.data[-player].length > 0) {
+              let coord = node.data.player[0];
+              let [ex, ey] = sgfCoordToVertex(coord, boardSize);
+              if (ex != null) {
+                newBoard = newBoard.makeMove(-sign, [ex, ey], { preventOverwrite: true, preventSuicide: true });
+                setGameTree(node);
+                setBoardState(newBoard);
+                setNextPlayer(sign);
+                setGameState(1);
+              }
+            }
+          }
+        }
+      }
+    }
+    // 沒有找到，只能說明錯誤了
+    newBoard = boardState.makeMove(sign, [x, y], { preventOverwrite: true, preventSuicide: true });
     if (newBoard !== boardState) {
       setBoardState(newBoard);
       setNextPlayer(-sign);
+      setGameState(-1);
     }
   };
 
   return (
-    h(Goban, {
-      signMap: boardState.signMap,
-      boardSize: boardSize,
-      vertexSize: vertexSize,
-      showCoordinates: showCoordinates,
-      ghostStoneMap: ghostStoneMap,
-      onVertexMouseMove: handleVertexMouseMove,
-      onVertexMouseLeave: handleVertexMouseLeave,
-      onVertexClick: handleVertexClick,
-    })
+    h("p", null, gameState,
+      h(Goban, {
+        signMap: boardState.signMap,
+        boardSize: boardSize,
+        vertexSize: vertexSize,
+        showCoordinates: showCoordinates,
+        ghostStoneMap: ghostStoneMap,
+        onVertexMouseMove: handleVertexMouseMove,
+        onVertexMouseLeave: handleVertexMouseLeave,
+        onVertexClick: handleVertexClick,
+      })
+    )
   );
 }
 
