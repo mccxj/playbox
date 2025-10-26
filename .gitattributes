@@ -5,6 +5,6 @@ db/schema.rb linguist-generated
 vendor/* linguist-vendored
 config/credentials/*.yml.enc diff=rails_credentials
 config/credentials.yml.enc diff=rails_credentials
-go_problems.db-wal filter=lfs diff=lfs merge=lfs -text
-go_problems.db filter=lfs diff=lfs merge=lfs -text
-go_problems.db-shm filter=lfs diff=lfs merge=lfs -text
+db/go_problems.db-wal filter=lfs diff=lfs merge=lfs -text
+db/go_problems.db filter=lfs diff=lfs merge=lfs -text
+db/go_problems.db-shm filter=lfs diff=lfs merge=lfs -text
