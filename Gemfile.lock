@@ -1,6 +1,7 @@
 GEM
   remote: https://rubygems.org/
   specs:
+    SgfParser (3.0.1)
     action_text-trix (2.1.15)
       railties
     actioncable (8.1.0)
@@ -408,6 +409,7 @@ PLATFORMS
   x86_64-linux-musl
 
 DEPENDENCIES
+  SgfParser
   bootsnap
   brakeman
   capybara

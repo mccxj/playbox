@@ -32,8 +32,8 @@ function calculateSignMapFromTree(gameTree) {
       }
     }
   };
-  processInitialStones(1, 'AB'); // 黑棋
-  processInitialStones(-1, 'AW'); // 白棋
+  processInitialStones(1, 'AB'); // 初始化黑棋
+  processInitialStones(-1, 'AW'); // 初始化白棋
   currentBoard.nextPlay = (gameTree.data.PL === 'W' || gameTree.children[0].data.W) ? -1 : 1;
   return { board: currentBoard, boardSize: size };
 }
@@ -61,6 +61,7 @@ function SGFGameApp(args) {
   const [gameTree, setGameTree] = useState(initGameTree);
   const [gameState, setGameState] = useState(0);
 
+  // 给鼠标所在位置上显示当前落子预期落子位置和颜色
   const handleVertexMouseMove = (_, [x, y]) => {
     const markMap = Array.from({ length: boardSize }, () =>
       Array.from({ length: boardSize }, () => null)
@@ -77,7 +78,6 @@ function SGFGameApp(args) {
     let sign = nextPlayer;
     const player = sign === 1 ? "B" : "W";
     let newBoard;
-    debugger;
     // 找到有沒有匹配的下法
     for (let node of gameTree.children) {
       if (node.data[player] && node.data[player].length > 0) {
