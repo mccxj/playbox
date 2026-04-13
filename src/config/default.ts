@@ -1,0 +1,93 @@
+/**
+ * Default configuration for the AI API Gateway Worker
+ */
+
+import { Provider } from '../types/provider';
+
+export interface Config {
+	providers: Provider;
+	default_provider: string;
+}
+
+export const DEFAULT_CONFIG: Config = {
+	providers: {
+		longcat: {
+			type: 'openai',
+			family: 'openai',
+			endpoint: 'https://api.longcat.chat/openai',
+			key: 'LongCat',
+			models: ['LongCat-Flash-Chat', 'LongCat-Flash-Lite', 'LongCat-Flash-Thinking'],
+		},
+		longcat_claude: {
+			type: 'anthropic',
+			family: 'anthropic',
+			endpoint: 'https://api.longcat.chat/anthropic',
+			key: 'LongCat',
+			models: ['LongCat-Flash-Chat', 'LongCat-Flash-Lite', 'LongCat-Flash-Thinking'],
+			authType: 'bearer',
+		},
+		cerebras: {
+			type: 'openai',
+			family: 'openai',
+			endpoint: 'https://api.cerebras.ai',
+			key: 'Cerebras',
+			models: ['qwen-3-235b-a22b-instruct-2507'],
+		},
+		gemini: {
+			type: 'google',
+			family: 'gemini',
+			endpoint: 'https://generativelanguage.googleapis.com',
+			key: 'Gemini',
+			models: [
+				'gemini-3-flash-preview',
+				'gemini-2.5-flash',
+				'gemini-flash-lite-latest',
+				'gemini-2.5-flash-lite',
+				'gemini-3.1-flash-live-preview',
+				'gemma-4-31b-it',
+			],
+		},
+		// 'gemini-cli': {
+		// 	type: 'gemini-cli',
+		// 	family: 'gemini',
+		// 	endpoint: 'https://cloudcode-pa.googleapis.com/v1internal',
+		// 	key: 'Gemini',
+		// 	models: ['gemini-3-flash-preview', 'gemini-3.1-flash-lite-preview', 'gemini-2.5-flash', 'gemini-2.5-flash-lite'],
+		// },
+		modelscope: {
+			type: 'openai',
+			family: 'openai',
+			endpoint: 'https://api-inference.modelscope.cn',
+			key: 'ModelScope',
+			models: [
+				'deepseek-ai/DeepSeek-V3.2',
+				'MiniMax/MiniMax-M2.5',
+				'moonshotai/Kimi-K2.5',
+				'Qwen/Qwen3.5-397B-A17B',
+				'Qwen/Qwen3.5-35B-A3B',
+				'Qwen/Qwen3.5-27B',
+				'Qwen/Qwen3.5-122B-A10B',
+				'ZhipuAI/GLM-5',
+				'ZhipuAI/GLM-4.7-Flash',
+			],
+		},
+		nvidia: {
+			type: 'openai',
+			family: 'openai',
+			endpoint: 'https://integrate.api.nvidia.com',
+			key: 'Nvidia',
+			models: [
+				'z-ai/glm4.7',
+				'z-ai/glm5',
+				'qwen/qwen3-coder-480b-a35b-instruct',
+				'qwen/qwen3.5-397b-a17b',
+				'qwen/qwen3.5-122b-a10b',
+				'google/gemma-4-31b-it',
+				'minimaxai/minimax-m2.5',
+				'moonshotai/kimi-k2.5',
+				'nvidia/nemotron-3-super-120b-a12b',
+			],
+		},
+	},
+	default_provider: 'longcat',
+};

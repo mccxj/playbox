@@ -1,0 +1,19 @@
+import { ProtocolAdapter, Env, Provider, ExecutionContext } from './types';
+import { KeyManager } from '../managers/key';
+
+export function createOpenAIProtocol(): ProtocolAdapter {
+	return {
+		name: 'openai',
+		getAttempt: () => 3,
+		getApiKey: async (env: Env, provider: Provider, ctx: ExecutionContext): Promise<string> =>
+			KeyManager.getRandomApiKey(env, provider, ctx),
+    getEndpoint: async (provider: Provider, model: string, isStream: boolean, apiKey: string): Promise<string> => {
+      const baseUrl = provider.endpoint ?? 'https://api.openai.com';
+      return `${baseUrl}/v1/chat/completions`;
+    },
+		getHeaders: async (provider: Provider, env: Env, ctx: ExecutionContext, apiKey: string): Promise<Record<string, string>> => ({
+			'Content-Type': 'application/json',
+			Authorization: `Bearer ${apiKey}`,
+		}),
+	};
+}

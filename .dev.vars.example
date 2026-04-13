@@ -1,0 +1,6 @@
+# Local development secrets
+# Copy this file to .dev.vars and fill in your actual values
+# NEVER commit .dev.vars to git
+
+# API authentication token
+AUTH_TOKEN=your-secret-token-here
