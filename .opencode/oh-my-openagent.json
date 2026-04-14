@@ -1,0 +1,83 @@
+{
+  "$schema": "https://raw.githubusercontent.com/code-yeongyu/oh-my-opencode/dev/assets/oh-my-opencode.schema.json",
+  "agents": {
+    "hephaestus": {
+      "model": "x-openai/qwen/qwen3-coder-480b-a35b-instruct",
+      "temperature": 0.1
+    },
+    "oracle": {
+      "model": "x-openai/LongCat-Flash-Thinking",
+      "temperature": 0.1
+    },
+    "librarian": {
+      "model": "x-openai/LongCat-Flash-Lite",
+      "temperature": 0.1
+    },
+    "explore": {
+      "model": "x-openai/minimaxai/minimax-m2.5",
+      "temperature": 0.1
+    },
+    "multimodal-looker": {
+      "model": "x-openai/moonshotai/kimi-k2.5",
+      "temperature": 0.1
+    },
+    "prometheus": {
+      "model": "x-openai/LongCat-Flash-Thinking",
+      "temperature": 0.1
+    },
+    "metis": {
+      "model": "x-openai/moonshotai/kimi-k2.5",
+      "temperature": 0.1
+    },
+    "momus": {
+      "model": "x-openai/LongCat-Flash-Lite",
+      "temperature": 0.1
+    },
+    "atlas": {
+      "model": "x-openai/z-ai/glm5",
+      "temperature": 0.1
+    },
+    "sisyphus-junior": {
+      "model": "x-openai/LongCat-Flash-Lite",
+      "temperature": 0.1
+    },
+    "sisyphus": {
+      "model": "x-openai/z-ai/glm5",
+      "temperature": 0.1
+    }
+  },
+  "categories": {
+    "visual-engineering": {
+      "model": "x-openai/moonshotai/kimi-k2.5",
+      "temperature": 0.1
+    },
+    "ultrabrain": {
+      "model": "x-openai/LongCat-Flash-Thinking",
+      "temperature": 0.1
+    },
+    "deep": {
+      "model": "x-openai/z-ai/glm5",
+      "temperature": 0.1
+    },
+    "artistry": {
+      "model": "x-openai/minimaxai/minimax-m2.5",
+      "temperature": 0.1
+    },
+    "quick": {
+      "model": "x-openai/LongCat-Flash-Lite",
+      "temperature": 0.1
+    },
+    "unspecified-low": {
+      "model": "x-openai/LongCat-Flash-Lite",
+      "temperature": 0.1
+    },
+    "unspecified-high": {
+      "model": "x-openai/qwen/qwen3.5-397b-a17b",
+      "temperature": 0.1
+    },
+    "writing": {
+      "model": "x-openai/qwen/qwen3.5-397b-a17b",
+      "temperature": 0.1
+    }
+  }
+}
