@@ -4,7 +4,6 @@ import { createJsonResponse, createInternalErrorResponse } from '@/lib/response-
 import { validateSafeUrl } from '@/utils/ssrf-protection';
 import { getCloudflareContext } from '@opennextjs/cloudflare';
 
-export const runtime = 'edge';
 export const dynamic = 'force-dynamic';
 
 async function logDownload(url: string, filename: string, size: number, status: string, error?: string, rangeHeader?: string): Promise<void> {

@@ -3,7 +3,6 @@ import { getCloudflareContext } from '@opennextjs/cloudflare';
 import { createJsonResponse, createInternalErrorResponse } from '@/lib/response-helpers';
 import { validateSafeUrl } from '@/utils/ssrf-protection';
 
-export const runtime = 'edge';
 export const dynamic = 'force-dynamic';
 
 interface HeaderEntry {

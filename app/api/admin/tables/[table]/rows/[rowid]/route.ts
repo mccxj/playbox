@@ -2,7 +2,6 @@ import { NextRequest } from 'next/server';
 import { getCloudflareContext } from '@opennextjs/cloudflare';
 import { createJsonResponse, createInternalErrorResponse, createNotFoundResponse } from '@/lib/response-helpers';
 
-export const runtime = 'edge';
 export const dynamic = 'force-dynamic';
 
 interface ColumnInfo {

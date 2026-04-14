@@ -5,7 +5,6 @@ import { createJsonResponse, createUnauthorizedResponse } from '@/lib/response-h
 import { getConfig } from '@/config';
 import type { Env } from '@/types';
 
-export const runtime = 'edge';
 export const dynamic = 'force-dynamic';
 
 interface GeminiModel {

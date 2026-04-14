@@ -118,7 +118,7 @@ AI API Gateway & Protocol Converter — converts between AI provider protocols (
 - **Multi-protocol**: Supports OpenAI, Anthropic, Google, Gemini CLI formats
 - **KV caching**: Access tokens cached in PLAYBOX_KV with automatic refresh
 - **CORS headers**: All responses include CORS headers from `utils/constants.ts`
-- **Edge runtime**: All API routes use `export const runtime = 'edge'`
+- **OpenNext for Cloudflare**: Uses `@opennextjs/cloudflare` for deployment (NOT `@cloudflare/next-on-pages`)
 - **Dynamic rendering**: API routes use `export const dynamic = 'force-dynamic'`
 - **Ant Design**: Admin UI uses Ant Design components
 - **Recharts**: Analytics dashboard uses Recharts for visualizations
@@ -128,11 +128,11 @@ AI API Gateway & Protocol Converter — converts between AI provider protocols (
 ## COMMANDS
 
 ```bash
-npm run dev        # Start local dev server (wrangler pages dev)
-npm run build      # Build Next.js app
-npm run deploy     # Deploy to Cloudflare (next-on-pages + wrangler pages deploy)
+npm run dev # Start local dev server (next dev)
+npm run build # Build Next.js app
+npm run deploy # Deploy to Cloudflare (opennextjs-cloudflare build + deploy)
 npm run cf-typegen # Regenerate worker types from wrangler.jsonc
-npm test           # Run Vitest tests
+npm test # Run Vitest tests
 ```
 
 ## NOTES
@@ -148,7 +148,7 @@ npm test           # Run Vitest tests
 - **Test coverage**: 70% branches, 85% functions, 80% lines (enforced)
 - **SSRF protection**: Blocks private IPs, link-local, multicast, and blocked TLDs (.local, .internal, .localhost)
 - **D1 schema**: Managed via prisma/migrations/
-- **Cloudflare context**: Use `getRequestContext()` from `@cloudflare/next-on-pages`
+- **Cloudflare context**: Use `getCloudflareContext()` from `@opennextjs/cloudflare`
 - **Analytics**: Requires `ANALYTICS_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` secrets
 - **GitHub proxy**: Configured via `GH_PROXY_JSD_ENABLE` env var (0=disabled, 1=jsDelivr CDN) — **NOTE: Route not implemented**
 

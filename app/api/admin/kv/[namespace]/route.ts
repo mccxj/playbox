@@ -3,7 +3,6 @@ import { getCloudflareContext } from '@opennextjs/cloudflare';
 import { createJsonResponse, createInternalErrorResponse, createNotFoundResponse } from '@/lib/response-helpers';
 import type { KVKeyInfo, KVListResponse } from '@/types/kv';
 
-export const runtime = 'edge';
 export const dynamic = 'force-dynamic';
 
 const MAX_LIMIT = 1000;

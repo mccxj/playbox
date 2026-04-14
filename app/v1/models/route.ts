@@ -5,7 +5,6 @@ import { createJsonResponse, createUnauthorizedResponse } from '@/lib/response-h
 import { getConfig } from '@/config';
 import type { Env } from '@/types';
 
-export const runtime = 'edge';
 // Force dynamic rendering for API routes that use request headers
 export const dynamic = 'force-dynamic';
 

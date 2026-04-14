@@ -4,7 +4,6 @@ import { createJsonResponse, createInternalErrorResponse } from '@/lib/response-
 import { getConfig } from '@/config';
 import { ProtocolFamily } from '@/types/provider';
 
-export const runtime = 'edge';
 export const dynamic = 'force-dynamic';
 
 interface ModelInfo {

@@ -26,7 +26,7 @@ v1/
 ## CONVENTIONS
 
 - **Location**: `app/v1/` (NOT `app/api/v1/`) — intentional non-standard
-- **Runtime**: `export const runtime = 'edge'`
+- **Dynamic**: `export const dynamic = 'force-dynamic'`
 - **Dynamic**: `export const dynamic = 'force-dynamic'`
 - **Auth**: `authenticate()` from `@/lib/auth`
 - **Protocols**: Use `ProtocolFactory.get(type)` from `@/protocols`

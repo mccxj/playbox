@@ -37,7 +37,7 @@ v1beta/
 - **Location**: `app/v1beta/` (mirrors Google's API versioning)
 - **Standard paths**: Follows Google Gemini REST API format (`models/{model}:generateContent`)
 - **Catch-all routing**: `[...action]` captures colon-separated action (Next.js limitation)
-- **Runtime**: `export const runtime = 'edge'`
+- **Dynamic**: `export const dynamic = 'force-dynamic'`
 - **Dynamic**: `export const dynamic = 'force-dynamic'`
 - **Auth**: `authenticate()` from `@/lib/auth`
 - **Format**: Gemini native JSON format (not OpenAI-compatible)

@@ -18,7 +18,6 @@ interface TokenUsage {
   total_tokens: number;
 }
 
-export const runtime = 'edge';
 export const dynamic = 'force-dynamic';
 
 interface MessagesBody {
