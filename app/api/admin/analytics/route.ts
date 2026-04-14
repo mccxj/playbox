@@ -1,8 +1,7 @@
 import { NextRequest } from 'next/server';
-import { getRequestContext } from '@cloudflare/next-on-pages';
+import { getCloudflareContext } from '@opennextjs/cloudflare';
 import { createJsonResponse, createInternalErrorResponse } from '@/lib/response-helpers';
 
-export const runtime = 'edge';
 export const dynamic = 'force-dynamic';
 
 interface AnalyticsRow {
@@ -33,7 +32,7 @@ interface TokenTimeSeriesRow {
 }
 
 export async function GET(request: NextRequest) {
-	const { env } = getRequestContext();
+	const { env } = getCloudflareContext();
 	const searchParams = request.nextUrl.searchParams;
 
 	const startDate = searchParams.get('startDate');

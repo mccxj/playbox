@@ -1,5 +1,5 @@
 import { NextRequest } from 'next/server';
-import { getRequestContext } from '@cloudflare/next-on-pages';
+import { getCloudflareContext } from '@opennextjs/cloudflare';
 import { authenticate } from '@/lib/auth';
 import { createUnauthorizedResponse } from '@/lib/response-helpers';
 import { getConfig, resolveProvider } from '@/config';
@@ -18,7 +18,6 @@ interface TokenUsage {
   total_tokens: number;
 }
 
-export const runtime = 'edge';
 export const dynamic = 'force-dynamic';
 
 interface GeminiGenerateRequest {
@@ -64,7 +63,7 @@ export async function POST(
 ) {
   const logger = createLogger();
 
-  const { env: rawEnv, ctx } = getRequestContext();
+	const { env: rawEnv, ctx } = getCloudflareContext();
   const env = rawEnv as unknown as Env;
 
   const authResult = authenticate(request as any, env);

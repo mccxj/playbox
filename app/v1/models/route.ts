@@ -1,11 +1,10 @@
 import { NextRequest } from 'next/server';
-import { getRequestContext } from '@cloudflare/next-on-pages';
+import { getCloudflareContext } from '@opennextjs/cloudflare';
 import { authenticate } from '@/lib/auth';
 import { createJsonResponse, createUnauthorizedResponse } from '@/lib/response-helpers';
 import { getConfig } from '@/config';
 import type { Env } from '@/types';
 
-export const runtime = 'edge';
 // Force dynamic rendering for API routes that use request headers
 export const dynamic = 'force-dynamic';
 
@@ -19,7 +18,7 @@ interface ModelInfo {
 
 
 export async function GET(request: NextRequest) {
-  const { env: rawEnv } = getRequestContext();
+	const { env: rawEnv } = getCloudflareContext();
   const env = rawEnv as unknown as Env;
 
   if (!authenticate(request as any, env)) {

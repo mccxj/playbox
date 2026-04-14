@@ -166,5 +166,6 @@ dist
 !.env.example
 .wrangler/
 .vercel
+.open-next/
 graphify-out
 .graphify*

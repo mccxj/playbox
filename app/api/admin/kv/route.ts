@@ -1,7 +1,6 @@
 import { NextRequest } from 'next/server';
 import { createJsonResponse, createInternalErrorResponse } from '@/lib/response-helpers';
 
-export const runtime = 'edge';
 export const dynamic = 'force-dynamic';
 
 interface KVNamespaceInfo {

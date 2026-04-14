@@ -1,3 +1,7 @@
+const { initOpenNextCloudflareForDev } = require('@opennextjs/cloudflare');
+
+initOpenNextCloudflareForDev();
+
 const nextConfig = {
   webpack: (config, { isServer }) => {
     if (!isServer) {
