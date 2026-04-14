@@ -46,9 +46,12 @@ export async function GET(request: NextRequest) {
 	const accountId = envVars.CLOUDFLARE_ACCOUNT_ID;
 
 	if (!apiToken || !accountId) {
+		const missing: string[] = [];
+		if (!apiToken) missing.push('ANALYTICS_API_TOKEN');
+		if (!accountId) missing.push('CLOUDFLARE_ACCOUNT_ID');
 		return createJsonResponse({
 			success: false,
-			error: 'Analytics API not configured. Run: wrangler secret put ANALYTICS_API_TOKEN',
+			error: `Analytics API not configured. Missing: ${missing.join(', ')}. Run: wrangler secret put <VAR_NAME>`,
 		}, 500);
 	}
 
