@@ -30,3 +30,5 @@ jobs:
           API_KEY: ${{ secrets.API_KEY }}
           TAVILY_API_KEY: ${{ secrets.TAVILY_API_KEY }}
           CONTEXT7_API_KEY: ${{ secrets.CONTEXT7_API_KEY }}
+        with:
+          model: z-ai/glm5
