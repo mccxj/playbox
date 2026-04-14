@@ -24,10 +24,9 @@ jobs:
         uses: actions/checkout@v6
         with:
           persist-credentials: false
-
       - name: Run opencode
         uses: anomalyco/opencode/github@latest
         env:
-          OPENCODE_API_KEY: ${{ secrets.OPENCODE_API_KEY }}
-        with:
-          model: opencode/big-pickle
+          API_KEY: ${{ secrets.API_KEY }}
+          TAVILY_API_KEY: ${{ secrets.TAVILY_API_KEY }}
+          CONTEXT7_API_KEY: ${{ secrets.CONTEXT7_API_KEY }}
