@@ -3,16 +3,16 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "dev": "npm run build && wrangler pages dev",
+    "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "deploy": "npx @cloudflare/next-on-pages@1 && wrangler pages deploy",
+    "preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
+    "deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy",
     "test": "vitest",
-    "cf-typegen": "wrangler types",
+    "cf-typegen": "wrangler types --env-interface CloudflareEnv cloudflare-env.d.ts",
     "smoke-test": "SMOKE_SKIP_ANTHROPIC=1 node scripts/smoke-test.mjs"
   },
   "devDependencies": {
-    "@cloudflare/next-on-pages": "~1.13.0",
     "@cloudflare/vitest-pool-workers": "^0.12.4",
     "@types/node": "^25.5.0",
     "@types/react": "^19.2.14",
@@ -25,6 +25,7 @@
   },
   "dependencies": {
     "@ant-design/icons": "^6.1.1",
+    "@opennextjs/cloudflare": "^1.1.0",
     "antd": "^6.3.5",
     "dayjs": "^1.11.20",
     "next": "15.5.15",

@@ -1,5 +1,5 @@
 import { NextRequest } from 'next/server';
-import { getRequestContext } from '@cloudflare/next-on-pages';
+import { getCloudflareContext } from '@opennextjs/cloudflare';
 import { createJsonResponse, createInternalErrorResponse, createNotFoundResponse } from '@/lib/response-helpers';
 
 export const runtime = 'edge';
@@ -57,7 +57,7 @@ export async function POST(
   { params }: { params: Promise<{ table: string }> }
 ) {
   try {
-    const { env } = getRequestContext() as any;
+		const { env } = getCloudflareContext() as any;
     const db = env.PLAYBOX_D1;
 
     if (!db) {

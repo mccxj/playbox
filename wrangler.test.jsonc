@@ -1,0 +1,35 @@
+/**
+ * Wrangler config for local development and testing
+ * This config is used by vitest and local dev server
+ */
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "playbox",
+  "compatibility_date": "2026-04-03",
+  "compatibility_flags": [
+    "nodejs_compat",
+    "global_fetch_strictly_public"
+  ],
+  "d1_databases": [
+    {
+      "binding": "PLAYBOX_D1",
+      "database_id": "53a52a57-8375-4979-b764-b9277b5b1cb7",
+      "database_name": "playbox-test"
+    }
+  ],
+  "kv_namespaces": [
+    {
+      "id": "85fe9a9b4cd54015b78dcba0c5486279",
+      "binding": "PLAYBOX_KV"
+    }
+  ],
+  "analytics_engine_datasets": [
+    {
+      "binding": "PLAYBOX_EVENTS",
+      "dataset": "playbox_events"
+    }
+  ],
+  "vars": {
+    "GH_PROXY_JSD_ENABLE": "0"
+  }
+}

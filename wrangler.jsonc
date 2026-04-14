@@ -1,21 +1,20 @@
 /**
- * For more details on how to configure Wrangler, refer to:
- * https://developers.cloudflare.com/workers/wrangler/configuration/
- */
+* For more details on how to configure Wrangler, refer to:
+* https://developers.cloudflare.com/workers/wrangler/configuration/
+*/
 {
-	"$schema": "node_modules/wrangler/config-schema.json",
-	"name": "playbox",
-	// "main": "src/worker.ts", // Removed for Next.js compatibility
-	"compatibility_date": "2026-04-03",
-	"compatibility_flags": [
-		"nodejs_compat",
-		"global_fetch_strictly_public"
-	],
-	// "assets": {
-	// 	// The path to the directory containing the `index.html` file to be served at `/`
-	// 	"directory": "./public",
-	// },
-	"pages_build_output_dir": ".vercel/output/static",
+"$schema": "node_modules/wrangler/config-schema.json",
+"name": "playbox",
+"main": ".open-next/worker.js",
+"compatibility_date": "2026-04-03",
+"compatibility_flags": [
+"nodejs_compat",
+"global_fetch_strictly_public"
+],
+"assets": {
+"directory": ".open-next/assets",
+"binding": "ASSETS"
+},
 	"observability": {
 		"enabled": true,
 	},

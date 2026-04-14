@@ -1,5 +1,5 @@
 import { NextRequest } from 'next/server';
-import { getRequestContext } from '@cloudflare/next-on-pages';
+import { getCloudflareContext } from '@opennextjs/cloudflare';
 import { authenticate } from '@/lib/auth';
 import { createUnauthorizedResponse } from '@/lib/response-helpers';
 import { getConfig, resolveProvider } from '@/config';
@@ -31,7 +31,7 @@ interface ChatBody {
 export async function POST(request: NextRequest) {
   const logger = createLogger();
 
-  const { env: rawEnv, ctx } = getRequestContext();
+	const { env: rawEnv, ctx } = getCloudflareContext();
   const env = rawEnv as unknown as Env;
 
   const authResult = authenticate(request as any, env);

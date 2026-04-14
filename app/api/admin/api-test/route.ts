@@ -1,5 +1,5 @@
 import { NextRequest } from 'next/server';
-import { getRequestContext } from '@cloudflare/next-on-pages';
+import { getCloudflareContext } from '@opennextjs/cloudflare';
 import { createJsonResponse, createInternalErrorResponse } from '@/lib/response-helpers';
 import { validateSafeUrl } from '@/utils/ssrf-protection';
 
@@ -45,7 +45,7 @@ function getContentType(format: BodyFormat): string {
 
 export async function POST(request: NextRequest) {
 	try {
-		const { env } = getRequestContext() as any;
+		const { env } = getCloudflareContext() as any;
 		const db = env.PLAYBOX_D1;
 
 		const body = await request.json() as {

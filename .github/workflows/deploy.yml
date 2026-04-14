@@ -22,17 +22,20 @@ jobs:
       run: npm ci
 
     - name: Build project
-      run: npx @cloudflare/next-on-pages@1
+      run: npm run build
 
     - name: Run tests
       run: npm test
+
+    - name: Build for Cloudflare
+      run: npx opennextjs-cloudflare build
 
     - name: Upload build artifacts
       if: github.event_name == 'push'
       uses: actions/upload-artifact@v4
       with:
         name: build-output
-        path: .vercel/output/static
+        path: .open-next
         retention-days: 1
 
   deploy:
@@ -46,14 +49,14 @@ jobs:
       uses: actions/download-artifact@v4
       with:
         name: build-output
-        path: .vercel/output/static
+        path: .open-next
 
     - name: Deploy to Cloudflare Pages
       uses: cloudflare/wrangler-action@v3
       with:
         apiToken: ${{ secrets.CF_API_TOKEN }}
         accountId: ${{ secrets.CF_ACCOUNT_ID }}
-        command: pages deploy .vercel/output/static --project-name=playbox
+        command: pages deploy .open-next/assets --project-name=playbox
       env:
         CLOUDFLARE_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
         CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}

@@ -1,5 +1,5 @@
 import { NextRequest } from 'next/server';
-import { getRequestContext } from '@cloudflare/next-on-pages';
+import { getCloudflareContext } from '@opennextjs/cloudflare';
 import { createJsonResponse, createInternalErrorResponse } from '@/lib/response-helpers';
 import { getConfig } from '@/config';
 import { ProtocolFamily } from '@/types/provider';
@@ -63,7 +63,7 @@ async function fetchGeminiModels(baseUrl: string, apiKey: string): Promise<Model
 
 export async function GET(request: NextRequest) {
   try {
-    const { env } = getRequestContext() as any;
+		const { env } = getCloudflareContext() as any;
     const config = getConfig(env);
 
     const providersByFamily: Record<ProtocolFamily, ProviderModels[]> = {
