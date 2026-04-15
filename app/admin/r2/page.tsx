@@ -1,5 +1,28 @@
 'use client';
 
+import { Alert } from 'antd';
+
+// DISABLED: R2 temporarily disabled for deployment without R2 binding
+// To restore: Replace this file with the original implementation from git history
+
+export default function R2AdminPage() {
+	return (
+		<div style={{ padding: '40px 20px' }}>
+			<Alert
+				message="R2 Storage Temporarily Disabled"
+				description="R2 storage functionality has been temporarily disabled to allow deployment without R2 binding. Please contact the administrator to enable R2."
+				type="info"
+				showIcon
+			/>
+		</div>
+	);
+}
+
+/*
+DISABLED: Original R2AdminPage implementation preserved below for future restoration
+
+'use client';
+
 import { useState, useEffect, useCallback } from 'react';
 import dynamic from 'next/dynamic';
 import {
@@ -494,8 +517,8 @@ function ObjectDetails({ bucket, keyName, onDownload }: { bucket: string; keyNam
 				const response = await fetch(`/api/admin/r2/${bucket}/${encodeURIComponent(keyName)}`, {
 					method: 'HEAD',
 				});
-		const data = await response.json() as any;
-		if (data.success) {
+				const data = await response.json() as any;
+				if (data.success) {
 					setMetadata(data);
 				}
 			} catch (err) {
@@ -545,3 +568,4 @@ function ObjectDetails({ bucket, keyName, onDownload }: { bucket: string; keyNam
 		</div>
 	);
 }
+*/

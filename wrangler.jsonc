@@ -60,12 +60,13 @@
 			"dataset": "playbox_events"
 		}
 	],
-	"r2_buckets": [
-		{
-			"binding": "PLAYBOX_R2",
-			"bucket_name": "playbox-r2"
-		}
-	],
+	// DISABLED: R2 temporarily disabled for deployment without R2 binding
+	// "r2_buckets": [
+	// 	{
+	// 		"binding": "PLAYBOX_R2",
+	// 		"bucket_name": "playbox-r2"
+	// 	}
+	// ],
 	/**
 	 * Environment Variables
 	 * https://developers.cloudflare.com/workers/wrangler/configuration/#environment-variables
