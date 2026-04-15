@@ -1,10 +1,10 @@
 # PROJECT KNOWLEDGE BASE
 
-**Stack:** Next.js 15 + TypeScript + Vitest + Wrangler + Ant Design
+**Stack:** Next.js 15 + TypeScript + Vitest + Wrangler + Ant Design + Recharts
 
 ## OVERVIEW
 
-AI API Gateway & Protocol Converter — converts between AI provider protocols (OpenAI, Anthropic, Google, Gemini CLI) on Next.js with Cloudflare Workers deployment. Multi-protocol support with OAuth token management, D1 key storage, KV caching, GitHub proxy, and download proxy with SSRF protection.
+AI API Gateway & Protocol Converter — converts between AI provider protocols (OpenAI, Anthropic, Google, Gemini CLI) on Next.js with Cloudflare Workers deployment. Multi-protocol support with OAuth token management, D1 key storage, KV caching, GitHub proxy, download proxy with SSRF protection, and Cloudflare Analytics Engine integration.
 
 ## STRUCTURE
 
@@ -35,6 +35,7 @@ AI API Gateway & Protocol Converter — converts between AI provider protocols (
 │ │ ├── kv/ # KV management UI
 │ │ ├── download/ # Download proxy management
 │ │ ├── chat/ # Chat test interface
+│ │ ├── api-test/ # API testing interface
 │ │ ├── analytics/ # API usage analytics
 │ │ └── components/ # Shared admin components
 │ ├── api/download/ # Download proxy endpoint
@@ -72,6 +73,7 @@ AI API Gateway & Protocol Converter — converts between AI provider protocols (
 | Public API endpoints | `app/v1/` | Chat completions, models, messages |
 | Gemini native endpoints | `app/v1beta/` | Standard Google Gemini REST paths (`models/{model}:generateContent`) |
 | Admin UI pages | `app/admin/` | React + Ant Design components |
+| API testing UI | `app/admin/api-test/` | Interactive API testing interface |
 | Analytics API | `app/api/admin/analytics/` | Cloudflare Analytics Engine queries |
 | Analytics UI | `app/admin/analytics/` | Charts with Recharts |
 | KV/D1 bindings | `wrangler.jsonc` | PLAYBOX_KV, PLAYBOX_D1 |

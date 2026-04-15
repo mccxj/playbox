@@ -74,3 +74,5 @@ cloudflare-env.d.ts
 .tern-port
 .vscode-test
 .temp/
+# Added by code-review-graph
+.code-review-graph/
