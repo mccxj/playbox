@@ -105,6 +105,100 @@ describe('KeyManager', () => {
     });
   });
 
+  describe('getRandomOAuthCredentials', () => {
+    it('should return cached credentials if available', async () => {
+      const cachedCreds = [
+        { client_id: 'cached-id', client_secret: 'cached-secret', refresh_token: 'cached-token' }
+      ];
+      mockEnv.PLAYBOX_KV.get = vi.fn().mockResolvedValue(cachedCreds);
+
+      const creds = await KeyManager.getRandomOAuthCredentials(mockEnv, 'GeminiCli', mockCtx);
+
+      expect(creds).toEqual(cachedCreds[0]);
+      expect(mockEnv.PLAYBOX_KV.get).toHaveBeenCalledWith('oauth_cache_GeminiCli', { type: 'json' });
+    });
+
+    it('should fetch credentials from D1 when cache is empty', async () => {
+      const mockD1 = {
+        prepare: vi.fn().mockReturnValue({
+          bind: vi.fn().mockReturnThis(),
+          all: vi.fn().mockResolvedValue({
+            results: [
+              { content: JSON.stringify({ client_id: 'id1', client_secret: 'secret1', refresh_token: 'token1' }) },
+              { content: JSON.stringify({ client_id: 'id2', client_secret: 'secret2', refresh_token: 'token2' }) },
+            ],
+          }),
+        }),
+      };
+      mockEnv.PLAYBOX_KV.get = vi.fn().mockResolvedValue(null);
+      mockEnv.PLAYBOX_D1 = mockD1 as any;
+
+      const creds = await KeyManager.getRandomOAuthCredentials(mockEnv, 'GeminiCli', mockCtx);
+
+      expect(creds).toHaveProperty('client_id');
+      expect(creds).toHaveProperty('client_secret');
+      expect(creds).toHaveProperty('refresh_token');
+      expect(['id1', 'id2']).toContain(creds.client_id);
+    });
+
+    it('should throw error when no OAuth credentials found', async () => {
+      const mockD1 = {
+        prepare: vi.fn().mockReturnValue({
+          bind: vi.fn().mockReturnThis(),
+          all: vi.fn().mockResolvedValue({ results: [] }),
+        }),
+      };
+      mockEnv.PLAYBOX_KV.get = vi.fn().mockResolvedValue(null);
+      mockEnv.PLAYBOX_D1 = mockD1 as any;
+
+      await expect(KeyManager.getRandomOAuthCredentials(mockEnv, 'UnknownProvider', mockCtx)).rejects.toThrow(
+        'No OAuth credentials found for provider: UnknownProvider'
+      );
+    });
+
+    it('should cache credentials with correct TTL', async () => {
+      const mockD1 = {
+        prepare: vi.fn().mockReturnValue({
+          bind: vi.fn().mockReturnThis(),
+          all: vi.fn().mockResolvedValue({
+            results: [
+              { content: JSON.stringify({ client_id: 'test-id', client_secret: 'test-secret', refresh_token: 'test-token' }) },
+            ],
+          }),
+        }),
+      };
+      mockEnv.PLAYBOX_KV.get = vi.fn().mockResolvedValue(null);
+      mockEnv.PLAYBOX_KV.put = vi.fn().mockResolvedValue(undefined);
+      mockEnv.PLAYBOX_D1 = mockD1 as any;
+
+      await KeyManager.getRandomOAuthCredentials(mockEnv, 'GeminiCli', mockCtx);
+
+      expect(mockCtx.waitUntil).toHaveBeenCalled();
+      const putCall = mockEnv.PLAYBOX_KV.put.mock.calls.find((call: any[]) => call[0] === 'oauth_cache_GeminiCli');
+      expect(putCall).toBeDefined();
+      expect(putCall[2]).toEqual({ expirationTtl: 300 });
+    });
+
+    it('should handle invalid cached data gracefully', async () => {
+      const mockD1 = {
+        prepare: vi.fn().mockReturnValue({
+          bind: vi.fn().mockReturnThis(),
+          all: vi.fn().mockResolvedValue({
+            results: [
+              { content: JSON.stringify({ client_id: 'fresh-id', client_secret: 'fresh-secret', refresh_token: 'fresh-token' }) },
+            ],
+          }),
+        }),
+      };
+      mockEnv.PLAYBOX_KV.get = vi.fn().mockResolvedValue(null);
+      mockEnv.PLAYBOX_D1 = mockD1 as any;
+
+      const creds = await KeyManager.getRandomOAuthCredentials(mockEnv, 'GeminiCli', mockCtx);
+
+      expect(creds.client_id).toBe('fresh-id');
+    });
+  });
+
   describe('getRandomApiKey', () => {
     it('should return random key from D1 when cache is empty', async () => {
       const mockD1 = {
