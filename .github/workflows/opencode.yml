@@ -43,8 +43,8 @@ jobs:
         run: code-review-graph build
       - name: Write global AGENTS.md
         run: |
-          mkdir -p ~/.config
-          cat > ~/.config/AGENTS.md << 'EOF'
+          mkdir -p ~/.config/opencode
+          cat > ~/.config/opencode/AGENTS.md << 'EOF'
           ## Approach
           - Think before acting. Read existing files before writing code.
           - Be concise in output but thorough in reasoning.
