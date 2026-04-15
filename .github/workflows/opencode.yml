@@ -43,16 +43,16 @@ jobs:
         run: code-review-graph build
       - name: Write global AGENTS.md
         run: |
-          mkdir -p ~/.config
-          echo '## Approach' > ~/.config/AGENTS.md
-          echo '- Think before acting. Read existing files before writing code.' >> ~/.config/AGENTS.md
-          echo '- Be concise in output but thorough in reasoning.' >> ~/.config/AGENTS.md
-          echo '- Prefer editing over rewriting whole files.' >> ~/.config/AGENTS.md
-          echo '- Do not re-read files you have already read unless the file may have changed.' >> ~/.config/AGENTS.md
-          echo '- Test your code before declaring done.' >> ~/.config/AGENTS.md
-          echo '- No sycophantic openers or closing fluff.' >> ~/.config/AGENTS.md
-          echo '- Keep solutions simple and direct.' >> ~/.config/AGENTS.md
-          echo '- User instructions always override this file.' >> ~/.config/AGENTS.md
+          mkdir -p ~/.config/opencode
+          echo '## Approach' > ~/.config/opencode/AGENTS.md
+          echo '- Think before acting. Read existing files before writing code.' >> ~/.config/opencode/AGENTS.md
+          echo '- Be concise in output but thorough in reasoning.' >> ~/.config/opencode/AGENTS.md
+          echo '- Prefer editing over rewriting whole files.' >> ~/.config/opencode/AGENTS.md
+          echo '- Do not re-read files you have already read unless the file may have changed.' >> ~/.config/opencode/AGENTS.md
+          echo '- Test your code before declaring done.' >> ~/.config/opencode/AGENTS.md
+          echo '- No sycophantic openers or closing fluff.' >> ~/.config/opencode/AGENTS.md
+          echo '- Keep solutions simple and direct.' >> ~/.config/opencode/AGENTS.md
+          echo '- User instructions always override this file.' >> ~/.config/opencode/AGENTS.md
       - name: Run opencode
         uses: anomalyco/opencode/github@latest
         env:
