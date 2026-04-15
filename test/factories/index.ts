@@ -33,25 +33,31 @@ export function createMockProviderConfig(overrides?: any): any {
 }
 
 export function createMockEnv(customEnv?: any): any {
-  return {
-    AUTH_TOKEN: 'sk-test-token',
-    PLAYBOX_KV: {
-      get: vi.fn(),
-      put: vi.fn(),
-      delete: vi.fn(),
-      list: vi.fn()
-    },
-    PLAYBOX_D1: {
-      prepare: vi.fn(),
-      batch: vi.fn()
-    },
-    GEMINI_CLI_CLIENT_ID: 'test-client-id',
-    GEMINI_CLI_CLIENT_SECRET: 'test-client-secret',
-    GEMINI_CLI_REFRESH_TOKEN: 'test-refresh-token',
-    API_CONFIG: undefined,
-    fetch: vi.fn(),
-    ...customEnv
-  };
+	return {
+		AUTH_TOKEN: 'sk-test-token',
+		PLAYBOX_KV: {
+			get: vi.fn(),
+			put: vi.fn(),
+			delete: vi.fn(),
+			list: vi.fn()
+		},
+		PLAYBOX_D1: {
+			prepare: vi.fn(),
+			batch: vi.fn()
+		},
+		PLAYBOX_R2: {
+			get: vi.fn(),
+			put: vi.fn(),
+			delete: vi.fn(),
+			list: vi.fn()
+		},
+		GEMINI_CLI_CLIENT_ID: 'test-client-id',
+		GEMINI_CLI_CLIENT_SECRET: 'test-client-secret',
+		GEMINI_CLI_REFRESH_TOKEN: 'test-refresh-token',
+		API_CONFIG: undefined,
+		fetch: vi.fn(),
+		...customEnv
+	};
 }
 
 export function createMockExecutionContext(): any {

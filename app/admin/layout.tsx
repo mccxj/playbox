@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { ConfigProvider, App as AntApp, Layout, Menu, Typography, Button } from 'antd';
-import { DatabaseOutlined, CloudOutlined, DownloadOutlined, MessageOutlined, BarChartOutlined, MenuFoldOutlined, MenuUnfoldOutlined, ApiOutlined, AppstoreOutlined } from '@ant-design/icons';
+import { DatabaseOutlined, CloudOutlined, DownloadOutlined, MessageOutlined, BarChartOutlined, MenuFoldOutlined, MenuUnfoldOutlined, ApiOutlined, AppstoreOutlined, CloudServerOutlined } from '@ant-design/icons';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
@@ -17,53 +17,59 @@ export default function AdminLayout({
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
 
-  const menuItems = [
-    {
-      key: 'tables',
-      icon: <DatabaseOutlined />,
-      label: <Link href="/admin">Tables (D1)</Link>,
-    },
-    {
-      key: 'kv',
-      icon: <CloudOutlined />,
-      label: <Link href="/admin/kv">KV Storage</Link>,
-    },
-    {
-      key: 'providers',
-      icon: <AppstoreOutlined />,
-      label: <Link href="/admin/providers">Providers</Link>,
-    },
-    {
-      key: 'download',
-      icon: <DownloadOutlined />,
-      label: <Link href="/admin/download">Download</Link>,
-    },
-    {
-      key: 'chat',
-      icon: <MessageOutlined />,
-      label: <Link href="/admin/chat">Chat Test</Link>,
-    },
-    {
-      key: 'api-test',
-      icon: <ApiOutlined />,
-      label: <Link href="/admin/api-test">API Test</Link>,
-    },
-    {
-      key: 'analytics',
-      icon: <BarChartOutlined />,
-      label: <Link href="/admin/analytics">Analytics</Link>,
-    },
-  ];
+	const menuItems = [
+		{
+			key: 'tables',
+			icon: <DatabaseOutlined />,
+			label: <Link href="/admin">Tables (D1)</Link>,
+		},
+		{
+			key: 'kv',
+			icon: <CloudOutlined />,
+			label: <Link href="/admin/kv">KV Storage</Link>,
+		},
+		{
+			key: 'r2',
+			icon: <CloudServerOutlined />,
+			label: <Link href="/admin/r2">R2 Storage</Link>,
+		},
+		{
+			key: 'providers',
+			icon: <AppstoreOutlined />,
+			label: <Link href="/admin/providers">Providers</Link>,
+		},
+		{
+			key: 'download',
+			icon: <DownloadOutlined />,
+			label: <Link href="/admin/download">Download</Link>,
+		},
+		{
+			key: 'chat',
+			icon: <MessageOutlined />,
+			label: <Link href="/admin/chat">Chat Test</Link>,
+		},
+		{
+			key: 'api-test',
+			icon: <ApiOutlined />,
+			label: <Link href="/admin/api-test">API Test</Link>,
+		},
+		{
+			key: 'analytics',
+			icon: <BarChartOutlined />,
+			label: <Link href="/admin/analytics">Analytics</Link>,
+		},
+	];
 
-  const getSelectedKey = () => {
-    if (pathname?.includes('/admin/kv')) return 'kv';
-    if (pathname?.includes('/admin/providers')) return 'providers';
-    if (pathname?.includes('/admin/download')) return 'download';
-    if (pathname?.includes('/admin/chat')) return 'chat';
-    if (pathname?.includes('/admin/api-test')) return 'api-test';
-    if (pathname?.includes('/admin/analytics')) return 'analytics';
-    return 'tables';
-  };
+	const getSelectedKey = () => {
+		if (pathname?.includes('/admin/kv')) return 'kv';
+		if (pathname?.includes('/admin/r2')) return 'r2';
+		if (pathname?.includes('/admin/providers')) return 'providers';
+		if (pathname?.includes('/admin/download')) return 'download';
+		if (pathname?.includes('/admin/chat')) return 'chat';
+		if (pathname?.includes('/admin/api-test')) return 'api-test';
+		if (pathname?.includes('/admin/analytics')) return 'analytics';
+		return 'tables';
+	};
 
   return (
     <ConfigProvider
@@ -125,9 +131,9 @@ export default function AdminLayout({
               display: 'flex',
               alignItems: 'center'
             }}>
-        <Title level={4} style={{ margin: 0 }}>
-          {pathname?.includes('/admin/kv') ? 'KV Storage Management' : pathname?.includes('/admin/providers') ? 'Provider Models' : pathname?.includes('/admin/download') ? 'File Download Proxy' : pathname?.includes('/admin/chat') ? 'Chat Test' : pathname?.includes('/admin/api-test') ? 'API Test' : pathname?.includes('/admin/analytics') ? 'API Analytics' : 'Database Management'}
-        </Title>
+<Title level={4} style={{ margin: 0 }}>
+				{pathname?.includes('/admin/kv') ? 'KV Storage Management' : pathname?.includes('/admin/r2') ? 'R2 Storage Management' : pathname?.includes('/admin/providers') ? 'Provider Models' : pathname?.includes('/admin/download') ? 'File Download Proxy' : pathname?.includes('/admin/chat') ? 'Chat Test' : pathname?.includes('/admin/api-test') ? 'API Test' : pathname?.includes('/admin/analytics') ? 'API Analytics' : 'Database Management'}
+			</Title>
             </Header>
             <Content style={{
               margin: '24px',
