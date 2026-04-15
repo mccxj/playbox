@@ -1,6 +1,6 @@
 # Playbox - AI API Gateway & Protocol Converter
 
-AI API Gateway & Protocol Converter — converts between AI provider protocols (OpenAI, Anthropic, Google, Gemini CLI) on Next.js.
+AI API Gateway & Protocol Converter — converts between AI provider protocols (OpenAI, Anthropic, Google, Gemini CLI) on Next.js with Cloudflare Workers deployment.
 
 ## Overview
 
@@ -9,44 +9,67 @@ Playbox is a Next.js-based API gateway that translates between different AI prov
 ## Tech Stack
 
 - **Framework**: Next.js 15 (App Router)
-- **Runtime**: Node.js
 - **Language**: TypeScript
-- **Testing**: Vitest
-- **Deployment**: Cloudflare Workers (via Wrangler)
+- **Testing**: Vitest + Cloudflare Workers pool
+- **Deployment**: Cloudflare Workers (via OpenNext for Cloudflare)
+- **UI**: Ant Design + Recharts
 
 ## Project Structure
 
 ```
 ./
 ├── app/                    # Next.js App Router
-│   ├── api/               # API routes
-│   │   ├── v1/           # API endpoints
-│   │   │   ├── models/   # Model listing
-│   │   │   ├── chat/     # Chat completions
-│   │   │   └── messages/ # Messages API
-│   │   └── health/      # Health check
-│   └── layout.tsx        # Root layout
+│   ├── v1/                 # Public API (non-standard location - NOT under app/api/)
+│   │   ├── chat/completions/  # OpenAI-compatible chat completions
+│   │   ├── models/         # Model listing endpoint
+│   │   └── messages/       # Anthropic-compatible messages API
+│   ├── v1beta/             # Gemini native API endpoints (Google standard paths)
+│   │   └── models/         # Gemini API: models listing + generateContent/streamGenerateContent
+│   ├── api/
+│   │   ├── admin/          # Admin API endpoints
+│   │   │   ├── kv/         # KV namespace management
+│   │   │   ├── tables/     # D1 table management
+│   │   │   ├── download/history/  # Download history
+│   │   │   └── analytics/  # Cloudflare Analytics Engine API
+│   │   ├── download/       # Download proxy endpoint
+│   │   └── gh/             # GitHub file proxy endpoint
+│   ├── admin/              # Admin UI (React + Ant Design)
+│   │   ├── kv/             # KV management UI
+│   │   ├── download/       # Download proxy management
+│   │   ├── chat/           # Chat test interface
+│   │   ├── api-test/       # API testing interface
+│   │   ├── analytics/      # API usage analytics
+│   │   └── components/     # Shared admin components
+│   ├── components/         # React components
+│   │   └── Chat/           # Chat UI components
+│   └── lib/                # Client-side utilities
 ├── src/
-│   ├── protocols/         # Protocol adapters (OpenAI, Anthropic, Google, Gemini CLI)
-│   ├── config/            # Configuration management
-│   ├── utils/             # Utilities (logger, SSE parser, constants)
-│   ├── lib/               # Shared libraries
-│   └── types/             # TypeScript type definitions
-├── test/                  # Vitest tests
-├── public/                # Static assets
-├── wrangler.jsonc         # Cloudflare Workers config
-├── tsconfig.json          # TypeScript config
-└── package.json           # Dependencies & scripts
+│   ├── protocols/          # Protocol adapters (OpenAI, Anthropic, Google, Gemini CLI)
+│   ├── managers/           # KeyManager (KV/D1 token management)
+│   ├── config/             # ConfigManager, provider configs
+│   ├── utils/              # Logger, CORS constants, SSRF protection
+│   ├── lib/                # Auth middleware, response helpers
+│   └── types/              # Protocol, request, response types
+├── test/                   # Vitest + Cloudflare Workers pool
+│   ├── unit/               # Protocol + manager tests
+│   └── factories/          # Mock data generators
+├── prisma/migrations/      # D1 schema migrations
+├── wrangler.jsonc          # Cloudflare Workers config (D1, KV, secrets)
+└── vitest.config.mts       # Test config with CF pool
 ```
 
 ## Features
 
 - **Multi-protocol Support**: OpenAI, Anthropic, Google, Gemini CLI formats
 - **Protocol Conversion**: Automatic translation between provider protocols
+- **Gemini Native API**: Standard Google Gemini REST paths (`/v1beta/models/{model}:generateContent`)
 - **Authentication**: API key verification and management
 - **Token Caching**: KV-based caching for access tokens with automatic refresh
 - **CORS Support**: Configurable CORS headers for cross-origin requests
-- **Health Checks**: Built-in health check endpoint
+- **Admin Dashboard**: React + Ant Design UI for management
+- **Analytics**: Cloudflare Analytics Engine integration with Recharts visualizations
+- **Download Proxy**: Secure file downloads with SSRF protection
+- **GitHub Proxy**: GitHub file proxy with optional jsDelivr CDN rewriting
 
 ## Getting Started
 
@@ -77,31 +100,55 @@ npm run deploy
 Configuration is managed through environment variables and `wrangler.jsonc`:
 
 ```bash
-# Set environment variables
-cp .env.example .env
-# Edit .env with your API keys and settings
+# Set secrets via wrangler
+wrangler secret put AUTH_TOKEN
+
+# Local development uses .dev.vars file
 ```
 
 ## API Endpoints
 
-### Health Check
-```
-GET /api/health
+### OpenAI-Compatible Endpoints
+
+```bash
+# List models
+GET /v1/models
+
+# Chat completions
+POST /v1/chat/completions
 ```
 
-### List Models
-```
-GET /api/v1/models
+### Anthropic-Compatible Endpoints
+
+```bash
+# Messages API
+POST /v1/messages
 ```
 
-### Chat Completions
-```
-POST /api/v1/chat/completions
+### Gemini Native Endpoints
+
+```bash
+# List models
+GET /v1beta/models
+
+# Generate content
+POST /v1beta/models/{model}:generateContent
+
+# Stream generate content
+POST /v1beta/models/{model}:streamGenerateContent
 ```
 
-### Messages API
-```
-POST /api/v1/messages
+### Admin Endpoints
+
+```bash
+# KV management
+GET/POST/DELETE /api/admin/kv/{namespace}/{key}
+
+# Download history
+GET /api/admin/download/history
+
+# Analytics
+GET /api/admin/analytics
 ```
 
 ## Protocol Support
@@ -129,16 +176,15 @@ POST /api/v1/messages
 ### Adding a New Protocol
 
 1. Create a new protocol adapter in `src/protocols/`
-2. Follow the pattern in `base.ts`
+2. Implement the `ProtocolAdapter` interface
 3. Export a `createXProtocol()` factory function
 4. Register in `src/protocols/index.ts`
 
 ### Adding a New API Route
 
-1. Create a new route in `app/api/`
-2. Use Next.js App Router conventions
-3. Import protocol adapters from `src/protocols/`
-4. Handle authentication and protocol conversion
+- **Public API**: Add to `app/v1/` (NOT `app/api/v1/`)
+- **Gemini Native**: Add to `app/v1beta/`
+- **Admin API**: Add to `app/api/admin/`
 
 ### Testing
 
@@ -146,11 +192,11 @@ POST /api/v1/messages
 # Run all tests
 npm test
 
-# Run tests in watch mode
-npm test -- --watch
-
 # Run tests with coverage
 npm test -- --coverage
+
+# Run smoke tests
+npm run smoke-test
 ```
 
 ## Deployment
@@ -171,9 +217,14 @@ npm run deploy
 npm run preview
 ```
 
+## Security
+
+- **SSRF Protection**: All external URLs validated via `validateSafeUrl()`
+- **API Key**: Required for all endpoints (set via `AUTH_TOKEN` secret)
+- **Secrets**: Use `wrangler secret put` for sensitive values
+
 ## Documentation
 
-- [Migration Guide](./MIGRATION.md) - Migration from Cloudflare Workers to Next.js
 - [AGENTS.md](./AGENTS.md) - Project knowledge base for AI agents
 
 ## Contributing
