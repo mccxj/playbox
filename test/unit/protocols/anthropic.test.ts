@@ -186,7 +186,7 @@ describe('Anthropic Protocol Adapter', () => {
   describe('createToStandardStream', () => {
     it('should create TransformStream for Anthropic streaming', () => {
       const transformStream = protocol.createToStandardStream('claude-3');
-      
+
       expect(transformStream).toBeDefined();
       expect(transformStream).toHaveProperty('readable');
       expect(transformStream).toHaveProperty('writable');
@@ -196,10 +196,100 @@ describe('Anthropic Protocol Adapter', () => {
   describe('createFromStandardStream', () => {
     it('should create TransformStream for reverse streaming', () => {
       const transformStream = protocol.createFromStandardStream();
-      
+
       expect(transformStream).toBeDefined();
       expect(transformStream).toHaveProperty('readable');
       expect(transformStream).toHaveProperty('writable');
+    });
+  });
+
+  describe('getApiKey', () => {
+    it('should return random API key via KeyManager', async () => {
+      mockEnv.PLAYBOX_KV.get = vi.fn().mockResolvedValue(['test-key-1', 'test-key-2']);
+      mockEnv.PLAYBOX_D1 = {
+        prepare: vi.fn().mockReturnValue({
+          bind: vi.fn().mockReturnThis(),
+          all: vi.fn().mockResolvedValue({ results: [] }),
+        }),
+      } as any;
+
+      const key = await protocol.getApiKey(mockEnv, mockProvider, mockCtx);
+      expect(['test-key-1', 'test-key-2']).toContain(key);
+    });
+  });
+
+  describe('getEndpoint', () => {
+    it('should return correct endpoint', async () => {
+      const endpoint = await protocol.getEndpoint(mockProvider, 'claude-3', false, 'test-key');
+      expect(endpoint).toBe('https://api.anthropic.com/v1/messages');
+    });
+
+    it('should use default endpoint when not specified', async () => {
+      const providerWithoutEndpoint = { ...mockProvider, endpoint: undefined };
+      const endpoint = await protocol.getEndpoint(providerWithoutEndpoint, 'claude-3', false, 'test-key');
+      expect(endpoint).toBe('https://api.anthropic.com/v1/messages');
+    });
+  });
+
+  describe('getHeaders', () => {
+    it('should return x-api-key header by default', async () => {
+      const headers = await protocol.getHeaders(mockProvider, mockEnv, mockCtx, 'test-api-key');
+      expect(headers['x-api-key']).toBe('test-api-key');
+      expect(headers['anthropic-version']).toBe('2023-06-01');
+    });
+
+    it('should return Authorization header for bearer authType', async () => {
+      const providerWithBearer = { ...mockProvider, authType: 'bearer' };
+      const headers = await protocol.getHeaders(providerWithBearer, mockEnv, mockCtx, 'test-api-key');
+      expect(headers['Authorization']).toBe('Bearer test-api-key');
+    });
+  });
+
+  describe('fromStandardResponse', () => {
+    it('should convert standard response to Anthropic format', () => {
+      const standardResponse = {
+        id: 'chatcmpl-123',
+        model: 'claude-3',
+        choices: [
+          {
+            message: { role: 'assistant', content: 'Response text' },
+            finish_reason: 'stop',
+          },
+        ],
+        usage: { prompt_tokens: 10, completion_tokens: 20 },
+      };
+
+      const anthropicResponse = protocol.fromStandardResponse(standardResponse);
+      expect(anthropicResponse.id).toBeDefined();
+      expect(anthropicResponse.type).toBe('message');
+      expect(anthropicResponse.role).toBe('assistant');
+      expect(anthropicResponse.content[0].text).toBe('Response text');
+      expect(anthropicResponse.stop_reason).toBe('end_turn');
+    });
+
+    it('should handle length finish_reason as max_tokens', () => {
+      const standardResponse = {
+        id: 'chatcmpl-123',
+        model: 'claude-3',
+        choices: [{ message: { content: 'Test' }, finish_reason: 'length' }],
+        usage: { prompt_tokens: 10, completion_tokens: 20 },
+      };
+
+      const anthropicResponse = protocol.fromStandardResponse(standardResponse);
+      expect(anthropicResponse.stop_reason).toBe('max_tokens');
+    });
+
+    it('should handle empty choices', () => {
+      const standardResponse = {
+        id: 'chatcmpl-123',
+        model: 'claude-3',
+        choices: [],
+        usage: {},
+      };
+
+      const anthropicResponse = protocol.fromStandardResponse(standardResponse);
+      expect(anthropicResponse.content[0].text).toBe('');
+      expect(anthropicResponse.stop_reason).toBe('end_turn');
     });
   });
 });

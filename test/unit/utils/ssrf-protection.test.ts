@@ -242,11 +242,40 @@ describe('SSRF Protection', () => {
         expect(result.error).toContain('127.0.0.0/8');
       });
 
-      it('should accept decimal IP for public range', () => {
-        const result = validateSafeUrl('http://16843009/admin');
-        expect(result.isValid).toBe(true);
-      });
+    it('should accept decimal IP for public range', () => {
+      const result = validateSafeUrl('http://16843009/admin');
+      expect(result.isValid).toBe(true);
     });
+
+    it('should reject hexadecimal IP that resolves to private range', () => {
+      const result = validateSafeUrl('http://0x0a000001/admin');
+      expect(result.isValid).toBe(false);
+      expect(result.error).toContain('10.0.0.0/8');
+    });
+
+    it('should reject hexadecimal IP that resolves to 192.168.x.x', () => {
+      const result = validateSafeUrl('http://0xc0a80101/admin');
+      expect(result.isValid).toBe(false);
+      expect(result.error).toContain('192.168.0.0/16');
+    });
+
+    it('should accept hexadecimal IP for public range', () => {
+      const result = validateSafeUrl('http://0x08080808/dns-query');
+      expect(result.isValid).toBe(true);
+    });
+
+    it('should reject octal IP that resolves to 10.x.x.x', () => {
+      const result = validateSafeUrl('http://012.0.0.1/admin');
+      expect(result.isValid).toBe(false);
+      expect(result.error).toContain('10.0.0.0/8');
+    });
+
+    it('should reject octal IP that resolves to 192.168.x.x', () => {
+      const result = validateSafeUrl('http://0300.0250.01.01/admin');
+      expect(result.isValid).toBe(false);
+      expect(result.error).toContain('192.168.0.0/16');
+    });
+  });
 
     describe('edge cases', () => {
       it('should handle URLs with ports', () => {

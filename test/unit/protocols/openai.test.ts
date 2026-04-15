@@ -1,5 +1,6 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { createOpenAIProtocol } from '../../../src/protocols/openai';
+import { createMockEnv, createMockExecutionContext, createMockProviderConfig } from '../../factories';
 import type { Env } from '../../../src/types';
 import type { Provider, ExecutionContext } from '../../../src/protocols/types';
 
@@ -72,9 +73,26 @@ describe('OpenAI Protocol Adapter', () => {
       endpoint: undefined,
       key: 'test-key',
       models: ['gpt-3.5-turbo'],
-    } as Provider;
+    } as unknown as Provider;
 
     const endpoint = await protocol.getEndpoint(mockProvider, 'gpt-3.5-turbo', false, 'test-key');
     expect(endpoint).toBe('https://api.openai.com/v1/chat/completions');
+  });
+
+  it('should call KeyManager.getRandomApiKey for getApiKey', async () => {
+    const mockEnv = createMockEnv();
+    const mockCtx = createMockExecutionContext();
+    const mockProvider = createMockProviderConfig({ type: 'openai', key: 'test-provider' });
+
+    mockEnv.PLAYBOX_KV.get = vi.fn().mockResolvedValue(['key-1', 'key-2']);
+    mockEnv.PLAYBOX_D1 = {
+      prepare: vi.fn().mockReturnValue({
+        bind: vi.fn().mockReturnThis(),
+        all: vi.fn().mockResolvedValue({ results: [] }),
+      }),
+    } as any;
+
+    const apiKey = await protocol.getApiKey(mockEnv, mockProvider, mockCtx);
+    expect(['key-1', 'key-2']).toContain(apiKey);
   });
 });
