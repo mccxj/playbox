@@ -4,27 +4,30 @@
 
 ## OVERVIEW
 
-AI API Gateway & Protocol Converter — converts between AI provider protocols (OpenAI, Anthropic, Google, Gemini CLI) on Next.js with Cloudflare Workers deployment. Multi-protocol support with OAuth token management, D1 key storage, KV caching, GitHub proxy, download proxy with SSRF protection, and Cloudflare Analytics Engine integration.
+AI API Gateway & Protocol Converter — converts between AI provider protocols (OpenAI, Anthropic, Google, Gemini CLI) on Next.js with Cloudflare Workers deployment. Multi-protocol support with OAuth token management, D1 key storage, KV caching, R2 object storage, GitHub proxy, download proxy with SSRF protection, and Cloudflare Analytics Engine integration.
 
 ## STRUCTURE
 
 ```
 ./
 ├── app/ # Next.js App Router
- │ ├── v1/ # Public API (non-standard location - NOT under app/api/)
- │ │ ├── chat/completions/ # OpenAI-compatible chat completions
- │ │ ├── models/ # Model listing endpoint (excludes Gemini)
- │ │ └── messages/ # Anthropic-compatible messages API
- │ ├── v1beta/ # Gemini native API endpoints (Google standard paths)
- │ │ └── models/ # Gemini API: models listing + generateContent/streamGenerateContent
- │ │ ├── route.ts # GET - List models
- │ │ └── [...action]/ # POST - generateContent/streamGenerateContent
+│ ├── v1/ # Public API (non-standard location - NOT under app/api/)
+│ │ ├── chat/completions/ # OpenAI-compatible chat completions
+│ │ ├── models/ # Model listing endpoint (excludes Gemini)
+│ │ └── messages/ # Anthropic-compatible messages API
+│ ├── v1beta/ # Gemini native API endpoints (Google standard paths)
+│ │ └── models/ # Gemini API: models listing + generateContent/streamGenerateContent
+│ │ ├── route.ts # GET - List models
+│ │ └── [...action]/ # POST - generateContent/streamGenerateContent
 │ ├── api/admin/ # Admin API endpoints — [AGENTS.md]
 │ │ ├── kv/ # KV namespace management
 │ │ │ ├── [namespace]/ # KV operations
 │ │ │ ├── [namespace]/[key]/ # Single key operations
 │ │ │ ├── [namespace]/batch/ # Batch operations
 │ │ │ └── [namespace]/import/ # Import operations
+│ │ ├── r2/ # R2 bucket management
+│ │ │ ├── [bucket]/ # Bucket operations
+│ │ │ └── [bucket]/[key]/ # Object operations
 │ │ ├── tables/ # D1 table management
 │ │ │ ├── [table]/ # Table operations
 │ │ │ ├── [table]/rows/ # Row operations
@@ -33,6 +36,7 @@ AI API Gateway & Protocol Converter — converts between AI provider protocols (
 │ │ └── analytics/ # Cloudflare Analytics Engine API
 │ ├── admin/ # Admin UI (React + Ant Design)
 │ │ ├── kv/ # KV management UI
+│ │ ├── r2/ # R2 storage management UI
 │ │ ├── download/ # Download proxy management
 │ │ ├── chat/ # Chat test interface
 │ │ ├── api-test/ # API testing interface
@@ -41,20 +45,20 @@ AI API Gateway & Protocol Converter — converts between AI provider protocols (
 │ ├── api/download/ # Download proxy endpoint
 │ ├── api/gh/ # GitHub file proxy endpoint
 │ ├── components/ # React components
-│   │   └── Chat/ # Chat UI components
-│   └── lib/ # Client-side utilities
+│ │ └── Chat/ # Chat UI components
+│ └── lib/ # Client-side utilities
 ├── src/
 │ ├── protocols/ # Protocol adapters (OpenAI, Anthropic, Google, Gemini CLI) — [AGENTS.md]
 │ ├── managers/ # KeyManager (KV/D1 token management)
-│   ├── config/ # ConfigManager, provider configs
-│   ├── utils/ # Logger, CORS constants, SSRF protection
-│   ├── lib/ # Auth middleware, response helpers
-│   └── types/ # Protocol, request, response types
+│ ├── config/ # ConfigManager, provider configs
+│ ├── utils/ # Logger, CORS constants, SSRF protection
+│ ├── lib/ # Auth middleware, response helpers
+│ └── types/ # Protocol, request, response, R2 types
 ├── test/ # Vitest + Cloudflare Workers pool
-│   ├── unit/ # Protocol + manager tests
-│   └── factories/ # Mock data generators
+│ ├── unit/ # Protocol + manager tests
+│ └── factories/ # Mock data generators
 ├── prisma/migrations/ # D1 schema migrations
-├── wrangler.jsonc # Cloudflare Workers config (D1, KV, secrets)
+├── wrangler.jsonc # Cloudflare Workers config (D1, KV, R2, secrets)
 └── vitest.config.mts # Test config with CF pool
 ```
 
@@ -76,7 +80,9 @@ AI API Gateway & Protocol Converter — converts between AI provider protocols (
 | API testing UI | `app/admin/api-test/` | Interactive API testing interface |
 | Analytics API | `app/api/admin/analytics/` | Cloudflare Analytics Engine queries |
 | Analytics UI | `app/admin/analytics/` | Charts with Recharts |
-| KV/D1 bindings | `wrangler.jsonc` | PLAYBOX_KV, PLAYBOX_D1 |
+| KV/D1/R2 bindings | `wrangler.jsonc` | PLAYBOX_KV, PLAYBOX_D1, PLAYBOX_R2 |
+| R2 operations | `app/api/admin/r2/` | List, upload, download, delete objects |
+| R2 UI | `app/admin/r2/` | Object browser with prefix navigation |
 | Test factories | `test/factories/` | Mock env, requests, providers |
 | SSRF protection | `src/utils/ssrf-protection.ts` | `validateSafeUrl()` function |
 | Download proxy | `app/api/download/route.ts` | File download with SSRF protection |
@@ -119,6 +125,7 @@ AI API Gateway & Protocol Converter — converts between AI provider protocols (
 
 - **Multi-protocol**: Supports OpenAI, Anthropic, Google, Gemini CLI formats
 - **KV caching**: Access tokens cached in PLAYBOX_KV with automatic refresh
+- **R2 storage**: Object storage via PLAYBOX_R2 bucket binding
 - **CORS headers**: All responses include CORS headers from `utils/constants.ts`
 - **OpenNext for Cloudflare**: Uses `@opennextjs/cloudflare` for deployment (NOT `@cloudflare/next-on-pages`)
 - **Dynamic rendering**: API routes use `export const dynamic = 'force-dynamic'`
