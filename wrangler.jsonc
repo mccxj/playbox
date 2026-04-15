@@ -70,7 +70,6 @@
 		// AUTH_TOKEN moved to wrangler secret for security
 		// Set via: wrangler secret put AUTH_TOKEN
 		// Local dev: use .dev.vars file
-		"AUTH_TOKEN": "",
 		"GH_PROXY_JSD_ENABLE": "0",
 	},
 	/**

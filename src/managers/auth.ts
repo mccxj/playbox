@@ -27,6 +27,7 @@ export const AuthManager = {
     }
 
     // Compare with expected token
-    return token === env.AUTH_TOKEN;
+    const envVars = env as unknown as Record<string, string | undefined>;
+    return token === envVars.AUTH_TOKEN;
   },
 };
