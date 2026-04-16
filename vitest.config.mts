@@ -18,19 +18,19 @@ export default defineWorkersConfig({
           statements: 80,
         },
       },
-      exclude: [
-        '**/node_modules/**',
-        '**/dist/**',
-        '**/*.test.*',
-        '**/test/**',
-        '**/wrangler.jsonc',
-        '**/vitest.config.*',
-        '**/*.d.ts'
-      ],
-      include: [
-        'src/**/*.ts',
-        'app/**/*.ts'
-      ]
+    exclude: [
+      '**/node_modules/**',
+      '**/dist/**',
+      '**/*.test.*',
+      '**/test/**',
+      '**/wrangler.jsonc',
+      '**/vitest.config.*',
+      '**/*.d.ts',
+      '**/app/**'
+    ],
+    include: [
+      'src/**/*.ts'
+    ]
     },
     include: [
       'test/**/*.test.ts',

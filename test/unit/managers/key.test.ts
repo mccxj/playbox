@@ -36,15 +36,17 @@ describe('KeyManager', () => {
         prepare: vi.fn().mockReturnValue({
           bind: vi.fn().mockReturnThis(),
           all: vi.fn().mockResolvedValue({
-            results: [{
-              content: JSON.stringify({
-                client_id: 'test-client-id',
-                client_secret: 'test-client-secret',
-                refresh_token: 'test-refresh-token'
-              })
-            }]
-          })
-        })
+            results: [
+              {
+                content: JSON.stringify({
+                  client_id: 'test-client-id',
+                  client_secret: 'test-client-secret',
+                  refresh_token: 'test-refresh-token',
+                }),
+              },
+            ],
+          }),
+        }),
       } as any;
 
       const token = await KeyManager.getValidAccessToken(mockEnv, 'GeminiCli', mockCtx);
@@ -60,15 +62,17 @@ describe('KeyManager', () => {
         prepare: vi.fn().mockReturnValue({
           bind: vi.fn().mockReturnThis(),
           all: vi.fn().mockResolvedValue({
-            results: [{
-              content: JSON.stringify({
-                client_id: 'test-client-id',
-                client_secret: 'test-client-secret',
-                refresh_token: 'test-refresh-token'
-              })
-            }]
-          })
-        })
+            results: [
+              {
+                content: JSON.stringify({
+                  client_id: 'test-client-id',
+                  client_secret: 'test-client-secret',
+                  refresh_token: 'test-refresh-token',
+                }),
+              },
+            ],
+          }),
+        }),
       } as any;
 
       await KeyManager.getValidAccessToken(mockEnv, 'GeminiCli', mockCtx);
@@ -86,15 +90,17 @@ describe('KeyManager', () => {
         prepare: vi.fn().mockReturnValue({
           bind: vi.fn().mockReturnThis(),
           all: vi.fn().mockResolvedValue({
-            results: [{
-              content: JSON.stringify({
-                client_id: 'test-client-id',
-                client_secret: 'test-client-secret',
-                refresh_token: 'test-refresh-token'
-              })
-            }]
-          })
-        })
+            results: [
+              {
+                content: JSON.stringify({
+                  client_id: 'test-client-id',
+                  client_secret: 'test-client-secret',
+                  refresh_token: 'test-refresh-token',
+                }),
+              },
+            ],
+          }),
+        }),
       } as any;
 
       const tokenCache = await KeyManager.refreshGeminiAccessToken(mockEnv, 'GeminiCli', mockCtx);
@@ -103,13 +109,37 @@ describe('KeyManager', () => {
       expect(tokenCache).toHaveProperty('expiresAt');
       expect(tokenCache.accessToken).toBe('mock-refreshed-token');
     });
+
+    it('should throw error when OAuth refresh fails', async () => {
+      mockEnv.PLAYBOX_D1 = {
+        prepare: vi.fn().mockReturnValue({
+          bind: vi.fn().mockReturnThis(),
+          all: vi.fn().mockResolvedValue({
+            results: [
+              {
+                content: JSON.stringify({
+                  client_id: 'test-client-id',
+                  client_secret: 'test-client-secret',
+                  refresh_token: 'test-refresh-token',
+                }),
+              },
+            ],
+          }),
+        }),
+      } as any;
+
+      const originalFetch = global.fetch;
+      global.fetch = vi.fn().mockResolvedValue(new Response('Invalid grant', { status: 400 }));
+
+      await expect(KeyManager.refreshGeminiAccessToken(mockEnv, 'GeminiCli', mockCtx)).rejects.toThrow();
+
+      global.fetch = originalFetch;
+    });
   });
 
   describe('getRandomOAuthCredentials', () => {
     it('should return cached credentials if available', async () => {
-      const cachedCreds = [
-        { client_id: 'cached-id', client_secret: 'cached-secret', refresh_token: 'cached-token' }
-      ];
+      const cachedCreds = [{ client_id: 'cached-id', client_secret: 'cached-secret', refresh_token: 'cached-token' }];
       mockEnv.PLAYBOX_KV.get = vi.fn().mockResolvedValue(cachedCreds);
 
       const creds = await KeyManager.getRandomOAuthCredentials(mockEnv, 'GeminiCli', mockCtx);
@@ -161,9 +191,7 @@ describe('KeyManager', () => {
         prepare: vi.fn().mockReturnValue({
           bind: vi.fn().mockReturnThis(),
           all: vi.fn().mockResolvedValue({
-            results: [
-              { content: JSON.stringify({ client_id: 'test-id', client_secret: 'test-secret', refresh_token: 'test-token' }) },
-            ],
+            results: [{ content: JSON.stringify({ client_id: 'test-id', client_secret: 'test-secret', refresh_token: 'test-token' }) }],
           }),
         }),
       };
@@ -184,9 +212,7 @@ describe('KeyManager', () => {
         prepare: vi.fn().mockReturnValue({
           bind: vi.fn().mockReturnThis(),
           all: vi.fn().mockResolvedValue({
-            results: [
-              { content: JSON.stringify({ client_id: 'fresh-id', client_secret: 'fresh-secret', refresh_token: 'fresh-token' }) },
-            ],
+            results: [{ content: JSON.stringify({ client_id: 'fresh-id', client_secret: 'fresh-secret', refresh_token: 'fresh-token' }) }],
           }),
         }),
       };
@@ -205,11 +231,7 @@ describe('KeyManager', () => {
         prepare: vi.fn().mockReturnValue({
           bind: vi.fn().mockReturnThis(),
           all: vi.fn().mockResolvedValue({
-            results: [
-              { content: 'key-1' },
-              { content: 'key-2' },
-              { content: 'key-3' },
-            ],
+            results: [{ content: 'key-1' }, { content: 'key-2' }, { content: 'key-3' }],
           }),
         }),
       };
