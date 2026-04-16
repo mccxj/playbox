@@ -14,7 +14,7 @@ describe('Anthropic Protocol Adapter', () => {
     mockCtx = createMockExecutionContext();
     mockProvider = createMockProviderConfig({
       type: 'anthropic',
-      endpoint: 'https://api.anthropic.com'
+      endpoint: 'https://api.anthropic.com',
     });
   });
 
@@ -37,10 +37,10 @@ describe('Anthropic Protocol Adapter', () => {
         system: 'You are a helpful assistant',
         messages: [
           { role: 'user', content: 'Hello' },
-          { role: 'assistant', content: 'Hi there!' }
+          { role: 'assistant', content: 'Hi there!' },
         ],
         max_tokens: 100,
-        temperature: 0.7
+        temperature: 0.7,
       };
 
       const standardRequest = protocol.toStandardRequest(anthropicRequest);
@@ -56,7 +56,7 @@ describe('Anthropic Protocol Adapter', () => {
         model: 'claude-3',
         system: 'System prompt here',
         messages: [{ role: 'user', content: 'User message' }],
-        max_tokens: 500
+        max_tokens: 500,
       };
 
       const standard = protocol.toStandardRequest(request);
@@ -70,13 +70,13 @@ describe('Anthropic Protocol Adapter', () => {
         model: 'claude-3',
         system: 'System context',
         messages: [{ role: 'user', content: 'User question' }],
-        max_tokens: 100
+        max_tokens: 100,
       };
 
       const standard = protocol.toStandardRequest(request);
       const systemMessage = standard.messages.find((m: any) => m.role === 'system');
       const userMessage = standard.messages.find((m: any) => m.role === 'user');
-      
+
       expect(systemMessage).toBeDefined();
       expect(systemMessage?.content).toBe('System context');
       expect(userMessage).toBeDefined();
@@ -87,7 +87,7 @@ describe('Anthropic Protocol Adapter', () => {
       const request = {
         model: 'claude-3',
         messages: [{ role: 'assistant', content: 'Previous response' }],
-        max_tokens: 100
+        max_tokens: 100,
       };
 
       const standard = protocol.toStandardRequest(request);
@@ -103,10 +103,10 @@ describe('Anthropic Protocol Adapter', () => {
         model: 'claude-3-opus',
         messages: [
           { role: 'system', content: 'System prompt' },
-          { role: 'user', content: 'User message' }
+          { role: 'user', content: 'User message' },
         ],
         max_tokens: 100,
-        temperature: 0.5
+        temperature: 0.5,
       };
 
       const anthropicRequest = protocol.fromStandardRequest(standardRequest);
@@ -120,10 +120,8 @@ describe('Anthropic Protocol Adapter', () => {
     it('should handle messages without system role', () => {
       const request = {
         model: 'claude-3',
-        messages: [
-          { role: 'user', content: 'User message' }
-        ],
-        max_tokens: 100
+        messages: [{ role: 'user', content: 'User message' }],
+        max_tokens: 100,
       };
 
       const anthropic = protocol.fromStandardRequest(request);
@@ -138,15 +136,17 @@ describe('Anthropic Protocol Adapter', () => {
         id: 'msg_12345',
         type: 'message',
         role: 'assistant',
-        content: [{
-          type: 'text',
-          text: 'Hello! How can I help you today?'
-        }],
+        content: [
+          {
+            type: 'text',
+            text: 'Hello! How can I help you today?',
+          },
+        ],
         model: 'claude-3-opus',
         usage: {
           input_tokens: 15,
-          output_tokens: 25
-        }
+          output_tokens: 25,
+        },
       };
 
       const standardResponse = protocol.toStandardResponse(anthropicResponse, 'claude-3-opus');
@@ -164,7 +164,7 @@ describe('Anthropic Protocol Adapter', () => {
       const testCases = [
         { finishReason: 'end_turn', expected: 'stop' },
         { finishReason: 'max_tokens', expected: 'length' },
-        { finishReason: 'stop_sequence', expected: 'stop' }
+        { finishReason: 'stop_sequence', expected: 'stop' },
       ];
 
       testCases.forEach(({ finishReason, expected }) => {
@@ -174,7 +174,7 @@ describe('Anthropic Protocol Adapter', () => {
           role: 'assistant',
           content: [{ type: 'text', text: 'Test response' }],
           model: 'claude-3',
-          stop_reason: finishReason
+          stop_reason: finishReason,
         };
 
         const standard = protocol.toStandardResponse(response, 'claude-3');
@@ -191,6 +191,128 @@ describe('Anthropic Protocol Adapter', () => {
       expect(transformStream).toHaveProperty('readable');
       expect(transformStream).toHaveProperty('writable');
     });
+
+    it('should transform Anthropic content_block_delta events', async () => {
+      const transformStream = protocol.createToStandardStream('claude-3');
+      const writer = transformStream.writable.getWriter();
+      const reader = transformStream.readable.getReader();
+      const results: string[] = [];
+
+      // Read in background
+      const readPromise = (async () => {
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          results.push(new TextDecoder().decode(value));
+        }
+      })();
+
+      // Write Anthropic SSE format
+      const anthropicSSE = 'event: content_block_delta\ndata: {"delta":{"text":"Hello"}}\n\n';
+      await writer.write(new TextEncoder().encode(anthropicSSE));
+      await writer.close();
+
+      await readPromise;
+
+      expect(results.length).toBeGreaterThan(0);
+      const result = results.join('');
+      expect(result).toContain('chat.completion.chunk');
+      expect(result).toContain('"content":"Hello"');
+    });
+
+    it('should transform message_delta with stop_reason', async () => {
+      const transformStream = protocol.createToStandardStream('claude-3');
+      const writer = transformStream.writable.getWriter();
+      const reader = transformStream.readable.getReader();
+      const results: string[] = [];
+
+      const readPromise = (async () => {
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          results.push(new TextDecoder().decode(value));
+        }
+      })();
+
+      const anthropicSSE = 'event: message_delta\ndata: {"delta":{"stop_reason":"max_tokens"}}\n\n';
+      await writer.write(new TextEncoder().encode(anthropicSSE));
+      await writer.close();
+
+      await readPromise;
+
+      const result = results.join('');
+      expect(result).toContain('"finish_reason":"length"');
+    });
+
+    it('should handle end_turn stop_reason', async () => {
+      const transformStream = protocol.createToStandardStream('claude-3');
+      const writer = transformStream.writable.getWriter();
+      const reader = transformStream.readable.getReader();
+      const results: string[] = [];
+
+      const readPromise = (async () => {
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          results.push(new TextDecoder().decode(value));
+        }
+      })();
+
+      const anthropicSSE = 'event: message_delta\ndata: {"delta":{"stop_reason":"end_turn"}}\n\n';
+      await writer.write(new TextEncoder().encode(anthropicSSE));
+      await writer.close();
+
+      await readPromise;
+
+      const result = results.join('');
+      expect(result).toContain('"finish_reason":"stop"');
+    });
+
+    it('should send [DONE] on flush', async () => {
+      const transformStream = protocol.createToStandardStream('claude-3');
+      const writer = transformStream.writable.getWriter();
+      const reader = transformStream.readable.getReader();
+      const results: string[] = [];
+
+      const readPromise = (async () => {
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          results.push(new TextDecoder().decode(value));
+        }
+      })();
+
+      await writer.close();
+      await readPromise;
+
+      const result = results.join('');
+      expect(result).toContain('data: [DONE]');
+    });
+
+    it('should handle invalid JSON gracefully', async () => {
+      const transformStream = protocol.createToStandardStream('claude-3');
+      const writer = transformStream.writable.getWriter();
+      const reader = transformStream.readable.getReader();
+      const results: string[] = [];
+
+      const readPromise = (async () => {
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          results.push(new TextDecoder().decode(value));
+        }
+      })();
+
+      const anthropicSSE = 'event: content_block_delta\ndata: invalid-json\n\n';
+      await writer.write(new TextEncoder().encode(anthropicSSE));
+      await writer.close();
+
+      await readPromise;
+
+      // Should only have [DONE] since invalid JSON is skipped
+      const result = results.join('');
+      expect(result).toContain('data: [DONE]');
+    });
   });
 
   describe('createFromStandardStream', () => {
@@ -200,6 +322,79 @@ describe('Anthropic Protocol Adapter', () => {
       expect(transformStream).toBeDefined();
       expect(transformStream).toHaveProperty('readable');
       expect(transformStream).toHaveProperty('writable');
+    });
+
+    it('should transform OpenAI SSE to Anthropic SSE format', async () => {
+      const transformStream = protocol.createFromStandardStream();
+      const writer = transformStream.writable.getWriter();
+      const reader = transformStream.readable.getReader();
+      const results: string[] = [];
+
+      const readPromise = (async () => {
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          results.push(new TextDecoder().decode(value));
+        }
+      })();
+
+      const openaiSSE = 'data: {"id":"chatcmpl-123","model":"gpt-4","choices":[{"delta":{"content":"Hello"}}]}\n\n';
+      await writer.write(new TextEncoder().encode(openaiSSE));
+      await writer.close();
+
+      await readPromise;
+
+      const result = results.join('');
+      expect(result).toContain('event: message_start');
+      expect(result).toContain('event: content_block_start');
+      expect(result).toContain('event: content_block_delta');
+    });
+
+    it('should handle [DONE] marker and emit stop events', async () => {
+      const transformStream = protocol.createFromStandardStream();
+      const writer = transformStream.writable.getWriter();
+      const reader = transformStream.readable.getReader();
+      const results: string[] = [];
+
+      const readPromise = (async () => {
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          results.push(new TextDecoder().decode(value));
+        }
+      })();
+
+      await writer.write(new TextEncoder().encode('data: [DONE]\n\n'));
+      await writer.close();
+
+      await readPromise;
+
+      const result = results.join('');
+      expect(result).toContain('event: content_block_stop');
+      expect(result).toContain('event: message_delta');
+      expect(result).toContain('event: message_stop');
+    });
+
+    it('should handle invalid JSON gracefully', async () => {
+      const transformStream = protocol.createFromStandardStream();
+      const writer = transformStream.writable.getWriter();
+      const reader = transformStream.readable.getReader();
+      const results: string[] = [];
+
+      const readPromise = (async () => {
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          results.push(new TextDecoder().decode(value));
+        }
+      })();
+
+      await writer.write(new TextEncoder().encode('data: invalid-json\n\n'));
+      await writer.close();
+
+      await readPromise;
+
+      expect(results.length).toBe(0);
     });
   });
 
