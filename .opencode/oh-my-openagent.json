@@ -42,7 +42,7 @@
       "temperature": 0.1
     },
     "sisyphus": {
-      "model": "x-openai/z-ai/glm5",
+      "model": "x-openai/minimaxai/minimax-m2.7",
       "temperature": 0.1
     }
   },

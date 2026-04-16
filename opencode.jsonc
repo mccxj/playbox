@@ -11,12 +11,12 @@
     "batch_tool": true,
     "openTelemetry": false
   },
-  "formatter": {
-    "prettier": {
-      "command": ["npx", "-y", "prettier", "--write"],
-      "extensions": [".js", ".ts", ".jsx", ".tsx", ".json", ".jsonc", ".css", ".yml", ".yaml"]
-    }
-  },
+  // "formatter": {
+  //   "prettier": {
+  //     "command": ["npx", "-y", "prettier", "--write"],
+  //     "extensions": [".js", ".ts", ".jsx", ".tsx", ".json", ".jsonc", ".css", ".yml", ".yaml"]
+  //   }
+  // },
   "logLevel": "DEBUG",
   "enabled_providers": ["x-openai", "x-google", "x-anthropic"],
   "provider": {
