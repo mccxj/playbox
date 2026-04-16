@@ -13,29 +13,12 @@
   },
   "formatter": {
     "prettier": {
-      "command": [
-        "npx",
-        "-y",
-        "prettier",
-        "--write"
-      ],
-      "extensions": [
-        ".js",
-        ".ts",
-        ".jsx",
-        ".tsx",
-        "json",
-        "jsonc",
-        "css"
-      ]
+      "command": ["npx", "-y", "prettier", "--write"],
+      "extensions": [".js", ".ts", ".jsx", ".tsx", ".json", ".jsonc", ".css", ".yml", ".yaml"]
     }
   },
   "logLevel": "DEBUG",
-  "enabled_providers": [
-    "x-openai",
-    "x-google",
-    "x-anthropic"
-  ],
+  "enabled_providers": ["x-openai", "x-google", "x-anthropic"],
   "provider": {
     "x-openai": {
       "models": {
@@ -134,10 +117,7 @@
       }
     }
   },
-  "plugin": [
-    "oh-my-openagent@latest",
-    "@tarquinen/opencode-dcp@latest"
-  ],
+  "plugin": ["oh-my-openagent@latest", "@tarquinen/opencode-dcp@latest"],
   "mcp": {
     "tavily": {
       "type": "remote",
@@ -146,13 +126,7 @@
     },
     "context7": {
       "type": "local",
-      "command": [
-        "npx",
-        "-y",
-        "@upstash/context7-mcp",
-        "--api-key",
-        "{env:CONTEXT7_API_KEY}"
-      ],
+      "command": ["npx", "-y", "@upstash/context7-mcp", "--api-key", "{env:CONTEXT7_API_KEY}"],
       "enabled": true
     }
   }
