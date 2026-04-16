@@ -11,6 +11,25 @@
     "batch_tool": true,
     "openTelemetry": false
   },
+  "formatter": {
+    "prettier": {
+      "command": [
+        "npx",
+        "-y",
+        "prettier",
+        "--write"
+      ],
+      "extensions": [
+        ".js",
+        ".ts",
+        ".jsx",
+        ".tsx",
+        "json",
+        "jsonc",
+        "css"
+      ]
+    }
+  },
   "logLevel": "DEBUG",
   "enabled_providers": [
     "x-openai",

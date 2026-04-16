@@ -1,6 +1,32 @@
 {
-	"printWidth": 140,
-	"singleQuote": true,
-	"semi": true,
-	"useTabs": true
+  "printWidth": 140,
+  "tabWidth": 2,
+  "useTabs": false,
+  "semi": true,
+  "singleQuote": true,
+  "quoteProps": "consistent",
+  "trailingComma": "es5",
+  "bracketSpacing": true,
+  "bracketSameLine": false,
+  "arrowParens": "always",
+  "endOfLine": "lf",
+  "embeddedLanguageFormatting": "auto",
+  "vueIndentScriptAndStyle": false,
+  "overrides": [
+    {
+      "files": ["*.json", "*.jsonc", "tsconfig*.json", "jsconfig*.json"],
+      "options": {
+        "parser": "jsonc",
+        "singleQuote": false,
+        "trailingComma": "none"
+      }
+    },
+    {
+      "files": ["*.md"],
+      "options": {
+        "printWidth": 120,
+        "proseWrap": "always"
+      }
+    }
+  ]
 }
