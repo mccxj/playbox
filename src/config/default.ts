@@ -14,7 +14,7 @@ export const DEFAULT_CONFIG: Config = {
     ollama: {
       type: 'openai',
       family: 'openai',
-      endpoint: 'https://ollama.com/api/chat?',
+      endpoint: 'https://ollama.com',
       key: 'Ollama',
       models: ['glm-5.1', 'glm-4.7', 'gemini-3-flash-preview', 'minimax-m2.7', 'glm-5', 'qwen3-vl:235b', 'qwen3.5:397b'],
     },
