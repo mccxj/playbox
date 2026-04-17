@@ -3,6 +3,8 @@ import { getCloudflareContext } from '@opennextjs/cloudflare';
 import { createJsonResponse, createInternalErrorResponse } from '@/lib/response-helpers';
 import { getConfig } from '@/config';
 import { ProtocolFamily } from '@/types/provider';
+import { KeyManager } from '@/managers/key';
+import type { Env } from '@/types';
 
 export const dynamic = 'force-dynamic';
 
@@ -32,7 +34,7 @@ async function fetchOpenAIModels(baseUrl: string, apiKey: string): Promise<Model
   const url = `${baseUrl}/v1/models`;
   const response = await fetch(url, {
     headers: {
-      'Authorization': `Bearer ${apiKey}`,
+      Authorization: `Bearer ${apiKey}`,
     },
   });
 
@@ -40,7 +42,7 @@ async function fetchOpenAIModels(baseUrl: string, apiKey: string): Promise<Model
     throw new Error(`OpenAI API error: ${response.status}`);
   }
 
-  const data = await response.json() as { data?: ModelInfo[] };
+  const data = (await response.json()) as { data?: ModelInfo[] };
   return data.data || [];
 }
 
@@ -52,8 +54,10 @@ async function fetchGeminiModels(baseUrl: string, apiKey: string): Promise<Model
     throw new Error(`Gemini API error: ${response.status}`);
   }
 
-  const data = await response.json() as { models?: Array<{ name: string; supportedGenerationMethods?: string[] }> };
-  return (data.models || []).map(m => ({
+  const data = (await response.json()) as {
+    models?: Array<{ name: string; supportedGenerationMethods?: string[] }>;
+  };
+  return (data.models || []).map((m) => ({
     id: m.name.replace('models/', ''),
     object: 'model',
     owned_by: 'google',
@@ -62,7 +66,8 @@ async function fetchGeminiModels(baseUrl: string, apiKey: string): Promise<Model
 
 export async function GET(request: NextRequest) {
   try {
-		const { env } = getCloudflareContext() as any;
+    const { env: rawEnv, ctx } = getCloudflareContext();
+    const env = rawEnv as unknown as Env;
     const config = getConfig(env);
 
     const providersByFamily: Record<ProtocolFamily, ProviderModels[]> = {
@@ -80,8 +85,19 @@ export async function GET(request: NextRequest) {
         models: p.models || [],
       };
 
-      const keyEnvName = `${p.key.toUpperCase().replace(/-/g, '_')}_API_KEY`;
-		const apiKey = env[keyEnvName] || env.AUTH_TOKEN;
+      let apiKey: string;
+      try {
+        apiKey = await KeyManager.getRandomApiKey(env, p, ctx);
+      } catch (keyError) {
+        providerInfo.error = `No API key found: ${(keyError as Error).message}`;
+        providerInfo.fetched =
+          p.models?.map((m: string) => ({
+            id: m,
+            object: 'model',
+          })) || [];
+        providersByFamily[p.family as ProtocolFamily].push(providerInfo);
+        continue;
+      }
 
       try {
         if (p.family === 'openai') {
@@ -89,18 +105,20 @@ export async function GET(request: NextRequest) {
         } else if (p.family === 'gemini') {
           providerInfo.fetched = await fetchGeminiModels(p.endpoint, apiKey);
         } else if (p.family === 'anthropic') {
-          providerInfo.fetched = p.models?.map((m: string) => ({
-            id: m,
-            object: 'model',
-            owned_by: 'anthropic',
-          })) || [];
+          providerInfo.fetched =
+            p.models?.map((m: string) => ({
+              id: m,
+              object: 'model',
+              owned_by: 'anthropic',
+            })) || [];
         }
       } catch (error) {
         providerInfo.error = (error as Error).message;
-        providerInfo.fetched = p.models?.map((m: string) => ({
-          id: m,
-          object: 'model',
-        })) || [];
+        providerInfo.fetched =
+          p.models?.map((m: string) => ({
+            id: m,
+            object: 'model',
+          })) || [];
       }
 
       providersByFamily[p.family as ProtocolFamily].push(providerInfo);
