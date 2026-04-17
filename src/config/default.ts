@@ -11,14 +11,21 @@ export interface Config {
 
 export const DEFAULT_CONFIG: Config = {
   providers: {
-    'longcat': {
+    ollama: {
+      type: 'openai',
+      family: 'openai',
+      endpoint: 'https://ollama.com/api/chat?',
+      key: 'Ollama',
+      models: ['glm-5.1', 'glm-4.7', 'gemini-3-flash-preview', 'minimax-m2.7', 'glm-5', 'qwen3-vl:235b', 'qwen3.5:397b'],
+    },
+    longcat: {
       type: 'openai',
       family: 'openai',
       endpoint: 'https://api.longcat.chat/openai',
       key: 'LongCat',
       models: ['LongCat-Flash-Chat', 'LongCat-Flash-Lite', 'LongCat-Flash-Thinking'],
     },
-    'longcat_claude': {
+    longcat_claude: {
       type: 'anthropic',
       family: 'anthropic',
       endpoint: 'https://api.longcat.chat/anthropic',
@@ -26,7 +33,7 @@ export const DEFAULT_CONFIG: Config = {
       models: ['LongCat-Flash-Chat', 'LongCat-Flash-Lite', 'LongCat-Flash-Thinking'],
       authType: 'bearer',
     },
-    'cerebras': {
+    cerebras: {
       type: 'openai',
       family: 'openai',
       endpoint: 'https://api.cerebras.ai',
@@ -36,15 +43,15 @@ export const DEFAULT_CONFIG: Config = {
         qwen3: 'qwen-3-235b-a22b-instruct-2507',
       },
     },
-    'gemini': {
+    gemini: {
       type: 'google',
       family: 'gemini',
       endpoint: 'https://generativelanguage.googleapis.com',
       key: 'Gemini',
       models: [
-		'gemini-flash-latest',
+        'gemini-flash-latest',
         'gemini-3-flash-preview',
-		'gemini-3.1-flash-lite-preview',
+        'gemini-3.1-flash-lite-preview',
         'gemini-2.5-flash',
         'gemini-flash-lite-latest',
         'gemini-2.5-flash-lite',
@@ -58,7 +65,7 @@ export const DEFAULT_CONFIG: Config = {
     //   key: 'Gemini',
     //   models: ['gemini-3-flash-preview', 'gemini-3.1-flash-lite-preview', 'gemini-2.5-flash', 'gemini-2.5-flash-lite'],
     // },
-    'modelscope': {
+    modelscope: {
       type: 'openai',
       family: 'openai',
       endpoint: 'https://api-inference.modelscope.cn',
@@ -77,7 +84,7 @@ export const DEFAULT_CONFIG: Config = {
         'ZhipuAI/GLM-4.7-Flash',
       ],
     },
-    'nvidia': {
+    nvidia: {
       type: 'openai',
       family: 'openai',
       endpoint: 'https://integrate.api.nvidia.com',
