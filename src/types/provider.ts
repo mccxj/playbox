@@ -1,6 +1,6 @@
 /**
-* AI Provider Configuration Types
-*/
+ * AI Provider Configuration Types
+ */
 
 /**
  * Protocol family - distinguishes between different API endpoint formats
@@ -39,8 +39,9 @@ export interface ProviderConfig {
   key: string;
   models: string[];
   authType?: AuthType; // Optional: defaults to 'header' for Anthropic, 'bearer' for OpenAI
+  modelAliases?: Record<string, string>; // Optional: alias -> realModel mapping
 }
 
 export interface Provider {
-	[key: string]: ProviderConfig;
+  [key: string]: ProviderConfig;
 }

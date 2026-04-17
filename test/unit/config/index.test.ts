@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { getConfig, resolveProvider, ConfigManager } from '../../../src/config/index';
+import { getConfig, resolveProvider, resolveModelAlias, ConfigManager } from '../../../src/config/index';
 import { DEFAULT_CONFIG } from '../../../src/config/default';
 import { ProtocolFamily } from '../../../src/types/provider';
 
@@ -111,6 +111,130 @@ describe('Config', () => {
 
       expect(result.provider.family).toBe('anthropic');
       expect(result.name).toBe('longcat_claude');
+    });
+  });
+
+  describe('resolveModelAlias', () => {
+    it('should return original model when no alias found', () => {
+      const config = DEFAULT_CONFIG;
+
+      const result = resolveModelAlias(config, 'nonexistent-model');
+
+      expect(result).toBe('nonexistent-model');
+    });
+
+    it('should resolve alias to real model name', () => {
+      const config = {
+        providers: {
+          test_provider: {
+            type: 'openai' as const,
+            family: 'openai' as const,
+            endpoint: 'https://test.api',
+            key: 'Test',
+            models: ['real-model-name'],
+            modelAliases: {
+              'alias-name': 'real-model-name',
+            },
+          },
+        },
+        default_provider: 'test_provider',
+      };
+
+      const result = resolveModelAlias(config, 'alias-name');
+
+      expect(result).toBe('real-model-name');
+    });
+
+    it('should use first matching provider alias', () => {
+      const config = {
+        providers: {
+          provider1: {
+            type: 'openai' as const,
+            family: 'openai' as const,
+            endpoint: 'https://test1.api',
+            key: 'Test1',
+            models: ['model-1'],
+            modelAliases: {
+              'shared-alias': 'model-1',
+            },
+          },
+          provider2: {
+            type: 'openai' as const,
+            family: 'openai' as const,
+            endpoint: 'https://test2.api',
+            key: 'Test2',
+            models: ['model-2'],
+            modelAliases: {
+              'shared-alias': 'model-2',
+            },
+          },
+        },
+        default_provider: 'provider1',
+      };
+
+      const result = resolveModelAlias(config, 'shared-alias');
+
+      expect(result).toBe('model-1');
+    });
+
+    it('should handle providers without modelAliases', () => {
+      const config = {
+        providers: {
+          provider1: {
+            type: 'openai' as const,
+            family: 'openai' as const,
+            endpoint: 'https://test.api',
+            key: 'Test',
+            models: ['model-1'],
+          },
+        },
+        default_provider: 'provider1',
+      };
+
+      const result = resolveModelAlias(config, 'any-model');
+
+      expect(result).toBe('any-model');
+    });
+  });
+
+  describe('resolveProvider with aliases', () => {
+    it('should resolve alias and return realModel', () => {
+      const config = {
+        providers: {
+          test_provider: {
+            type: 'openai' as const,
+            family: 'openai' as const,
+            endpoint: 'https://test.api',
+            key: 'Test',
+            models: ['real-model-name'],
+            modelAliases: {
+              'alias-name': 'real-model-name',
+            },
+          },
+        },
+        default_provider: 'test_provider',
+      };
+
+      const result = resolveProvider(config, 'alias-name', 'openai' as ProtocolFamily);
+
+      expect(result.name).toBe('test_provider');
+      expect(result.realModel).toBe('real-model-name');
+    });
+
+    it('should return realModel matching the actual model name when no alias', () => {
+      const config = DEFAULT_CONFIG;
+
+      const result = resolveProvider(config, 'LongCat-Flash-Chat');
+
+      expect(result.realModel).toBe('LongCat-Flash-Chat');
+    });
+
+    it('should resolve alias from cerebras provider', () => {
+      const config = DEFAULT_CONFIG;
+
+      const result = resolveModelAlias(config, 'qwen3');
+
+      expect(result).toBe('qwen-3-235b-a22b-instruct-2507');
     });
   });
 
