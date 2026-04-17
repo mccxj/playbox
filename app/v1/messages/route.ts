@@ -76,6 +76,9 @@ export async function POST(request: NextRequest) {
     const standardRequest = clientProtocol.toStandardRequest(rawBody);
     const upstreamRequest = upstreamProtocol.fromStandardRequest(standardRequest);
 
+    // Replace model name with resolved model (handles aliases)
+    upstreamRequest.model = realModel;
+
     const MAX_ATTEMPTS = upstreamProtocol.getAttempt();
     let lastResponse: Response | undefined;
     for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
