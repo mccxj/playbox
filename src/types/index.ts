@@ -17,4 +17,5 @@ export interface Config {
 export type ResolvedProvider = {
   name: string;
   provider: ProviderConfig;
+  realModel: string;
 };

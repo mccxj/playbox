@@ -21,13 +21,13 @@ interface TokenUsage {
 export const dynamic = 'force-dynamic';
 
 interface GeminiGenerateRequest {
-	model?: string;
-	contents: any[];
-	system_instruction?: any;
-	generationConfig?: any;
-	safetySettings?: any[];
-	tools?: any[];
-	toolConfig?: any;
+  model?: string;
+  contents: any[];
+  system_instruction?: any;
+  generationConfig?: any;
+  safetySettings?: any[];
+  tools?: any[];
+  toolConfig?: any;
 }
 
 /**
@@ -37,33 +37,30 @@ interface GeminiGenerateRequest {
  * - Alternative: "gemini-2.5-flash/generateContent" (fallback if URL encoding fails)
  */
 function parseActionSegment(actionSegment: string): { model: string; action: string } {
-	// Try colon format first (standard Google API)
-	if (actionSegment.includes(':')) {
-		const colonIndex = actionSegment.lastIndexOf(':');
-		const model = actionSegment.slice(0, colonIndex);
-		const action = actionSegment.slice(colonIndex + 1);
-		return { model, action };
-	}
+  // Try colon format first (standard Google API)
+  if (actionSegment.includes(':')) {
+    const colonIndex = actionSegment.lastIndexOf(':');
+    const model = actionSegment.slice(0, colonIndex);
+    const action = actionSegment.slice(colonIndex + 1);
+    return { model, action };
+  }
 
-	// Fallback: try slash format
-	if (actionSegment.includes('/')) {
-		const parts = actionSegment.split('/');
-		const action = parts.pop() || '';
-		const model = parts.join('/');
-		return { model, action };
-	}
+  // Fallback: try slash format
+  if (actionSegment.includes('/')) {
+    const parts = actionSegment.split('/');
+    const action = parts.pop() || '';
+    const model = parts.join('/');
+    return { model, action };
+  }
 
-	// No separator found - assume entire segment is model with default action
-	return { model: actionSegment, action: 'generateContent' };
+  // No separator found - assume entire segment is model with default action
+  return { model: actionSegment, action: 'generateContent' };
 }
 
-export async function POST(
-  request: NextRequest,
-  { params }: { params: Promise<{ action: string[] }> }
-) {
+export async function POST(request: NextRequest, { params }: { params: Promise<{ action: string[] }> }) {
   const logger = createLogger();
 
-	const { env: rawEnv, ctx } = getCloudflareContext();
+  const { env: rawEnv, ctx } = getCloudflareContext();
   const env = rawEnv as unknown as Env;
 
   const authResult = authenticate(request as any, env);
@@ -93,250 +90,221 @@ export async function POST(
         JSON.stringify({
           error: {
             message: `Invalid action: ${action}. Supported actions: ${validActions.join(', ')}`,
-            type: 'invalid_action'
-          }
+            type: 'invalid_action',
+          },
         }),
         {
           status: 400,
-          headers: { 'Content-Type': 'application/json', ...CORS_HEADERS }
+          headers: { 'Content-Type': 'application/json', ...CORS_HEADERS },
         }
       );
     }
 
-    const rawBody = await request.json() as GeminiGenerateRequest;
+    const rawBody = (await request.json()) as GeminiGenerateRequest;
 
     // Model from URL path takes precedence, then body, then default
     const requestedModel = pathModel || rawBody.model || 'gemini-2.5-flash';
     const isStream = action === 'streamGenerateContent' || url.searchParams.get('alt') === 'sse';
 
     const config = getConfig(env);
-		const { name: providerName, provider } = resolveProvider(config, requestedModel, 'gemini');
+    const { name: providerName, provider, realModel } = resolveProvider(config, requestedModel, 'gemini');
 
-		if (!provider) {
-			throw new Error(`No provider found for model: ${requestedModel}`);
-		}
+    if (!provider) {
+      throw new Error(`No provider found for model: ${requestedModel}`);
+    }
 
-		if (provider.family !== 'gemini') {
-			throw new Error(`Gemini endpoint only supports 'gemini' family providers. Got: ${provider.family} (provider: ${providerName})`);
-		}
+    if (provider.family !== 'gemini') {
+      throw new Error(`Gemini endpoint only supports 'gemini' family providers. Got: ${provider.family} (provider: ${providerName})`);
+    }
 
-		logger.info('Gemini request routed', { model: requestedModel, isStream, providerName, providerType: provider.type, action });
+    logger.info('Gemini request routed', { model: requestedModel, realModel, isStream, providerName, providerType: provider.type, action });
 
-		const apiKey = request.headers.get('x-api-key') || request.headers.get('Authorization')?.replace('Bearer ', '') || 'anonymous';
-		(env as unknown as { PLAYBOX_EVENTS?: AnalyticsEngineDataset }).PLAYBOX_EVENTS?.writeDataPoint({
-			blobs: [
-				'llm_api',
-				`/v1beta/models/${requestedModel}:${action}`,
-				requestedModel,
-				isStream ? 'stream' : 'non-stream',
-				providerName,
-			],
-			indexes: [apiKey],
-		});
-
-		const protocol = ProtocolFactory.get(provider.type);
-
-		const geminiRequest = {
-			contents: rawBody.contents,
-			system_instruction: rawBody.system_instruction,
-			generationConfig: rawBody.generationConfig,
-			safetySettings: rawBody.safetySettings || [
-				{ category: 'HARM_CATEGORY_DANGEROUS_CONTENT', threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
-				{ category: 'HARM_CATEGORY_HARASSMENT', threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
-				{ category: 'HARM_CATEGORY_HATE_SPEECH', threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
-				{ category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT', threshold: 'BLOCK_MEDIUM_AND_ABOVE' }
-			],
-		};
-
-		if (rawBody.tools) (geminiRequest as any).tools = rawBody.tools;
-		if (rawBody.toolConfig) (geminiRequest as any).toolConfig = rawBody.toolConfig;
-
-		const MAX_ATTEMPTS = protocol.getAttempt();
-		let lastResponse: Response | undefined;
-
-		let fetchUrl = '';
-		let fetchHeaders: Record<string, string> = {};
-
-		for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
-			const apiKeyValue = await protocol.getApiKey(env, provider, ctx);
-			fetchUrl = await protocol.getEndpoint(provider, requestedModel, isStream, apiKeyValue);
-			fetchHeaders = await protocol.getHeaders(provider, env, ctx, apiKeyValue);
-
-			const requestBody = provider.type === 'gemini-cli'
-				? { request: geminiRequest, model: requestedModel, project: 'steadfast-aloe-jm6t3' }
-				: geminiRequest;
-
-			lastResponse = await fetch(fetchUrl, {
-				method: 'POST',
-				headers: fetchHeaders,
-				body: JSON.stringify(requestBody)
-			});
-
-			if (lastResponse.status !== 429 || attempt === MAX_ATTEMPTS) break;
-			logger.warn(`Upstream 429 Rate Limit, retrying...`, { attempt });
-		}
-
-		if (lastResponse && !lastResponse.ok) {
-			logger.error('Upstream request failed', { status: lastResponse.status, statusText: lastResponse.statusText });
-		}
-
-		const resHeaders = {
-			'Access-Control-Allow-Origin': '*',
-			'Content-Type': isStream ? 'text/event-stream' : 'application/json'
-		};
-
-		if (isDebug && lastResponse) {
-			const responseHeaders: Record<string, string> = {};
-			lastResponse.headers.forEach((value, key) => {
-				responseHeaders[key] = value;
-			});
-
-			let responseBody: any;
-			const contentType = lastResponse.headers.get('content-type') || '';
-
-			if (contentType.includes('application/json')) {
-				responseBody = await lastResponse.json();
-			} else {
-				responseBody = await lastResponse.text();
-			}
-
-			const debugResponse = {
-				debug: true,
-				upstream: {
-					status: lastResponse.status,
-					statusText: lastResponse.statusText,
-					headers: responseHeaders,
-					url: fetchUrl,
-					request: provider.type === 'gemini-cli'
-						? { request: geminiRequest, model: requestedModel }
-						: geminiRequest,
-					body: responseBody
-				},
-				provider: { name: providerName, type: provider.type },
-				model: requestedModel,
-				action
-			};
-
-			return new Response(JSON.stringify(debugResponse, null, 2), {
-				headers: { ...resHeaders, 'Content-Type': 'application/json' }
-			});
-		}
-
-  if (isStream && lastResponse?.body) {
-    let stream = lastResponse.body;
-
-    // Wrapper stream to capture token usage at stream end
-    let tokenUsage: TokenUsage | null = null;
-    const tokenCaptureStream = new TransformStream({
-      transform(chunk, controller) {
-        controller.enqueue(chunk);
-      },
-      flush() {
-        if (tokenUsage) {
-          (env as unknown as { PLAYBOX_EVENTS?: AnalyticsEngineDataset }).PLAYBOX_EVENTS?.writeDataPoint({
-            blobs: [
-              'llm_api_tokens',
-              requestedModel,
-              providerName,
-              'stream',
-            ],
-            doubles: [
-              tokenUsage.prompt_tokens,
-              tokenUsage.completion_tokens,
-              tokenUsage.total_tokens,
-            ],
-            indexes: [apiKey],
-          });
-        }
-      },
+    const apiKey = request.headers.get('x-api-key') || request.headers.get('Authorization')?.replace('Bearer ', '') || 'anonymous';
+    (env as unknown as { PLAYBOX_EVENTS?: AnalyticsEngineDataset }).PLAYBOX_EVENTS?.writeDataPoint({
+      blobs: ['llm_api', `/v1beta/models/${requestedModel}:${action}`, requestedModel, isStream ? 'stream' : 'non-stream', providerName],
+      indexes: [apiKey],
     });
 
-    // Create a tee stream: one for parsing usage, one for the response
-    const [streamForUsage, streamForResponse] = stream.tee();
+    const protocol = ProtocolFactory.get(provider.type);
 
-    // Parse usage data from the stream in background
-    (async () => {
-      const reader = streamForUsage.getReader();
-      const decoder = new TextDecoder();
-      let buffer = '';
-      try {
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
-          buffer += decoder.decode(value, { stream: true });
-          // Gemini streaming format: final chunk contains usageMetadata
-          const lines = buffer.split('\n');
-          for (const line of lines) {
-            if (line.startsWith('data: ') && line !== 'data: [DONE]') {
-              try {
-                const jsonStr = line.slice(6);
-                const json = JSON.parse(jsonStr);
-                if (json.usageMetadata) {
-                  tokenUsage = {
-                    prompt_tokens: json.usageMetadata.promptTokenCount || 0,
-                    completion_tokens: json.usageMetadata.candidatesTokenCount || 0,
-                    total_tokens: json.usageMetadata.totalTokenCount || 0,
-                  };
-                }
-              } catch (e) {
-                // Ignore parse errors
-              }
-            }
-          }
-        }
-      } catch (e) {
-        // Ignore errors in usage extraction
-      } finally {
-        reader.releaseLock();
+    const geminiRequest = {
+      contents: rawBody.contents,
+      system_instruction: rawBody.system_instruction,
+      generationConfig: rawBody.generationConfig,
+      safetySettings: rawBody.safetySettings || [
+        { category: 'HARM_CATEGORY_DANGEROUS_CONTENT', threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
+        { category: 'HARM_CATEGORY_HARASSMENT', threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
+        { category: 'HARM_CATEGORY_HATE_SPEECH', threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
+        { category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT', threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
+      ],
+    };
+
+    if (rawBody.tools) (geminiRequest as any).tools = rawBody.tools;
+    if (rawBody.toolConfig) (geminiRequest as any).toolConfig = rawBody.toolConfig;
+
+    const MAX_ATTEMPTS = protocol.getAttempt();
+    let lastResponse: Response | undefined;
+
+    let fetchUrl = '';
+    let fetchHeaders: Record<string, string> = {};
+
+    for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+      const apiKeyValue = await protocol.getApiKey(env, provider, ctx);
+      fetchUrl = await protocol.getEndpoint(provider, realModel, isStream, apiKeyValue);
+      fetchHeaders = await protocol.getHeaders(provider, env, ctx, apiKeyValue);
+
+      const requestBody =
+        provider.type === 'gemini-cli' ? { request: geminiRequest, model: realModel, project: 'steadfast-aloe-jm6t3' } : geminiRequest;
+
+      lastResponse = await fetch(fetchUrl, {
+        method: 'POST',
+        headers: fetchHeaders,
+        body: JSON.stringify(requestBody),
+      });
+
+      if (lastResponse.status !== 429 || attempt === MAX_ATTEMPTS) break;
+      logger.warn(`Upstream 429 Rate Limit, retrying...`, { attempt });
+    }
+
+    if (lastResponse && !lastResponse.ok) {
+      logger.error('Upstream request failed', { status: lastResponse.status, statusText: lastResponse.statusText });
+    }
+
+    const resHeaders = {
+      'Access-Control-Allow-Origin': '*',
+      'Content-Type': isStream ? 'text/event-stream' : 'application/json',
+    };
+
+    if (isDebug && lastResponse) {
+      const responseHeaders: Record<string, string> = {};
+      lastResponse.headers.forEach((value, key) => {
+        responseHeaders[key] = value;
+      });
+
+      let responseBody: any;
+      const contentType = lastResponse.headers.get('content-type') || '';
+
+      if (contentType.includes('application/json')) {
+        responseBody = await lastResponse.json();
+      } else {
+        responseBody = await lastResponse.text();
       }
-    })();
 
-    stream = streamForResponse.pipeThrough(tokenCaptureStream);
+      const debugResponse = {
+        debug: true,
+        upstream: {
+          status: lastResponse.status,
+          statusText: lastResponse.statusText,
+          headers: responseHeaders,
+          url: fetchUrl,
+          request: provider.type === 'gemini-cli' ? { request: geminiRequest, model: realModel } : geminiRequest,
+          body: responseBody,
+        },
+        provider: { name: providerName, type: provider.type },
+        model: requestedModel,
+        realModel,
+        action,
+      };
 
-    return new Response(stream, { headers: { ...resHeaders, 'Cache-Control': 'no-cache', Connection: 'keep-alive' } });
-  }
-
-  if (lastResponse) {
-    const responseJson = await lastResponse.json();
-
-    // Extract token usage from Gemini response
-    const usageMetadata = (responseJson as any).usageMetadata;
-    if (usageMetadata) {
-      (env as unknown as { PLAYBOX_EVENTS?: AnalyticsEngineDataset }).PLAYBOX_EVENTS?.writeDataPoint({
-        blobs: [
-          'llm_api_tokens',
-          requestedModel,
-          providerName,
-          'non-stream',
-        ],
-        doubles: [
-          usageMetadata.promptTokenCount || 0,
-          usageMetadata.candidatesTokenCount || 0,
-          usageMetadata.totalTokenCount || 0,
-        ],
-        indexes: [apiKey],
+      return new Response(JSON.stringify(debugResponse, null, 2), {
+        headers: { ...resHeaders, 'Content-Type': 'application/json' },
       });
     }
 
-    return new Response(JSON.stringify(responseJson), { headers: resHeaders });
-  }
+    if (isStream && lastResponse?.body) {
+      let stream = lastResponse.body;
 
-		throw new Error('No response from upstream');
-	} catch (err) {
-		logger.error('Internal Server Error', { message: (err as Error).message, stack: (err as Error).stack });
-		return new Response(
-			JSON.stringify({ error: { message: (err as Error).message } }),
-			{
-				status: 500,
-				headers: { 'Content-Type': 'application/json', ...CORS_HEADERS }
-			}
-		);
-	}
+      // Wrapper stream to capture token usage at stream end
+      let tokenUsage: TokenUsage | null = null;
+      const tokenCaptureStream = new TransformStream({
+        transform(chunk, controller) {
+          controller.enqueue(chunk);
+        },
+        flush() {
+          if (tokenUsage) {
+            (env as unknown as { PLAYBOX_EVENTS?: AnalyticsEngineDataset }).PLAYBOX_EVENTS?.writeDataPoint({
+              blobs: ['llm_api_tokens', requestedModel, providerName, 'stream'],
+              doubles: [tokenUsage.prompt_tokens, tokenUsage.completion_tokens, tokenUsage.total_tokens],
+              indexes: [apiKey],
+            });
+          }
+        },
+      });
+
+      // Create a tee stream: one for parsing usage, one for the response
+      const [streamForUsage, streamForResponse] = stream.tee();
+
+      // Parse usage data from the stream in background
+      (async () => {
+        const reader = streamForUsage.getReader();
+        const decoder = new TextDecoder();
+        let buffer = '';
+        try {
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            buffer += decoder.decode(value, { stream: true });
+            // Gemini streaming format: final chunk contains usageMetadata
+            const lines = buffer.split('\n');
+            for (const line of lines) {
+              if (line.startsWith('data: ') && line !== 'data: [DONE]') {
+                try {
+                  const jsonStr = line.slice(6);
+                  const json = JSON.parse(jsonStr);
+                  if (json.usageMetadata) {
+                    tokenUsage = {
+                      prompt_tokens: json.usageMetadata.promptTokenCount || 0,
+                      completion_tokens: json.usageMetadata.candidatesTokenCount || 0,
+                      total_tokens: json.usageMetadata.totalTokenCount || 0,
+                    };
+                  }
+                } catch (e) {
+                  // Ignore parse errors
+                }
+              }
+            }
+          }
+        } catch (e) {
+          // Ignore errors in usage extraction
+        } finally {
+          reader.releaseLock();
+        }
+      })();
+
+      stream = streamForResponse.pipeThrough(tokenCaptureStream);
+
+      return new Response(stream, { headers: { ...resHeaders, 'Cache-Control': 'no-cache', 'Connection': 'keep-alive' } });
+    }
+
+    if (lastResponse) {
+      const responseJson = await lastResponse.json();
+
+      // Extract token usage from Gemini response
+      const usageMetadata = (responseJson as any).usageMetadata;
+      if (usageMetadata) {
+        (env as unknown as { PLAYBOX_EVENTS?: AnalyticsEngineDataset }).PLAYBOX_EVENTS?.writeDataPoint({
+          blobs: ['llm_api_tokens', requestedModel, providerName, 'non-stream'],
+          doubles: [usageMetadata.promptTokenCount || 0, usageMetadata.candidatesTokenCount || 0, usageMetadata.totalTokenCount || 0],
+          indexes: [apiKey],
+        });
+      }
+
+      return new Response(JSON.stringify(responseJson), { headers: resHeaders });
+    }
+
+    throw new Error('No response from upstream');
+  } catch (err) {
+    logger.error('Internal Server Error', { message: (err as Error).message, stack: (err as Error).stack });
+    return new Response(JSON.stringify({ error: { message: (err as Error).message } }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json', ...CORS_HEADERS },
+    });
+  }
 }
 
 export async function OPTIONS() {
-	return new Response(null, {
-		status: 204,
-		headers: CORS_HEADERS
-	});
+  return new Response(null, {
+    status: 204,
+    headers: CORS_HEADERS,
+  });
 }

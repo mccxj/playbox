@@ -1,32 +1,44 @@
 import { DEFAULT_CONFIG, Config } from './default';
-import { ProtocolFamily } from '../types/provider';
+import { ProtocolFamily, ProviderConfig } from '../types/provider';
 
 export interface ResolvedProvider {
-	name: string;
-	provider: any;
+  name: string;
+  provider: ProviderConfig;
+  realModel: string;
 }
 
 export function getConfig(env: any): Config {
-	return env.API_CONFIG ? JSON.parse(env.API_CONFIG) : DEFAULT_CONFIG;
+  return env.API_CONFIG ? JSON.parse(env.API_CONFIG) : DEFAULT_CONFIG;
+}
+
+export function resolveModelAlias(config: Config, model: string): string {
+  for (const provider of Object.values(config.providers)) {
+    if (provider.modelAliases && provider.modelAliases[model]) {
+      return provider.modelAliases[model];
+    }
+  }
+  return model;
 }
 
 export function resolveProvider(config: Config, model: string, family?: ProtocolFamily): ResolvedProvider {
-	let fallbackProviderName: string | null = null;
+  const realModel = resolveModelAlias(config, model);
+  let fallbackProviderName: string | null = null;
 
-	for (const [name, p] of Object.entries(config.providers)) {
-		if (p.models && p.models.includes(model)) {
-			if (!fallbackProviderName) fallbackProviderName = name;
-			if (family && p.family === family) {
-				return { name, provider: p };
-			}
-		}
-	}
+  for (const [name, p] of Object.entries(config.providers)) {
+    if (p.models && p.models.includes(realModel)) {
+      if (!fallbackProviderName) fallbackProviderName = name;
+      if (family && p.family === family) {
+        return { name, provider: p, realModel };
+      }
+    }
+  }
 
-	const finalName = fallbackProviderName || config.default_provider;
-	return { name: finalName, provider: config.providers[finalName] };
+  const finalName = fallbackProviderName || config.default_provider;
+  return { name: finalName, provider: config.providers[finalName], realModel };
 }
 
 export const ConfigManager = {
-	getConfig,
-	resolveProvider,
+  getConfig,
+  resolveProvider,
+  resolveModelAlias,
 };
