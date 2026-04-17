@@ -11,14 +11,14 @@ export interface Config {
 
 export const DEFAULT_CONFIG: Config = {
   providers: {
-    longcat: {
+    'longcat': {
       type: 'openai',
       family: 'openai',
       endpoint: 'https://api.longcat.chat/openai',
       key: 'LongCat',
       models: ['LongCat-Flash-Chat', 'LongCat-Flash-Lite', 'LongCat-Flash-Thinking'],
     },
-    longcat_claude: {
+    'longcat_claude': {
       type: 'anthropic',
       family: 'anthropic',
       endpoint: 'https://api.longcat.chat/anthropic',
@@ -26,7 +26,7 @@ export const DEFAULT_CONFIG: Config = {
       models: ['LongCat-Flash-Chat', 'LongCat-Flash-Lite', 'LongCat-Flash-Thinking'],
       authType: 'bearer',
     },
-    cerebras: {
+    'cerebras': {
       type: 'openai',
       family: 'openai',
       endpoint: 'https://api.cerebras.ai',
@@ -36,7 +36,7 @@ export const DEFAULT_CONFIG: Config = {
         qwen3: 'qwen-3-235b-a22b-instruct-2507',
       },
     },
-    gemini: {
+    'gemini': {
       type: 'google',
       family: 'gemini',
       endpoint: 'https://generativelanguage.googleapis.com',
@@ -50,14 +50,14 @@ export const DEFAULT_CONFIG: Config = {
         'gemma-4-31b-it',
       ],
     },
-    // 'gemini-cli': {
-    // 	type: 'gemini-cli',
-    // 	family: 'gemini',
-    // 	endpoint: 'https://cloudcode-pa.googleapis.com/v1internal',
-    // 	key: 'Gemini',
-    // 	models: ['gemini-3-flash-preview', 'gemini-3.1-flash-lite-preview', 'gemini-2.5-flash', 'gemini-2.5-flash-lite'],
-    // },
-    modelscope: {
+    'gemini-cli': {
+      type: 'gemini-cli',
+      family: 'gemini',
+      endpoint: 'https://cloudcode-pa.googleapis.com/v1internal',
+      key: 'Gemini',
+      models: ['gemini-3-flash-preview', 'gemini-3.1-flash-lite-preview', 'gemini-2.5-flash', 'gemini-2.5-flash-lite'],
+    },
+    'modelscope': {
       type: 'openai',
       family: 'openai',
       endpoint: 'https://api-inference.modelscope.cn',
@@ -76,7 +76,7 @@ export const DEFAULT_CONFIG: Config = {
         'ZhipuAI/GLM-4.7-Flash',
       ],
     },
-    nvidia: {
+    'nvidia': {
       type: 'openai',
       family: 'openai',
       endpoint: 'https://integrate.api.nvidia.com',
