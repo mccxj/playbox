@@ -10,11 +10,11 @@
       "temperature": 0.1
     },
     "librarian": {
-      "model": "x-openai/LongCat-Flash-Lite",
+      "model": "x-openai/minimax-m2.7",
       "temperature": 0.1
     },
     "explore": {
-      "model": "x-openai/LongCat-Flash-Lite",
+      "model": "x-openai/minimax-m2.7",
       "temperature": 0.1
     },
     "multimodal-looker": {
@@ -30,7 +30,7 @@
       "temperature": 0.1
     },
     "momus": {
-      "model": "x-openai/LongCat-Flash-Lite",
+      "model": "x-openai/minimax-m2.7",
       "temperature": 0.1
     },
     "atlas": {
@@ -38,7 +38,7 @@
       "temperature": 0.1
     },
     "sisyphus-junior": {
-      "model": "x-openai/LongCat-Flash-Lite",
+      "model": "x-openai/minimax-m2.7",
       "temperature": 0.1
     },
     "sisyphus": {
@@ -60,15 +60,15 @@
       "temperature": 0.1
     },
     "artistry": {
-      "model": "x-openai/minimaxai/minimax-m2.5",
+      "model": "x-openai/minimax-m2.7",
       "temperature": 0.1
     },
     "quick": {
-      "model": "x-openai/LongCat-Flash-Lite",
+      "model": "x-openai/minimax-m2.7",
       "temperature": 0.1
     },
     "unspecified-low": {
-      "model": "x-openai/LongCat-Flash-Lite",
+      "model": "x-openai/minimax-m2.7",
       "temperature": 0.1
     },
     "unspecified-high": {
