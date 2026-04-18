@@ -92,6 +92,7 @@ export const DEFAULT_CONFIG: Config = {
       models: [
         'z-ai/glm4.7',
         'z-ai/glm5',
+        'z-ai/glm-5.1',
         'qwen/qwen3-coder-480b-a35b-instruct',
         'qwen/qwen3.5-397b-a17b',
         'qwen/qwen3.5-122b-a10b',
