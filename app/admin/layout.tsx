@@ -17,6 +17,7 @@ import {
 } from '@ant-design/icons';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import VConsole from '@/app/components/VConsole';
 
 const { Header, Sider, Content } = Layout;
 const { Title } = Typography;
@@ -93,6 +94,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         },
       }}
     >
+      <VConsole />
       <AntApp>
         <Layout style={{ minHeight: '100vh' }}>
           <Sider
