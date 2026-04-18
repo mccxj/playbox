@@ -58,6 +58,9 @@
         "minimaxai/minimax-m2.7": {
           "name": "minimaxai/minimax-m2.7"
         },
+        "minimax-m2.7": {
+							"name": "minimax-m2.7"
+        },
         "moonshotai/kimi-k2.5": {
           "name": "moonshotai/kimi-k2.5"
         }
