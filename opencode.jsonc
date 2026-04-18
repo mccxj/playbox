@@ -34,6 +34,9 @@
         "z-ai/glm4.7": {
           "name": "z-ai/glm4.7"
         },
+        "z-ai/glm5": {
+          "name": "z-ai/glm5"
+        },
         "z-ai/glm-5.1": {
           "name": "z-ai/glm-5.1"
         },
