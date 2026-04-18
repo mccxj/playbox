@@ -17,7 +17,7 @@ import {
 } from '@ant-design/icons';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import VConsole from '@/app/components/VConsole';
+import VConsole from '../components/VConsole';
 
 const { Header, Sider, Content } = Layout;
 const { Title } = Typography;
