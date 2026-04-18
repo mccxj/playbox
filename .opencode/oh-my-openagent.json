@@ -14,7 +14,7 @@
       "temperature": 0.1
     },
     "explore": {
-      "model": "x-openai/minimaxai/minimax-m2.5",
+      "model": "x-openai/LongCat-Flash-Lite",
       "temperature": 0.1
     },
     "multimodal-looker": {
