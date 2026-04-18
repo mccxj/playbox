@@ -4,7 +4,7 @@
 -- SQLite does not support ALTER TABLE to modify CHECK constraints
 -- We need to recreate the table with the new constraint
 
--- Step 1: Create a backup table with the new schema
+-- Step 1: Create a backup table with the new schema (IF NOT EXISTS for idempotency)
 CREATE TABLE IF NOT EXISTS security_keys_new (
   id TEXT PRIMARY KEY,
   type TEXT NOT NULL CHECK(type IN ('API_KEY', 'REFRESH_TOKEN', 'ACCESS_TOKEN', 'OAUTH_JSON', 'EMAIL')),
@@ -14,12 +14,14 @@ CREATE TABLE IF NOT EXISTS security_keys_new (
   updated_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
--- Step 2: Copy existing data
+-- Step 2: Copy existing data (only if backup is empty to support re-runs)
 INSERT INTO security_keys_new (id, type, provider, content, created_at, updated_at)
-SELECT id, type, provider, content, created_at, updated_at FROM security_keys;
+SELECT id, type, provider, content, created_at, updated_at
+FROM security_keys
+WHERE NOT EXISTS (SELECT 1 FROM security_keys_new);
 
--- Step 3: Drop the old table
-DROP TABLE security_keys;
+-- Step 3: Drop the old table (IF EXISTS for idempotency)
+DROP TABLE IF EXISTS security_keys;
 
 -- Step 4: Rename the new table
 ALTER TABLE security_keys_new RENAME TO security_keys;
@@ -36,6 +38,7 @@ CREATE TABLE IF NOT EXISTS email_history (
   recipients TEXT NOT NULL,
   subject TEXT NOT NULL,
   body TEXT,
+  html_body TEXT,
   attachments TEXT,
   status TEXT NOT NULL CHECK(status IN ('pending', 'sent', 'failed')),
   error TEXT,

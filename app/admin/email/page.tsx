@@ -13,6 +13,7 @@ interface EmailRecord {
   recipients: string[];
   subject: string;
   body: string;
+  htmlBody?: string;
   attachments: any;
   status: 'pending' | 'sent' | 'failed';
   error?: string;

@@ -113,12 +113,15 @@ export async function POST(request: NextRequest) {
     const now = new Date().toISOString();
 
     await db
-      .prepare(`INSERT INTO email_history (id, recipients, subject, body, attachments, status, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)`)
+      .prepare(
+        `INSERT INTO email_history (id, recipients, subject, body, html_body, attachments, status, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
+      )
       .bind(
         emailId,
         JSON.stringify(recipients),
         subject,
-        emailBody || html,
+        emailBody || null,
+        html || null,
         attachments ? JSON.stringify(attachments) : null,
         'pending',
         now
@@ -190,12 +193,12 @@ export async function GET(request: NextRequest) {
     const total = (countResult.results as any[])[0]?.total || 0;
 
     const query = `
-			SELECT id, recipients, subject, body, attachments, status, error, created_at, sent_at
-			FROM email_history
-			${whereClause}
-			ORDER BY created_at DESC
-			LIMIT ? OFFSET ?
-		`;
+      SELECT id, recipients, subject, body, html_body, attachments, status, error, created_at, sent_at
+      FROM email_history
+      ${whereClause}
+      ORDER BY created_at DESC
+      LIMIT ? OFFSET ?
+    `;
 
     const queryParams = [...params, pageSize, offset];
     const result = await db
@@ -208,6 +211,7 @@ export async function GET(request: NextRequest) {
       recipients: JSON.parse(r.recipients),
       subject: r.subject,
       body: r.body,
+      htmlBody: r.html_body || undefined,
       attachments: r.attachments ? JSON.parse(r.attachments) : null,
       status: r.status,
       error: r.error || undefined,
