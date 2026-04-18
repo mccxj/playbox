@@ -65,4 +65,4 @@ jobs:
           TAVILY_API_KEY: ${{ secrets.TAVILY_API_KEY }}
           CONTEXT7_API_KEY: ${{ secrets.CONTEXT7_API_KEY }}
         with:
-          model: x-openai/z-ai/glm5
+          model: x-openai/z.ai/glm-5.1
