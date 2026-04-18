@@ -1,0 +1,78 @@
+name: Scheduled Email
+
+# Experimental: Scheduled Gmail email sending
+# Configure secrets before enabling:
+#   - EMAIL_ADDRESS: Your Gmail address
+#   - EMAIL_PASSWORD: Gmail App Password (not your regular password)
+#
+# To enable:
+#   1. Go to repository Settings > Secrets and variables > Actions
+#   2. Add EMAIL_ADDRESS and EMAIL_PASSWORD secrets
+#   3. Uncomment the schedule trigger below
+
+on:
+  # Schedule: Runs every day at 08:00 UTC (adjust cron as needed)
+  # schedule:
+  #   - cron: '0 8 * * *'
+
+  # Manual trigger for testing
+  workflow_dispatch:
+
+jobs:
+  send-email:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Send Gmail email
+        env:
+          EMAIL_ADDRESS: ${{ secrets.EMAIL_ADDRESS }}
+          EMAIL_PASSWORD: ${{ secrets.EMAIL_PASSWORD }}
+          # Recipient and content (test values - modify as needed)
+          RECIPIENT: "test-recipient@example.com"
+          SUBJECT: "Test Scheduled Email from GitHub Actions"
+          BODY: |
+            This is a test email sent from GitHub Actions.
+
+            Sent at: ${{ github.event.repository.updated_at }}
+            Repository: ${{ github.repository }}
+
+            This is an experimental feature.
+        run: |
+          python3 << 'EOF'
+          import smtplib
+          import os
+          from email.mime.text import MIMEText
+          from email.mime.multipart import MIMEMultipart
+
+          # Get environment variables
+          sender = os.environ.get('EMAIL_ADDRESS')
+          password = os.environ.get('EMAIL_PASSWORD')
+          recipient = os.environ.get('RECIPIENT')
+          subject = os.environ.get('SUBJECT')
+          body = os.environ.get('BODY')
+
+          # Validate required variables
+          if not sender or not password:
+              print("Warning: EMAIL_ADDRESS or EMAIL_PASSWORD not configured")
+              print("Please add these secrets in repository settings")
+              exit(0)  # Exit gracefully for unconfigured workflow
+
+          # Create email
+          msg = MIMEMultipart()
+          msg['From'] = sender
+          msg['To'] = recipient
+          msg['Subject'] = subject
+          msg.attach(MIMEText(body, 'plain'))
+
+          # Send via Gmail SMTP
+          try:
+              server = smtplib.SMTP('smtp.gmail.com', 587)
+              server.starttls()
+              server.login(sender, password)
+              server.sendmail(sender, recipient, msg.as_string())
+              server.quit()
+              print(f"Email sent successfully to {recipient}")
+          except Exception as e:
+              print(f"Failed to send email: {e}")
+              raise
+          EOF
