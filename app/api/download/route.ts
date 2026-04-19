@@ -6,181 +6,267 @@ import { getCloudflareContext } from '@opennextjs/cloudflare';
 
 export const dynamic = 'force-dynamic';
 
-async function logDownload(url: string, filename: string, size: number, status: string, error?: string, rangeHeader?: string): Promise<void> {
-	try {
-		const { env } = getCloudflareContext() as any;
-		const db = env.PLAYBOX_D1;
+async function logDownload(
+  url: string,
+  filename: string,
+  size: number,
+  status: string,
+  error?: string,
+  rangeHeader?: string
+): Promise<void> {
+  try {
+    const { env } = getCloudflareContext() as any;
+    const db = env.PLAYBOX_D1;
 
-		if (!db) {
-			console.warn('D1 database not configured, skipping download logging');
-			return;
-		}
+    if (!db) {
+      console.warn('D1 database not configured, skipping download logging');
+      return;
+    }
 
-		const id = crypto.randomUUID();
+    const id = crypto.randomUUID();
 
-		await db.prepare(`
+    await db
+      .prepare(
+        `
 			INSERT INTO download_history (id, url, filename, size, status, error, range_header, created_at)
 			VALUES (?, ?, ?, ?, ?, ?, ?, datetime('now'))
-		`).bind(id, url, filename, size, status, error || null, rangeHeader || null).run();
-	} catch (logError) {
-		console.error('Failed to log download:', logError);
-	}
+		`
+      )
+      .bind(id, url, filename, size, status, error || null, rangeHeader || null)
+      .run();
+  } catch (logError) {
+    console.error('Failed to log download:', logError);
+  }
 }
 
 export async function GET(request: NextRequest): Promise<Response> {
-	const urlParam = request.nextUrl.searchParams.get('url');
+  const urlParam = request.nextUrl.searchParams.get('url');
 
-	if (!urlParam) {
-		return createJsonResponse({ error: 'URL parameter is required' }, 400);
-	}
+  if (!urlParam) {
+    return createJsonResponse({ error: 'URL parameter is required' }, 400);
+  }
 
-	const validation = validateSafeUrl(urlParam);
-	if (!validation.isValid) {
-		return createJsonResponse({ error: validation.error || 'Access denied' }, 403);
-	}
+  const validation = validateSafeUrl(urlParam);
+  if (!validation.isValid) {
+    return createJsonResponse({ error: validation.error || 'Access denied' }, 403);
+  }
 
-	const rangeHeader = request.headers.get('Range');
+  const rangeHeader = request.headers.get('Range');
 
-	try {
-		const fetchHeaders: HeadersInit = {
-			'User-Agent': 'Playbox-Download-Proxy/1.0',
-		};
+  try {
+    const fetchHeaders: HeadersInit = {
+      'User-Agent': 'Playbox-Download-Proxy/1.0',
+    };
 
-		if (rangeHeader) {
-			fetchHeaders['Range'] = rangeHeader;
-		}
+    if (rangeHeader) {
+      fetchHeaders['Range'] = rangeHeader;
+    }
 
-		const response = await fetch(urlParam, {
-			method: 'GET',
-			headers: fetchHeaders,
-			redirect: 'follow',
-		});
+    const response = await fetch(urlParam, {
+      method: 'GET',
+      headers: fetchHeaders,
+      redirect: 'follow',
+    });
 
-		if (!response.ok && response.status !== 206) {
-			try {
-				await logDownload(urlParam, extractFilename(urlParam, response), 0, 'failed', `HTTP ${response.status}: ${response.statusText}`, rangeHeader ?? undefined);
-			} catch (logError) {
-				console.error('Failed to log download failure:', logError);
-			}
+    // Pass through 206 Partial Content and 416 Range Not Satisfiable
+    if (!response.ok && response.status !== 206 && response.status !== 416) {
+      try {
+        await logDownload(
+          urlParam,
+          extractFilename(urlParam, response),
+          0,
+          'failed',
+          `HTTP ${response.status}: ${response.statusText}`,
+          rangeHeader ?? undefined
+        );
+      } catch (logError) {
+        console.error('Failed to log download failure:', logError);
+      }
 
-			return createJsonResponse(
-				{
-					error: `Failed to download: ${response.status} ${response.statusText}`,
-				},
-				response.status
-			);
-		}
+      return createJsonResponse(
+        {
+          error: `Failed to download: ${response.status} ${response.statusText}`,
+        },
+        response.status
+      );
+    }
 
-		const filename = extractFilename(urlParam, response);
-		const contentLength = response.headers.get('Content-Length');
-		const size = contentLength ? parseInt(contentLength, 10) : 0;
+    if (response.status === 416) {
+      const headers = new Headers();
+      const contentRange = response.headers.get('Content-Range');
+      if (contentRange) {
+        headers.set('Content-Range', contentRange);
+      }
+      headers.set('Accept-Ranges', 'bytes');
+      for (const [key, value] of Object.entries(CORS_HEADERS)) {
+        headers.set(key, value);
+      }
+      return new Response(null, { status: 416, headers });
+    }
 
-		try {
-			await logDownload(urlParam, filename, size, 'success', undefined, rangeHeader ?? undefined);
-		} catch (logError) {
-			console.error('Failed to log download success:', logError);
-		}
+    const filename = extractFilename(urlParam, response);
+    const contentLength = response.headers.get('Content-Length');
+    const size = contentLength ? parseInt(contentLength, 10) : 0;
 
-		const headers = new Headers();
+    try {
+      await logDownload(urlParam, filename, size, 'success', undefined, rangeHeader ?? undefined);
+    } catch (logError) {
+      console.error('Failed to log download success:', logError);
+    }
 
-		const contentType = response.headers.get('Content-Type');
-		if (contentType) {
-			headers.set('Content-Type', contentType);
-		}
+    const headers = new Headers();
 
-		if (contentLength) {
-			headers.set('Content-Length', contentLength);
-		}
+    const contentType = response.headers.get('Content-Type');
+    if (contentType) {
+      headers.set('Content-Type', contentType);
+    }
 
-		headers.set('Content-Disposition', `attachment; filename="${filename}"`);
+    if (contentLength) {
+      headers.set('Content-Length', contentLength);
+    }
 
-		if (response.status === 206) {
-			const contentRange = response.headers.get('Content-Range');
-			const acceptRanges = response.headers.get('Accept-Ranges');
+    headers.set('Content-Disposition', `attachment; filename="${filename}"`);
+    headers.set('Accept-Ranges', 'bytes');
 
-			if (contentRange) {
-				headers.set('Content-Range', contentRange);
-			}
-			if (acceptRanges) {
-				headers.set('Accept-Ranges', acceptRanges);
-			}
-		}
+    if (response.status === 206) {
+      const contentRange = response.headers.get('Content-Range');
+      if (contentRange) {
+        headers.set('Content-Range', contentRange);
+      }
+    }
 
-		for (const [key, value] of Object.entries(CORS_HEADERS)) {
-			headers.set(key, value);
-		}
+    for (const [key, value] of Object.entries(CORS_HEADERS)) {
+      headers.set(key, value);
+    }
 
-		return new Response(response.body, {
-			status: response.status,
-			headers,
-		});
-	} catch (error) {
-		console.error('Download error:', error);
+    return new Response(response.body, {
+      status: response.status,
+      headers,
+    });
+  } catch (error) {
+    console.error('Download error:', error);
 
-		const fallbackFilename = extractFilenameFromUrl(urlParam);
+    const fallbackFilename = extractFilenameFromUrl(urlParam);
 
-		try {
-			await logDownload(urlParam, fallbackFilename, 0, 'failed', error instanceof Error ? error.message : 'Download failed', rangeHeader ?? undefined);
-		} catch (logError) {
-			console.error('Failed to log download failure:', logError);
-		}
+    try {
+      await logDownload(
+        urlParam,
+        fallbackFilename,
+        0,
+        'failed',
+        error instanceof Error ? error.message : 'Download failed',
+        rangeHeader ?? undefined
+      );
+    } catch (logError) {
+      console.error('Failed to log download failure:', logError);
+    }
 
-		const errorMessage = error instanceof Error ? error.message : 'Download failed';
-		return createInternalErrorResponse(errorMessage);
-	}
+    const errorMessage = error instanceof Error ? error.message : 'Download failed';
+    return createInternalErrorResponse(errorMessage);
+  }
+}
+
+export async function HEAD(request: NextRequest): Promise<Response> {
+  const urlParam = request.nextUrl.searchParams.get('url');
+
+  if (!urlParam) {
+    return createJsonResponse({ error: 'URL parameter is required' }, 400);
+  }
+
+  const validation = validateSafeUrl(urlParam);
+  if (!validation.isValid) {
+    return createJsonResponse({ error: validation.error || 'Access denied' }, 403);
+  }
+
+  try {
+    const response = await fetch(urlParam, {
+      method: 'HEAD',
+      headers: { 'User-Agent': 'Playbox-Download-Proxy/1.0' },
+      redirect: 'follow',
+    });
+
+    if (!response.ok) {
+      return createJsonResponse({ error: `Failed to fetch metadata: ${response.status} ${response.statusText}` }, response.status);
+    }
+
+    const headers = new Headers();
+
+    const contentType = response.headers.get('Content-Type');
+    if (contentType) {
+      headers.set('Content-Type', contentType);
+    }
+
+    const contentLength = response.headers.get('Content-Length');
+    if (contentLength) {
+      headers.set('Content-Length', contentLength);
+    }
+
+    const filename = extractFilename(urlParam, response);
+    headers.set('Content-Disposition', `attachment; filename="${filename}"`);
+    headers.set('Accept-Ranges', 'bytes');
+
+    for (const [key, value] of Object.entries(CORS_HEADERS)) {
+      headers.set(key, value);
+    }
+
+    return new Response(null, { status: 200, headers });
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Download failed';
+    return createInternalErrorResponse(errorMessage);
+  }
 }
 
 export async function OPTIONS(): Promise<Response> {
-	return new Response(null, {
-		status: 204,
-		headers: CORS_HEADERS,
-	});
+  return new Response(null, {
+    status: 204,
+    headers: CORS_HEADERS,
+  });
 }
 
 function extractFilenameFromUrl(urlString: string): string {
-	try {
-		const url = new URL(urlString);
-		const pathname = url.pathname;
-		const filename = pathname.split('/').pop();
+  try {
+    const url = new URL(urlString);
+    const pathname = url.pathname;
+    const filename = pathname.split('/').pop();
 
-		if (filename && filename.length > 0 && filename !== '/') {
-			try {
-				return decodeURIComponent(filename);
-			} catch {
-				return filename;
-			}
-		}
-	} catch {
-		return 'download';
-	}
+    if (filename && filename.length > 0 && filename !== '/') {
+      try {
+        return decodeURIComponent(filename);
+      } catch {
+        return filename;
+      }
+    }
+  } catch {
+    return 'download';
+  }
 
-	return 'download';
+  return 'download';
 }
 
 function extractFilename(urlString: string, response: Response): string {
-	const contentDisposition = response.headers.get('Content-Disposition');
-	if (contentDisposition) {
-		const filenameMatch = contentDisposition.match(/filename[^;=\n]*=(([']).*?\2|[^;\n]*)/);
-		if (filenameMatch && filenameMatch[1]) {
-			return filenameMatch[1].replace(/['"]/g, '');
-		}
-	}
+  const contentDisposition = response.headers.get('Content-Disposition');
+  if (contentDisposition) {
+    const filenameMatch = contentDisposition.match(/filename[^;=\n]*=(([']).*?\2|[^;\n]*)/);
+    if (filenameMatch && filenameMatch[1]) {
+      return filenameMatch[1].replace(/['"]/g, '');
+    }
+  }
 
-	try {
-		const url = new URL(urlString);
-		const pathname = url.pathname;
-		const filename = pathname.split('/').pop();
+  try {
+    const url = new URL(urlString);
+    const pathname = url.pathname;
+    const filename = pathname.split('/').pop();
 
-		if (filename && filename.length > 0 && filename !== '/') {
-			try {
-				return decodeURIComponent(filename);
-			} catch {
-				return filename;
-			}
-		}
-	} catch {
-		return 'download';
-	}
+    if (filename && filename.length > 0 && filename !== '/') {
+      try {
+        return decodeURIComponent(filename);
+      } catch {
+        return filename;
+      }
+    }
+  } catch {
+    return 'download';
+  }
 
-	return 'download';
+  return 'download';
 }
