@@ -1,5 +1,5 @@
 name: opencode
-
+runs-on: self-hosted
 on:
   issue_comment:
     types: [created]
