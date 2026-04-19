@@ -6,31 +6,31 @@
       "temperature": 0.1
     },
     "oracle": {
-      "model": "x-anthropic/LongCat-Flash-Thinking",
+      "model": "x-openai/minimax-m2.7",
       "temperature": 0.1
     },
     "librarian": {
-      "model": "x-anthropic/LongCat-Flash-Lite",
+      "model": "x-openai/minimax-m2.5",
       "temperature": 0.1
     },
     "explore": {
-      "model": "x-anthropic/LongCat-Flash-Chat",
+      "model": "x-openai/minimax-m2.7",
       "temperature": 0.1
     },
     "multimodal-looker": {
-      "model": "x-anthropic/LongCat-Flash-Chat",
+      "model": "x-openai/minimax-m2.7",
       "temperature": 0.1
     },
     "prometheus": {
-      "model": "x-anthropic/LongCat-Flash-Thinking",
+      "model": "x-openai/minimax-m2.7",
       "temperature": 0.1
     },
     "metis": {
-      "model": "x-anthropic/LongCat-Flash-Chat",
+      "model": "x-openai/minimax-m2.7",
       "temperature": 0.1
     },
     "momus": {
-      "model": "x-anthropic/LongCat-Flash-Lite",
+      "model": "x-openai/minimax-m2.5",
       "temperature": 0.1
     },
     "atlas": {
@@ -38,7 +38,7 @@
       "temperature": 0.1
     },
     "sisyphus-junior": {
-      "model": "x-anthropic/LongCat-Flash-Lite",
+      "model": "x-openai/minimax-m2.5",
       "temperature": 0.1
     },
     "sisyphus": {
@@ -48,11 +48,11 @@
   },
   "categories": {
     "visual-engineering": {
-      "model": "x-anthropic/LongCat-Flash-Chat",
+      "model": "x-openai/minimax-m2.7",
       "temperature": 0.1
     },
     "ultrabrain": {
-      "model": "x-anthropic/LongCat-Flash-Thinking",
+      "model": "x-openai/minimax-m2.7",
       "temperature": 0.1
     },
     "deep": {
@@ -60,15 +60,15 @@
       "temperature": 0.1
     },
     "artistry": {
-      "model": "x-anthropic/LongCat-Flash-Chat",
+      "model": "x-openai/minimax-m2.7",
       "temperature": 0.1
     },
     "quick": {
-      "model": "x-anthropic/LongCat-Flash-Lite",
+      "model": "x-openai/minimax-m2.5",
       "temperature": 0.1
     },
     "unspecified-low": {
-      "model": "x-anthropic/LongCat-Flash-Lite",
+      "model": "x-openai/minimax-m2.5",
       "temperature": 0.1
     },
     "unspecified-high": {
