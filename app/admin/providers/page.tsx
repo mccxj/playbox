@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
-import { Card, Collapse, Table, Tag, Space, message, Spin, Alert } from 'antd';
-import { ApiOutlined, CheckCircleOutlined, CloseCircleOutlined } from '@ant-design/icons';
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { Card, Collapse, Table, Tag, Space, Button, Spin, Alert, Tooltip } from 'antd';
+import { ApiOutlined, CheckCircleOutlined, CloseCircleOutlined, ThunderboltOutlined, LoadingOutlined } from '@ant-design/icons';
 
 const { Panel } = Collapse;
 
@@ -31,6 +31,14 @@ interface ProvidersResponse {
   };
 }
 
+interface SpeedTestState {
+  status: 'idle' | 'testing' | 'success' | 'error';
+  latency?: number;
+  error?: string;
+}
+
+type SpeedTestResults = Record<string, SpeedTestState>;
+
 const familyColors: Record<string, string> = {
   openai: '#10a37f',
   anthropic: '#d97706',
@@ -43,10 +51,19 @@ const familyLabels: Record<string, string> = {
   gemini: 'Google Gemini',
 };
 
+function speedTestKey(provider: string, model: string) {
+  return `${provider}::${model}`;
+}
+
+const DELAY_BETWEEN_TESTS_MS = 1000;
+
 export default function ProvidersPage() {
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState<ProvidersResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [speedTestResults, setSpeedTestResults] = useState<SpeedTestResults>({});
+  const [batchTestingProvider, setBatchTestingProvider] = useState<string | null>(null);
+  const abortRef = useRef(false);
 
   const fetchProviders = useCallback(async () => {
     setLoading(true);
@@ -56,11 +73,10 @@ export default function ProvidersPage() {
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}`);
       }
-      const json = await response.json() as ProvidersResponse;
+      const json = (await response.json()) as ProvidersResponse;
       setData(json);
     } catch (err) {
       setError((err as Error).message);
-      message.error('Failed to fetch provider models');
     } finally {
       setLoading(false);
     }
@@ -69,6 +85,97 @@ export default function ProvidersPage() {
   useEffect(() => {
     fetchProviders();
   }, [fetchProviders]);
+
+  const runSpeedTest = useCallback(async (provider: string, model: string) => {
+    const key = speedTestKey(provider, model);
+    setSpeedTestResults((prev) => ({ ...prev, [key]: { status: 'testing' } }));
+
+    try {
+      const response = await fetch('/api/admin/providers/speed-test', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ provider, model }),
+      });
+      const json = (await response.json()) as {
+        success: boolean;
+        result?: { latency: number; error?: string };
+        error?: string;
+      };
+
+      if (json.success && json.result) {
+        setSpeedTestResults((prev) => ({
+          ...prev,
+          [key]: {
+            status: json.result!.error ? 'error' : 'success',
+            latency: json.result!.latency,
+            error: json.result!.error,
+          },
+        }));
+      } else {
+        setSpeedTestResults((prev) => ({
+          ...prev,
+          [key]: { status: 'error', error: json.error || 'Unknown error' },
+        }));
+      }
+    } catch (err) {
+      setSpeedTestResults((prev) => ({
+        ...prev,
+        [key]: { status: 'error', error: (err as Error).message },
+      }));
+    }
+  }, []);
+
+  const runBatchSpeedTest = useCallback(
+    async (providerName: string, models: string[]) => {
+      setBatchTestingProvider(providerName);
+      abortRef.current = false;
+
+      for (const model of models) {
+        if (abortRef.current) break;
+        await runSpeedTest(providerName, model);
+        if (model !== models[models.length - 1]) {
+          await new Promise((resolve) => setTimeout(resolve, DELAY_BETWEEN_TESTS_MS));
+        }
+      }
+
+      setBatchTestingProvider(null);
+    },
+    [runSpeedTest]
+  );
+
+  const stopBatchTest = useCallback(() => {
+    abortRef.current = true;
+    setBatchTestingProvider(null);
+  }, []);
+
+  const renderSpeedTestResult = (provider: string, model: string) => {
+    const key = speedTestKey(provider, model);
+    const result = speedTestResults[key];
+
+    if (!result || result.status === 'idle') {
+      return (
+        <Button size="small" icon={<ThunderboltOutlined />} onClick={() => runSpeedTest(provider, model)}>
+          测速
+        </Button>
+      );
+    }
+
+    if (result.status === 'testing') {
+      return <Spin indicator={<LoadingOutlined style={{ fontSize: 16 }} spin />} />;
+    }
+
+    if (result.status === 'success') {
+      return <Tag color="green">{result.latency}ms</Tag>;
+    }
+
+    return (
+      <Tooltip title={result.error}>
+        <Tag color="red" style={{ maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis' }}>
+          {result.error || 'Error'}
+        </Tag>
+      </Tooltip>
+    );
+  };
 
   if (loading) {
     return (
@@ -87,7 +194,9 @@ export default function ProvidersPage() {
         showIcon
         action={
           <Space>
-            <Tag onClick={fetchProviders} style={{ cursor: 'pointer' }}>Retry</Tag>
+            <Tag onClick={fetchProviders} style={{ cursor: 'pointer' }}>
+              Retry
+            </Tag>
           </Space>
         }
       />
@@ -96,7 +205,7 @@ export default function ProvidersPage() {
 
   if (!data) return null;
 
-  const columns = [
+  const columns = (family: string) => [
     {
       title: 'Provider',
       dataIndex: 'provider',
@@ -113,17 +222,13 @@ export default function ProvidersPage() {
       title: 'Configured',
       dataIndex: 'models',
       key: 'configured',
-      render: (models: string[]) => (
-        <Tag color={models?.length > 0 ? 'green' : 'default'}>
-          {models?.length || 0} models
-        </Tag>
-      ),
+      render: (models: string[]) => <Tag color={models?.length > 0 ? 'green' : 'default'}>{models?.length || 0} models</Tag>,
     },
     {
       title: 'API Status',
       dataIndex: 'error',
       key: 'status',
-      render: (error?: string) => (
+      render: (error?: string) =>
         error ? (
           <Space>
             <CloseCircleOutlined style={{ color: '#ff4d4f' }} />
@@ -134,22 +239,36 @@ export default function ProvidersPage() {
             <CheckCircleOutlined style={{ color: '#52c41a' }} />
             <span style={{ color: '#52c41a' }}>Connected</span>
           </Space>
-        )
-      ),
+        ),
     },
     {
       title: 'Fetched Models',
       dataIndex: 'fetched',
       key: 'fetched',
-      render: (fetched?: ModelInfo[]) => (
-        <Tag color={fetched?.length ? 'cyan' : 'default'}>
-          {fetched?.length || 0} models
-        </Tag>
-      ),
+      render: (fetched?: ModelInfo[]) => <Tag color={fetched?.length ? 'cyan' : 'default'}>{fetched?.length || 0} models</Tag>,
+    },
+    {
+      title: '测速',
+      key: 'speed-test',
+      width: 120,
+      render: (_: unknown, record: ProviderModels) => {
+        const isBatching = batchTestingProvider === record.provider;
+        return (
+          <Button
+            size="small"
+            type={isBatching ? 'primary' : 'default'}
+            danger={isBatching}
+            icon={<ThunderboltOutlined />}
+            onClick={() => (isBatching ? stopBatchTest() : runBatchSpeedTest(record.provider, record.models || []))}
+          >
+            {isBatching ? '停止' : '全部测速'}
+          </Button>
+        );
+      },
     },
   ];
 
-  const modelColumns = (configuredModels: string[]) => [
+  const modelColumns = (providerName: string, configuredModels: string[]) => [
     {
       title: 'Model ID',
       dataIndex: 'id',
@@ -158,7 +277,9 @@ export default function ProvidersPage() {
         <Space>
           <code style={{ fontSize: '12px' }}>{text}</code>
           {configuredModels.includes(text) && (
-            <Tag color="green" style={{ marginLeft: 4 }}>Configured</Tag>
+            <Tag color="green" style={{ marginLeft: 4 }}>
+              Configured
+            </Tag>
           )}
         </Space>
       ),
@@ -167,7 +288,13 @@ export default function ProvidersPage() {
       title: 'Owner',
       dataIndex: 'owned_by',
       key: 'owned_by',
-      render: (text?: string) => text ? <Tag>{text}</Tag> : '-',
+      render: (text?: string) => (text ? <Tag>{text}</Tag> : '-'),
+    },
+    {
+      title: '测速',
+      key: 'speed-test',
+      width: 140,
+      render: (_: unknown, record: ModelInfo) => renderSpeedTestResult(providerName, record.id),
     },
   ];
 
@@ -184,39 +311,45 @@ export default function ProvidersPage() {
     >
       <Table
         dataSource={providers}
-        columns={columns}
+        columns={columns(family)}
         rowKey="provider"
         pagination={false}
         size="small"
-expandable={{
-      expandedRowRender: (record) => {
-        const configuredModels = record.models || [];
-        const fetchedModels = record.fetched || [];
-        const fetchedIds = fetchedModels.map(m => m.id);
-        const missingModels = configuredModels.filter(m => !fetchedIds.includes(m));
-        
-        return (
-          <div style={{ margin: '8px 0' }}>
-            <div style={{ marginBottom: '8px', fontWeight: 500 }}>Models:</div>
-            {missingModels.length > 0 && (
-              <div style={{ marginBottom: '8px', padding: '8px', background: '#fff7e6', border: '1px solid #ffd591', borderRadius: '4px' }}>
-                <span style={{ color: '#d46b08' }}>⚠️ Configured models not in API response: </span>
-                {missingModels.map(m => <Tag key={m} color="orange">{m}</Tag>)}
+        expandable={{
+          expandedRowRender: (record) => {
+            const configuredModels = record.models || [];
+            const fetchedModels = record.fetched || [];
+            const fetchedIds = fetchedModels.map((m) => m.id);
+            const missingModels = configuredModels.filter((m) => !fetchedIds.includes(m));
+
+            return (
+              <div style={{ margin: '8px 0' }}>
+                <div style={{ marginBottom: '8px', fontWeight: 500 }}>Models:</div>
+                {missingModels.length > 0 && (
+                  <div
+                    style={{ marginBottom: '8px', padding: '8px', background: '#fff7e6', border: '1px solid #ffd591', borderRadius: '4px' }}
+                  >
+                    <span style={{ color: '#d46b08' }}>⚠️ Configured models not in API response: </span>
+                    {missingModels.map((m) => (
+                      <Tag key={m} color="orange">
+                        {m}
+                      </Tag>
+                    ))}
+                  </div>
+                )}
+                <Table
+                  dataSource={fetchedModels.length > 0 ? fetchedModels : configuredModels.map((m: string) => ({ id: m, object: 'model' }))}
+                  columns={modelColumns(record.provider, configuredModels)}
+                  rowKey="id"
+                  pagination={false}
+                  size="small"
+                  showHeader={false}
+                />
               </div>
-            )}
-            <Table
-              dataSource={fetchedModels.length > 0 ? fetchedModels : configuredModels.map((m: string) => ({ id: m, object: 'model' }))}
-              columns={modelColumns(configuredModels)}
-              rowKey="id"
-              pagination={false}
-              size="small"
-              showHeader={false}
-            />
-          </div>
-        );
-      },
-      rowExpandable: (record) => (record.fetched?.length || record.models?.length || 0) > 0,
-    }}
+            );
+          },
+          rowExpandable: (record) => (record.fetched?.length || record.models?.length || 0) > 0,
+        }}
       />
     </Panel>
   );
@@ -224,7 +357,9 @@ expandable={{
   return (
     <div>
       <Space style={{ marginBottom: '16px' }}>
-        <Tag onClick={fetchProviders} style={{ cursor: 'pointer' }}>Refresh</Tag>
+        <Tag onClick={fetchProviders} style={{ cursor: 'pointer' }}>
+          Refresh
+        </Tag>
       </Space>
       <Card>
         <Collapse defaultActiveKey={['openai', 'anthropic', 'gemini']}>
