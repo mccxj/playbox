@@ -12,6 +12,30 @@ interface DomainInfo {
   lifecycle_type: string;
   expiry_date: string;
   nameservers: string[];
+  expires_at?: string;
+  domain?: string;
+}
+
+function formatExpiry(dateStr: string): string {
+  if (!dateStr) return '';
+  const y = dateStr.slice(0, 4);
+  const m = dateStr.slice(4, 6);
+  const d = dateStr.slice(6, 8);
+  if (!y || !m || !d) return dateStr;
+  return `${y}-${m}-${d}`;
+}
+
+function normalizeDomain(raw: Record<string, unknown>): DomainInfo {
+  return {
+    name: (raw.domain as string) || (raw.name as string) || '',
+    status: (raw.status as string) || '',
+    slot_type: (raw.slot_type as string) || '',
+    lifecycle_type: (raw.lifecycle_type as string) || '',
+    expiry_date: formatExpiry((raw.expires_at as string) || (raw.expiry_date as string) || ''),
+    nameservers: (raw.nameservers as string[]) || [],
+    expires_at: raw.expires_at as string,
+    domain: raw.domain as string,
+  };
 }
 
 export default function DomainsPage() {
@@ -27,7 +51,8 @@ export default function DomainsPage() {
       const data = (await response.json()) as any;
 
       if (data.success) {
-        setDomains(data.data || []);
+        const rawDomains = (data.data || []) as Record<string, unknown>[];
+        setDomains(rawDomains.map(normalizeDomain));
       } else {
         setError(data.error || 'Failed to fetch domains');
         message.error(data.error || 'Failed to fetch domains');
