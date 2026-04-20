@@ -31,7 +31,7 @@ export async function GET(_request: NextRequest) {
       return createJsonResponse({ error: `Domain API returned ${response.status}: ${response.statusText}` }, response.status);
     }
 
-    const data = await response.json();
+    const data = (await response.json()) as { data?: unknown[] };
 
     return createJsonResponse({
       success: true,
