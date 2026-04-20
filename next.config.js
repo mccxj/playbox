@@ -3,6 +3,7 @@ const { initOpenNextCloudflareForDev } = require('@opennextjs/cloudflare');
 initOpenNextCloudflareForDev();
 
 const nextConfig = {
+  productionBrowserSourceMaps: true,
   webpack: (config, { isServer }) => {
     if (!isServer) {
       config.resolve.fallback = {
