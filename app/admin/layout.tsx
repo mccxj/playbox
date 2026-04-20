@@ -14,6 +14,7 @@ import {
   AppstoreOutlined,
   CloudServerOutlined,
   MailOutlined,
+  GlobalOutlined,
 } from '@ant-design/icons';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -73,6 +74,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       icon: <MailOutlined />,
       label: <Link href="/admin/email">Email Test</Link>,
     },
+    {
+      key: 'domains',
+      icon: <GlobalOutlined />,
+      label: <Link href="/admin/domains">Domains</Link>,
+    },
   ];
 
   const getSelectedKey = () => {
@@ -84,6 +90,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     if (pathname?.includes('/admin/api-test')) return 'api-test';
     if (pathname?.includes('/admin/analytics')) return 'analytics';
     if (pathname?.includes('/admin/email')) return 'email';
+    if (pathname?.includes('/admin/domains')) return 'domains';
     return 'tables';
   };
 
@@ -164,7 +171,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                               ? 'API Analytics'
                               : pathname?.includes('/admin/email')
                                 ? 'Email Test'
-                                : 'Database Management'}
+                                : pathname?.includes('/admin/domains')
+                                  ? 'Domain Query'
+                                  : 'Database Management'}
               </Title>
               <ReferralBadge />
             </Header>

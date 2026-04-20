@@ -1,0 +1,141 @@
+'use client';
+
+import { useState, useEffect, useCallback } from 'react';
+import { Card, Table, Button, Tag, Space, Spin, Alert, message } from 'antd';
+import { GlobalOutlined, ReloadOutlined } from '@ant-design/icons';
+import type { ColumnsType } from 'antd/es/table';
+
+interface DomainInfo {
+  name: string;
+  status: string;
+  slot_type: string;
+  lifecycle_type: string;
+  expiry_date: string;
+  nameservers: string[];
+}
+
+export default function DomainsPage() {
+  const [loading, setLoading] = useState(true);
+  const [domains, setDomains] = useState<DomainInfo[]>([]);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchDomains = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await fetch('/api/admin/domains');
+      const data = (await response.json()) as any;
+
+      if (data.success) {
+        setDomains(data.data || []);
+      } else {
+        setError(data.error || 'Failed to fetch domains');
+        message.error(data.error || 'Failed to fetch domains');
+      }
+    } catch (err) {
+      const msg = (err as Error).message;
+      setError(msg);
+      message.error(msg);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchDomains();
+  }, [fetchDomains]);
+
+  const columns: ColumnsType<DomainInfo> = [
+    {
+      title: 'Domain',
+      dataIndex: 'name',
+      key: 'name',
+      ellipsis: true,
+      render: (name: string) => (
+        <Space>
+          <GlobalOutlined style={{ color: '#1890ff' }} />
+          <span>{name}</span>
+        </Space>
+      ),
+    },
+    {
+      title: 'Status',
+      dataIndex: 'status',
+      key: 'status',
+      width: 100,
+      render: (status: string) => <Tag color={status === 'ok' ? 'green' : 'red'}>{status}</Tag>,
+    },
+    {
+      title: 'Slot Type',
+      dataIndex: 'slot_type',
+      key: 'slot_type',
+      width: 130,
+      render: (type: string) => <Tag>{type}</Tag>,
+    },
+    {
+      title: 'Lifecycle',
+      dataIndex: 'lifecycle_type',
+      key: 'lifecycle_type',
+      width: 130,
+      render: (type: string) => <Tag color="blue">{type}</Tag>,
+    },
+    {
+      title: 'Expiry Date',
+      dataIndex: 'expiry_date',
+      key: 'expiry_date',
+      width: 130,
+    },
+    {
+      title: 'Nameservers',
+      dataIndex: 'nameservers',
+      key: 'nameservers',
+      width: 300,
+      render: (nameservers: string[]) => (
+        <Space size={[0, 4]} wrap>
+          {nameservers?.map((ns) => (
+            <Tag key={ns} color="geekblue">
+              {ns}
+            </Tag>
+          ))}
+        </Space>
+      ),
+    },
+  ];
+
+  if (loading && domains.length === 0) {
+    return (
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
+        <Spin size="large" />
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      {error && (
+        <Alert message="Error" description={error} type="error" closable onClose={() => setError(null)} style={{ marginBottom: 16 }} />
+      )}
+
+      <Card style={{ marginBottom: 16 }}>
+        <Space size="large" align="center" wrap>
+          <GlobalOutlined style={{ fontSize: 24, color: '#1890ff' }} />
+          <span style={{ color: '#666' }}>Total: {domains.length} domains</span>
+          <div style={{ flex: 1 }} />
+          <Button icon={<ReloadOutlined />} onClick={fetchDomains} loading={loading}>
+            Refresh
+          </Button>
+        </Space>
+      </Card>
+
+      <Table
+        columns={columns}
+        dataSource={domains}
+        rowKey="name"
+        loading={loading && domains.length > 0}
+        pagination={false}
+        scroll={{ y: 'calc(100vh - 320px)' }}
+        size="small"
+      />
+    </div>
+  );
+}
