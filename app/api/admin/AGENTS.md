@@ -1,9 +1,11 @@
 # Admin API Routes
 
 ## OVERVIEW
+
 Admin API endpoints for KV, D1 tables, analytics, downloads, and API testing with full CRUD and batch operations.
 
 ## STRUCTURE
+
 ```
 api/admin/
 ├── kv/
@@ -26,22 +28,25 @@ api/admin/
 ```
 
 ## WHERE TO LOOK
-| Task | Location | Notes |
-|------|----------|-------|
-| Add KV operation | `kv/[namespace]/` | Follow CRUD pattern with `getRequestContext()` |
-| Add table endpoint | `tables/[table]/` | Use `validateTable()` helper, `escapeColumnName()` for SQL safety |
-| Batch operations | `*/batch/route.ts` | Support JSON/CSV import, batch delete |
-| Analytics query | `analytics/route.ts` | Cloudflare Analytics Engine SQL API |
-| API test execution | `api-test/route.ts` | SSRF validation via `validateSafeUrl()` |
+
+| Task               | Location             | Notes                                                             |
+| ------------------ | -------------------- | ----------------------------------------------------------------- |
+| Add KV operation   | `kv/[namespace]/`    | Follow CRUD pattern with `getRequestContext()`                    |
+| Add table endpoint | `tables/[table]/`    | Use `validateTable()` helper, `escapeColumnName()` for SQL safety |
+| Batch operations   | `*/batch/route.ts`   | Support JSON/CSV import, batch delete                             |
+| Analytics query    | `analytics/route.ts` | Cloudflare Analytics Engine SQL API                               |
+| API test execution | `api-test/route.ts`  | SSRF validation via `validateSafeUrl()`                           |
 
 ## CONVENTIONS
+
 - **Dynamic segments**: `[namespace]`, `[key]`, `[table]`, `[rowid]`
-- **Context**: `getRequestContext()` for Cloudflare bindings (KV, D1)
+- **Context**: `getCloudflareContext()` from `@opennextjs/cloudflare` for Cloudflare bindings (KV, D1)
 - **Validation**: `validateTable()` for D1, `escapeColumnName()` prevents SQL injection
 - **Pagination**: Default 20-50 items, configurable via `limit`/`page`/`pageSize`
 - **Response helpers**: Use `createJsonResponse()`, `createInternalErrorResponse()`, `createNotFoundResponse()`
 
 ## ANTI-PATTERNS
+
 - **DO NOT** skip table validation — use `validateTable()` before all D1 operations
 - **DO NOT** use raw column names in SQL — always use `escapeColumnName()`
 - **DO NOT** skip SSRF validation — all external URLs in api-test must use `validateSafeUrl()`

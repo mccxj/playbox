@@ -4,7 +4,8 @@
 
 ## OVERVIEW
 
-Public API endpoints for AI provider protocol conversion. **Non-standard location** — NOT under `app/api/` as typical Next.js convention.
+Public API endpoints for AI provider protocol conversion. **Non-standard location** — NOT under `app/api/` as typical
+Next.js convention.
 
 ## STRUCTURE
 
@@ -17,16 +18,15 @@ v1/
 
 ## WHERE TO LOOK
 
-| Task | Location | Notes |
-|------|----------|-------|
-| Add chat endpoint | `chat/completions/route.ts` | OpenAI format |
-| Add messages endpoint | `messages/route.ts` | Anthropic format |
-| List models | `models/route.ts` | Returns available models from config |
+| Task                  | Location                    | Notes                                |
+| --------------------- | --------------------------- | ------------------------------------ |
+| Add chat endpoint     | `chat/completions/route.ts` | OpenAI format                        |
+| Add messages endpoint | `messages/route.ts`         | Anthropic format                     |
+| List models           | `models/route.ts`           | Returns available models from config |
 
 ## CONVENTIONS
 
 - **Location**: `app/v1/` (NOT `app/api/v1/`) — intentional non-standard
-- **Dynamic**: `export const dynamic = 'force-dynamic'`
 - **Dynamic**: `export const dynamic = 'force-dynamic'`
 - **Auth**: `authenticate()` from `@/lib/auth`
 - **Protocols**: Use `ProtocolFactory.get(type)` from `@/protocols`
