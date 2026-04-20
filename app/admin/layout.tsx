@@ -18,6 +18,7 @@ import {
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import VConsole from '../components/VConsole';
+import ReferralBadge from './components/ReferralBadge';
 
 const { Header, Sider, Content } = Layout;
 const { Title } = Typography;
@@ -165,6 +166,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                                 ? 'Email Test'
                                 : 'Database Management'}
               </Title>
+              <ReferralBadge />
             </Header>
             <Content
               style={{
