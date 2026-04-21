@@ -39,7 +39,7 @@ export async function GET(request: NextRequest) {
   const { env: rawEnv } = getCloudflareContext();
   const env = rawEnv as unknown as Env;
 
-  if (!authenticate(request as any, env)) {
+  if (!(await authenticate(request as any, env))) {
     return createUnauthorizedResponse();
   }
 

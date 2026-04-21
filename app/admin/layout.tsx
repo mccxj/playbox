@@ -36,6 +36,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       label: <Link href="/admin">Tables (D1)</Link>,
     },
     {
+      key: 'llm-keys',
+      icon: <ApiOutlined />,
+      label: <Link href="/admin/llm-keys">API Keys</Link>,
+    },
+    {
       key: 'kv',
       icon: <CloudOutlined />,
       label: <Link href="/admin/kv">KV Storage</Link>,
@@ -88,6 +93,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   ];
 
   const getSelectedKey = () => {
+    if (pathname?.includes('/admin/llm-keys')) return 'llm-keys';
     if (pathname?.includes('/admin/kv')) return 'kv';
     if (pathname?.includes('/admin/r2')) return 'r2';
     if (pathname?.includes('/admin/providers')) return 'providers';
@@ -162,27 +168,29 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               }}
             >
               <Title level={4} style={{ margin: 0 }}>
-                {pathname?.includes('/admin/kv')
-                  ? 'KV Storage Management'
-                  : pathname?.includes('/admin/r2')
-                    ? 'R2 Storage Management'
-                    : pathname?.includes('/admin/providers')
-                      ? 'Provider Models'
-                      : pathname?.includes('/admin/download')
-                        ? 'File Download Proxy'
-                        : pathname?.includes('/admin/chat')
-                          ? 'Chat Test'
-                          : pathname?.includes('/admin/api-test')
-                            ? 'API Test'
-                            : pathname?.includes('/admin/analytics')
-                              ? 'API Analytics'
-                              : pathname?.includes('/admin/email')
-                                ? 'Email Test'
-                                : pathname?.includes('/admin/domains')
-                                  ? 'Domain Query'
-                                  : pathname?.includes('/admin/short-url')
-                                    ? 'Short URL'
-                                    : 'Database Management'}
+                {pathname?.includes('/admin/llm-keys')
+                  ? 'API Key Management'
+                  : pathname?.includes('/admin/kv')
+                    ? 'KV Storage Management'
+                    : pathname?.includes('/admin/r2')
+                      ? 'R2 Storage Management'
+                      : pathname?.includes('/admin/providers')
+                        ? 'Provider Models'
+                        : pathname?.includes('/admin/download')
+                          ? 'File Download Proxy'
+                          : pathname?.includes('/admin/chat')
+                            ? 'Chat Test'
+                            : pathname?.includes('/admin/api-test')
+                              ? 'API Test'
+                              : pathname?.includes('/admin/analytics')
+                                ? 'API Analytics'
+                                : pathname?.includes('/admin/email')
+                                  ? 'Email Test'
+                                  : pathname?.includes('/admin/domains')
+                                    ? 'Domain Query'
+                                    : pathname?.includes('/admin/short-url')
+                                      ? 'Short URL'
+                                      : 'Database Management'}
               </Title>
               <ReferralBadge />
             </Header>

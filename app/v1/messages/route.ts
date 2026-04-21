@@ -33,7 +33,7 @@ export async function POST(request: NextRequest) {
   const { env: rawEnv, ctx } = getCloudflareContext();
   const env = rawEnv as unknown as Env;
 
-  const authResult = authenticate(request as any, env);
+  const authResult = await authenticate(request as any, env);
   if (!authResult) {
     return createUnauthorizedResponse();
   }
