@@ -58,11 +58,23 @@
         "minimaxai/minimax-m2.7": {
           "name": "minimaxai/minimax-m2.7"
         },
+        "moonshotai/kimi-k2.5": {
+          "name": "moonshotai/kimi-k2.5"
+        },
         "minimax-m2.7": {
 							"name": "minimax-m2.7"
         },
-        "moonshotai/kimi-k2.5": {
-          "name": "moonshotai/kimi-k2.5"
+        "glm-5.1": {
+							"name": "glm-5.1"
+        },
+        "glm-5": {
+							"name": "glm-5"
+        },
+        "qwen3.5:397b": {
+							"name": "qwen3.5:397b"
+        },
+        "kimi-k2.6": {
+							"name": "kimi-k2.6"
         }
       },
       "npm": "@ai-sdk/openai-compatible",
