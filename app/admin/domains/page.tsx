@@ -16,6 +16,17 @@ interface DomainInfo {
   domain?: string;
 }
 
+function getExpiryColor(expiryDate: string): string | null {
+  if (!expiryDate) return null;
+  const now = new Date();
+  const expiry = new Date(expiryDate);
+  const diffMs = expiry.getTime() - now.getTime();
+  const diffDays = diffMs / (1000 * 60 * 60 * 24);
+  if (diffDays <= 30) return 'red';
+  if (diffDays <= 90) return 'yellow';
+  return null;
+}
+
 function formatExpiry(dateStr: string): string {
   if (!dateStr) return '';
   const y = dateStr.slice(0, 4);
@@ -109,6 +120,11 @@ export default function DomainsPage() {
       dataIndex: 'expiry_date',
       key: 'expiry_date',
       width: 130,
+      render: (expiryDate: string) => {
+        const color = getExpiryColor(expiryDate);
+        const style: React.CSSProperties = color ? { color: color, fontWeight: 'bold' } : {};
+        return <span style={style}>{expiryDate}</span>;
+      },
     },
     {
       title: 'Nameservers',
