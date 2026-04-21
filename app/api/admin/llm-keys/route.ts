@@ -1,7 +1,7 @@
 import { NextRequest } from 'next/server';
 import { getCloudflareContext } from '@opennextjs/cloudflare';
 import { createJsonResponse, createInternalErrorResponse } from '@/lib/response-helpers';
-import { hashApiKey, extractApiKey } from '@/lib/auth';
+import { extractApiKey } from '@/lib/auth';
 
 export const dynamic = 'force-dynamic';
 
@@ -17,7 +17,7 @@ export async function GET() {
     const result = await db
       .prepare(
         `
-      SELECT id, name, expires_at, created_at, is_active, last_used_at
+      SELECT id, api_key, name, expires_at, created_at, is_active, last_used_at
       FROM llm_api_keys
       ORDER BY created_at DESC
     `
@@ -27,6 +27,7 @@ export async function GET() {
     const keys = result.results.map((row: any) => ({
       id: row.id,
       name: row.name,
+      api_key: row.api_key,
       expires_at: row.expires_at,
       created_at: row.created_at,
       is_active: row.is_active === 1,
@@ -57,21 +58,20 @@ export async function POST(request: NextRequest) {
     }
 
     const apiKey = crypto.randomUUID().replace(/-/g, '') + crypto.randomUUID().replace(/-/g, '');
-    const keyHash = await hashApiKey(apiKey);
     const id = crypto.randomUUID();
 
     let insertQuery = `
-      INSERT INTO llm_api_keys (id, key_hash, name, created_at, is_active)
+      INSERT INTO llm_api_keys (id, api_key, name, created_at, is_active)
       VALUES (?, ?, ?, datetime('now'), 1)
     `;
-    let bindParams: any[] = [id, keyHash, name];
+    let bindParams: any[] = [id, apiKey, name];
 
     if (expires_at) {
       insertQuery = `
-        INSERT INTO llm_api_keys (id, key_hash, name, expires_at, created_at, is_active)
+        INSERT INTO llm_api_keys (id, api_key, name, expires_at, created_at, is_active)
         VALUES (?, ?, ?, ?, datetime('now'), 1)
       `;
-      bindParams = [id, keyHash, name, expires_at];
+      bindParams = [id, apiKey, name, expires_at];
     }
 
     await db

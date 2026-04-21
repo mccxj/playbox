@@ -8,30 +8,12 @@ import type { Env } from '../types';
 
 export interface ApiKeyRecord {
   id: string;
-  key_hash: string;
+  api_key: string;
   name: string;
   expires_at: string | null;
   created_at: string;
   is_active: number;
   last_used_at: string | null;
-}
-
-function arrayBufferToHex(buffer: ArrayBuffer): string {
-  return Array.from(new Uint8Array(buffer))
-    .map((b) => b.toString(16).padStart(2, '0'))
-    .join('');
-}
-
-export async function hashApiKey(apiKey: string): Promise<string> {
-  const encoder = new TextEncoder();
-  const data = encoder.encode(apiKey);
-  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-  return arrayBufferToHex(hashBuffer);
-}
-
-export async function verifyApiKey(apiKey: string, hashedKey: string): Promise<boolean> {
-  const inputHash = await hashApiKey(apiKey);
-  return inputHash === hashedKey;
 }
 
 export function extractApiKey(request: Request): string | null {
@@ -50,9 +32,7 @@ export async function authenticate(request: Request, env: Env): Promise<boolean>
   const db = (env as any).PLAYBOX_D1;
   if (!db) return false;
 
-  const keyHash = await hashApiKey(apiKey);
-
-  const result = await db.prepare('SELECT * FROM llm_api_keys WHERE key_hash = ? AND is_active = 1').bind(keyHash).first();
+  const result = await db.prepare('SELECT * FROM llm_api_keys WHERE api_key = ? AND is_active = 1').bind(apiKey).first();
 
   if (!result) return false;
 

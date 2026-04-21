@@ -3,7 +3,7 @@
 
 CREATE TABLE IF NOT EXISTS llm_api_keys (
     id TEXT PRIMARY KEY,
-    key_hash TEXT NOT NULL,
+    api_key TEXT NOT NULL,
     name TEXT NOT NULL,
     expires_at TEXT,
     created_at TEXT NOT NULL DEFAULT (datetime('now')),
@@ -11,8 +11,8 @@ CREATE TABLE IF NOT EXISTS llm_api_keys (
     last_used_at TEXT
 );
 
--- Index for looking up keys by hash (authentication)
-CREATE INDEX IF NOT EXISTS idx_llm_api_keys_hash ON llm_api_keys(key_hash);
+-- Index for looking up keys by api_key (authentication)
+CREATE INDEX IF NOT EXISTS idx_llm_api_keys_api_key ON llm_api_keys(api_key);
 
 -- Index for listing active keys
 CREATE INDEX IF NOT EXISTS idx_llm_api_keys_active ON llm_api_keys(is_active);

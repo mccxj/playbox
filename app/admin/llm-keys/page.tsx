@@ -1,8 +1,16 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { Card, Table, Button, Space, Spin, Alert, Typography, Popconfirm, message, Tag, DatePicker } from 'antd';
-import { PlusOutlined, ReloadOutlined, DeleteOutlined, KeyOutlined } from '@ant-design/icons';
+import { Card, Table, Button, Space, Spin, Alert, Typography, Popconfirm, message, Tag, DatePicker, Tooltip, Input } from 'antd';
+import {
+  PlusOutlined,
+  ReloadOutlined,
+  DeleteOutlined,
+  KeyOutlined,
+  CopyOutlined,
+  EyeOutlined,
+  EyeInvisibleOutlined,
+} from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
 import dayjs from 'dayjs';
 
@@ -11,6 +19,7 @@ const { Title } = Typography;
 interface ApiKey {
   id: string;
   name: string;
+  api_key: string;
   expires_at: string | null;
   created_at: string;
   is_active: boolean;
@@ -27,6 +36,7 @@ export default function LLMKeysAdminPage() {
   const [error, setError] = useState<string | null>(null);
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [newKeyData, setNewKeyData] = useState<{ api_key: string; name: string } | null>(null);
+  const [visibleKeys, setVisibleKeys] = useState<Set<string>>(new Set());
 
   const fetchKeys = useCallback(async () => {
     try {
@@ -45,6 +55,32 @@ export default function LLMKeysAdminPage() {
       setLoading(false);
     }
   }, []);
+
+  const maskApiKey = (apiKey: string) => {
+    if (apiKey.length <= 8) return apiKey;
+    return apiKey.substring(0, 4) + '••••••••' + apiKey.substring(apiKey.length - 4);
+  };
+
+  const copyToClipboard = async (text: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      message.success('API key copied to clipboard');
+    } catch (err) {
+      message.error('Failed to copy to clipboard');
+    }
+  };
+
+  const toggleKeyVisibility = (keyId: string) => {
+    setVisibleKeys((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(keyId)) {
+        newSet.delete(keyId);
+      } else {
+        newSet.add(keyId);
+      }
+      return newSet;
+    });
+  };
 
   useEffect(() => {
     fetchKeys();
@@ -89,6 +125,40 @@ export default function LLMKeysAdminPage() {
           {text}
         </Space>
       ),
+    },
+    {
+      title: 'API Key',
+      dataIndex: 'api_key',
+      key: 'api_key',
+      render: (apiKey: string, record: ApiKey) => {
+        const isVisible = visibleKeys.has(record.id);
+        const displayKey = isVisible ? apiKey : maskApiKey(apiKey);
+
+        return (
+          <Space>
+            <Input
+              value={displayKey}
+              readOnly
+              style={{ width: 200, fontFamily: 'monospace' }}
+              suffix={
+                <Space>
+                  <Tooltip title={isVisible ? 'Hide key' : 'Show key'}>
+                    <Button
+                      type="text"
+                      size="small"
+                      icon={isVisible ? <EyeInvisibleOutlined /> : <EyeOutlined />}
+                      onClick={() => toggleKeyVisibility(record.id)}
+                    />
+                  </Tooltip>
+                  <Tooltip title="Copy key">
+                    <Button type="text" size="small" icon={<CopyOutlined />} onClick={() => copyToClipboard(apiKey)} />
+                  </Tooltip>
+                </Space>
+              }
+            />
+          </Space>
+        );
+      },
     },
     {
       title: 'Status',
