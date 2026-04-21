@@ -15,6 +15,7 @@ import {
   CloudServerOutlined,
   MailOutlined,
   GlobalOutlined,
+  LinkOutlined,
 } from '@ant-design/icons';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -79,6 +80,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       icon: <GlobalOutlined />,
       label: <Link href="/admin/domains">Domains</Link>,
     },
+    {
+      key: 'short-url',
+      icon: <LinkOutlined />,
+      label: <Link href="/admin/short-url">Short URL</Link>,
+    },
   ];
 
   const getSelectedKey = () => {
@@ -91,6 +97,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     if (pathname?.includes('/admin/analytics')) return 'analytics';
     if (pathname?.includes('/admin/email')) return 'email';
     if (pathname?.includes('/admin/domains')) return 'domains';
+    if (pathname?.includes('/admin/short-url')) return 'short-url';
     return 'tables';
   };
 
@@ -173,7 +180,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                                 ? 'Email Test'
                                 : pathname?.includes('/admin/domains')
                                   ? 'Domain Query'
-                                  : 'Database Management'}
+                                  : pathname?.includes('/admin/short-url')
+                                    ? 'Short URL'
+                                    : 'Database Management'}
               </Title>
               <ReferralBadge />
             </Header>
