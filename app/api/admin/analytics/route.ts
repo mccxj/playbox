@@ -32,39 +32,42 @@ interface TokenTimeSeriesRow {
 }
 
 export async function GET(request: NextRequest) {
-	const { env } = getCloudflareContext();
-	const searchParams = request.nextUrl.searchParams;
+  const { env } = getCloudflareContext();
+  const searchParams = request.nextUrl.searchParams;
 
-	const startDate = searchParams.get('startDate');
-	const endDate = searchParams.get('endDate');
-	const groupBy = searchParams.get('groupBy') || 'model';
+  const startDate = searchParams.get('startDate');
+  const endDate = searchParams.get('endDate');
+  const groupBy = searchParams.get('groupBy') || 'model';
 
-	// ANALYTICS_API_TOKEN is a secret, must be set via: wrangler secret put ANALYTICS_API_TOKEN
-	const envVars = env as unknown as Record<string, string | undefined>;
-	const apiToken = envVars.ANALYTICS_API_TOKEN;
-	const accountId = envVars.CLOUDFLARE_ACCOUNT_ID;
+  // ANALYTICS_API_TOKEN is a secret, must be set via: wrangler secret put ANALYTICS_API_TOKEN
+  const envVars = env as unknown as Record<string, string | undefined>;
+  const apiToken = envVars.ANALYTICS_API_TOKEN;
+  const accountId = envVars.CLOUDFLARE_ACCOUNT_ID;
 
-	if (!apiToken || !accountId) {
-		const missing: string[] = [];
-		if (!apiToken) missing.push('ANALYTICS_API_TOKEN');
-		if (!accountId) missing.push('CLOUDFLARE_ACCOUNT_ID');
-		return createJsonResponse({
-			success: false,
-			error: `Analytics API not configured. Missing: ${missing.join(', ')}. Run: wrangler secret put <VAR_NAME>`,
-		}, 500);
-	}
+  if (!apiToken || !accountId) {
+    const missing: string[] = [];
+    if (!apiToken) missing.push('ANALYTICS_API_TOKEN');
+    if (!accountId) missing.push('CLOUDFLARE_ACCOUNT_ID');
+    return createJsonResponse(
+      {
+        success: false,
+        error: `Analytics API not configured. Missing: ${missing.join(', ')}. Run: wrangler secret put <VAR_NAME>`,
+      },
+      500
+    );
+  }
 
-	let timeCondition: string;
-	if (startDate && endDate) {
-		// Convert ISO 8601 format (YYYY-MM-DDTHH:mm:ss) to Analytics Engine format (YYYY-MM-DD HH:mm:ss)
-		const startFormatted = startDate.replace('T', ' ');
-		const endFormatted = endDate.replace('T', ' ');
-		timeCondition = `timestamp >= toDateTime('${startFormatted}') AND timestamp <= toDateTime('${endFormatted}')`;
-	} else {
-		timeCondition = `timestamp >= NOW() - INTERVAL '1' DAY`;
-	}
+  let timeCondition: string;
+  if (startDate && endDate) {
+    // Convert ISO 8601 format (YYYY-MM-DDTHH:mm:ss) to Analytics Engine format (YYYY-MM-DD HH:mm:ss)
+    const startFormatted = startDate.replace('T', ' ');
+    const endFormatted = endDate.replace('T', ' ');
+    timeCondition = `timestamp >= toDateTime('${startFormatted}') AND timestamp <= toDateTime('${endFormatted}')`;
+  } else {
+    timeCondition = `timestamp >= NOW() - INTERVAL '1' DAY`;
+  }
 
-	const query = `
+  const query = `
 		SELECT 
 			blob3 AS model,
 			blob4 AS stream_type,
@@ -125,32 +128,36 @@ export async function GET(request: NextRequest) {
       fetchAnalyticsQuery(apiToken, accountId, tokenTimeSeriesQuery),
     ]);
 
-    const aggregated: AnalyticsRow[] = (aggregatedResult as any[])?.map((row: any) => ({
-      model: row.model || 'unknown',
-      stream_type: row.stream_type || 'unknown',
-      provider: row.provider || 'unknown',
-      count: Number(row.count) || 0,
-    })) || [];
+    const aggregated: AnalyticsRow[] =
+      (aggregatedResult as any[])?.map((row: any) => ({
+        model: row.model || 'unknown',
+        stream_type: row.stream_type || 'unknown',
+        provider: row.provider || 'unknown',
+        count: Number(row.count) || 0,
+      })) || [];
 
-    const timeSeries: TimeSeriesRow[] = (timeSeriesResult as any[])?.map((row: any) => ({
-      timestamp: row.day || new Date().toISOString(),
-      model: row.model || 'unknown',
-      count: Number(row.count) || 0,
-    })) || [];
+    const timeSeries: TimeSeriesRow[] =
+      (timeSeriesResult as any[])?.map((row: any) => ({
+        timestamp: row.day || new Date().toISOString(),
+        model: row.model || 'unknown',
+        count: Number(row.count) || 0,
+      })) || [];
 
-    const tokenStats: TokenRow[] = (tokenResult as any[])?.map((row: any) => ({
-      model: row.model || 'unknown',
-      provider: row.provider || 'unknown',
-      prompt_tokens: Number(row.prompt_tokens) || 0,
-      completion_tokens: Number(row.completion_tokens) || 0,
-      total_tokens: Number(row.total_tokens) || 0,
-    })) || [];
+    const tokenStats: TokenRow[] =
+      (tokenResult as any[])?.map((row: any) => ({
+        model: row.model || 'unknown',
+        provider: row.provider || 'unknown',
+        prompt_tokens: Number(row.prompt_tokens) || 0,
+        completion_tokens: Number(row.completion_tokens) || 0,
+        total_tokens: (Number(row.prompt_tokens) || 0) + (Number(row.completion_tokens) || 0),
+      })) || [];
 
-    const tokenTimeSeries: TokenTimeSeriesRow[] = (tokenTimeSeriesResult as any[])?.map((row: any) => ({
-      timestamp: row.day || new Date().toISOString(),
-      model: row.model || 'unknown',
-      total_tokens: Number(row.total_tokens) || 0,
-    })) || [];
+    const tokenTimeSeries: TokenTimeSeriesRow[] =
+      (tokenTimeSeriesResult as any[])?.map((row: any) => ({
+        timestamp: row.day || new Date().toISOString(),
+        model: row.model || 'unknown',
+        total_tokens: Number(row.total_tokens) || 0,
+      })) || [];
 
     const totalRequests = aggregated.reduce((sum, row) => sum + row.count, 0);
     const totalTokens = tokenStats.reduce((sum, row) => sum + row.total_tokens, 0);
@@ -168,30 +175,27 @@ export async function GET(request: NextRequest) {
       totalPromptTokens,
       totalCompletionTokens,
     });
-	} catch (error) {
-		console.error('Analytics query error:', error);
-		return createInternalErrorResponse((error as Error).message);
-	}
+  } catch (error) {
+    console.error('Analytics query error:', error);
+    return createInternalErrorResponse((error as Error).message);
+  }
 }
 
 async function fetchAnalyticsQuery(apiToken: string, accountId: string, query: string): Promise<unknown[]> {
-	const response = await fetch(
-		`https://api.cloudflare.com/client/v4/accounts/${accountId}/analytics_engine/sql`,
-		{
-			method: 'POST',
-			headers: {
-				'Authorization': `Bearer ${apiToken}`,
-				'Content-Type': 'application/json',
-			},
-			body: query,
-		},
-	);
+  const response = await fetch(`https://api.cloudflare.com/client/v4/accounts/${accountId}/analytics_engine/sql`, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${apiToken}`,
+      'Content-Type': 'application/json',
+    },
+    body: query,
+  });
 
-	if (!response.ok) {
-		const errorText = await response.text();
-		throw new Error(`Analytics API error: ${response.status} - ${errorText}`);
-	}
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Analytics API error: ${response.status} - ${errorText}`);
+  }
 
-	const data = await response.json() as { data?: unknown[] };
-	return data.data || [];
+  const data = (await response.json()) as { data?: unknown[] };
+  return data.data || [];
 }
