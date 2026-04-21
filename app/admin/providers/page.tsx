@@ -1,8 +1,15 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { Card, Collapse, Table, Tag, Space, Button, Spin, Alert, Tooltip } from 'antd';
-import { ApiOutlined, CheckCircleOutlined, CloseCircleOutlined, ThunderboltOutlined, LoadingOutlined } from '@ant-design/icons';
+import { Card, Collapse, Table, Tag, Space, Button, Spin, Alert, Tooltip, Input } from 'antd';
+import {
+  ApiOutlined,
+  CheckCircleOutlined,
+  CloseCircleOutlined,
+  ThunderboltOutlined,
+  LoadingOutlined,
+  SearchOutlined,
+} from '@ant-design/icons';
 
 const { Panel } = Collapse;
 
@@ -39,6 +46,8 @@ interface SpeedTestState {
 
 type SpeedTestResults = Record<string, SpeedTestState>;
 
+type ModelSearchState = Record<string, string>;
+
 const familyColors: Record<string, string> = {
   openai: '#10a37f',
   anthropic: '#d97706',
@@ -63,6 +72,7 @@ export default function ProvidersPage() {
   const [error, setError] = useState<string | null>(null);
   const [speedTestResults, setSpeedTestResults] = useState<SpeedTestResults>({});
   const [batchTestingProvider, setBatchTestingProvider] = useState<string | null>(null);
+  const [modelSearchTerms, setModelSearchTerms] = useState<ModelSearchState>({});
   const abortRef = useRef(false);
 
   const fetchProviders = useCallback(async () => {
@@ -147,6 +157,18 @@ export default function ProvidersPage() {
     abortRef.current = true;
     setBatchTestingProvider(null);
   }, []);
+
+  const filterModels = (models: ModelInfo[], searchTerm: string) => {
+    if (!searchTerm.trim()) return models;
+    const term = searchTerm.toLowerCase();
+    return models.filter((m) => m.id.toLowerCase().includes(term));
+  };
+
+  const handleModelSearch = (providerKey: string, value: string) => {
+    setModelSearchTerms((prev) => ({ ...prev, [providerKey]: value }));
+  };
+
+  const getProviderKey = (provider: string, family: string) => `${family}:${provider}`;
 
   const renderSpeedTestResult = (provider: string, model: string) => {
     const key = speedTestKey(provider, model);
@@ -321,10 +343,32 @@ export default function ProvidersPage() {
             const fetchedModels = record.fetched || [];
             const fetchedIds = fetchedModels.map((m) => m.id);
             const missingModels = configuredModels.filter((m) => !fetchedIds.includes(m));
+            const providerKey = getProviderKey(record.provider, record.provider);
+            const searchTerm = modelSearchTerms[providerKey] || '';
+            const filteredFetchedModels = filterModels(fetchedModels, searchTerm);
+            const filteredConfiguredModels = configuredModels.filter((m) => m.toLowerCase().includes(searchTerm.toLowerCase()));
+            const displayModels =
+              fetchedModels.length > 0 ? filteredFetchedModels : filteredConfiguredModels.map((m: string) => ({ id: m, object: 'model' }));
 
             return (
               <div style={{ margin: '8px 0' }}>
-                <div style={{ marginBottom: '8px', fontWeight: 500 }}>Models:</div>
+                <div style={{ marginBottom: '8px', fontWeight: 500, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span>Models:</span>
+                  <Input
+                    prefix={<SearchOutlined style={{ color: '#bfbfbf' }} />}
+                    placeholder="Search model ID..."
+                    value={searchTerm}
+                    onChange={(e) => handleModelSearch(providerKey, e.target.value)}
+                    style={{ width: 200 }}
+                    allowClear
+                    size="small"
+                  />
+                  {searchTerm && (
+                    <span style={{ color: '#666', fontSize: '12px' }}>
+                      ({displayModels.length} of {fetchedModels.length > 0 ? fetchedModels.length : configuredModels.length})
+                    </span>
+                  )}
+                </div>
                 {missingModels.length > 0 && (
                   <div
                     style={{ marginBottom: '8px', padding: '8px', background: '#fff7e6', border: '1px solid #ffd591', borderRadius: '4px' }}
@@ -338,7 +382,7 @@ export default function ProvidersPage() {
                   </div>
                 )}
                 <Table
-                  dataSource={fetchedModels.length > 0 ? fetchedModels : configuredModels.map((m: string) => ({ id: m, object: 'model' }))}
+                  dataSource={displayModels}
                   columns={modelColumns(record.provider, configuredModels)}
                   rowKey="id"
                   pagination={false}
