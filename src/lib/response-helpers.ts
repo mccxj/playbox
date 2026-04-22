@@ -1,6 +1,6 @@
 import { CORS_HEADERS } from '../utils/constants';
 
-export function createJsonResponse(data: any, status = 200): Response {
+export function createJsonResponse(data: unknown, status = 200): Response {
   return new Response(JSON.stringify(data), {
     status,
     headers: {

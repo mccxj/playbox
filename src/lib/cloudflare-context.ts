@@ -1,4 +1,6 @@
-export function createCloudflareContext(executionCtx: ExecutionContext, env: any) {
+import type { Env } from '../types';
+
+export function createCloudflareContext(executionCtx: ExecutionContext, env: Env) {
   return {
     get env() {
       return env;
@@ -15,6 +17,6 @@ export function createCloudflareContext(executionCtx: ExecutionContext, env: any
 }
 
 export interface CloudflareContext {
-  env: Record<string, any>;
-  executionCtx: any;
+  env: Cloudflare.Env;
+  executionCtx: ExecutionContext;
 }

@@ -1,5 +1,6 @@
 import { DEFAULT_CONFIG, Config } from './default';
 import { ProtocolFamily, ProviderConfig } from '../types/provider';
+import type { Env } from '../types';
 
 export interface ResolvedProvider {
   name: string;
@@ -7,7 +8,7 @@ export interface ResolvedProvider {
   realModel: string;
 }
 
-export function getConfig(env: any): Config {
+export function getConfig(env: Cloudflare.Env): Config {
   return env.API_CONFIG ? JSON.parse(env.API_CONFIG) : DEFAULT_CONFIG;
 }
 
