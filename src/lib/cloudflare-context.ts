@@ -11,7 +11,7 @@ export function createCloudflareContext(executionCtx: ExecutionContext, env: Env
     },
 
     getBinding<T>(name: string): T | undefined {
-      return env[name] as T | undefined;
+      return (env as unknown as Record<string, unknown>)[name] as T | undefined;
     },
   };
 }

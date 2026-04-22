@@ -1,86 +1,84 @@
 /**
-* For more details on how to configure Wrangler, refer to:
-* https://developers.cloudflare.com/workers/wrangler/configuration/
-*/
+ * For more details on how to configure Wrangler, refer to:
+ * https://developers.cloudflare.com/workers/wrangler/configuration/
+ */
 {
-	"$schema": "node_modules/wrangler/config-schema.json",
-	"name": "playbox",
-	"main": ".open-next/worker.js",
-	"compatibility_date": "2026-04-03",
-	"compatibility_flags": [
-		"nodejs_compat",
-		"global_fetch_strictly_public"
-	],
-	"assets": {
-		"directory": ".open-next/assets",
-		"binding": "ASSETS"
-	},
-	"observability": {
-		"enabled": false,
-		"head_sampling_rate": 1,
-		"logs": {
-			"enabled": true,
-			"head_sampling_rate": 1,
-			"persist": true,
-			"invocation_logs": true,
-		},
-		"traces": {
-			"enabled": false,
-			"persist": true,
-			"head_sampling_rate": 1,
-		},
-	},
-	"upload_source_maps": true,
-	/**
-	 * Smart Placement
-	 * https://developers.cloudflare.com/workers/configuration/smart-placement/#smart-placement
-	 */
-	// "placement": {  "mode": "smart" }
-	/**
-	 * Bindings
-	 * Bindings allow your Worker to interact with resources on the Cloudflare Developer Platform, including
-	 * databases, object storage, AI inference, real-time communication and more.
-	 * https://developers.cloudflare.com/workers/runtime-apis/bindings/
-	 */
-	"d1_databases": [
-		{
-			"binding": "PLAYBOX_D1",
-			"database_id": "53a52a57-8375-4979-b764-b9277b5b1cb7",
-		},
-	],
-	"kv_namespaces": [
-		{
-			"id": "85fe9a9b4cd54015b78dcba0c5486279",
-			"binding": "PLAYBOX_KV",
-		},
-	],
-	"analytics_engine_datasets": [
-		{
-			"binding": "PLAYBOX_EVENTS",
-			"dataset": "playbox_events"
-		}
-	],
-	"r2_buckets": [
-		{
-			"binding": "PLAYBOX_R2",
-			"bucket_name": "playbox-r2"
-		}
-	],
-	/**
-	 * Environment Variables
-	 * https://developers.cloudflare.com/workers/wrangler/configuration/#environment-variables
-	 * Note: Use secrets to store sensitive data.
-	 * https://developers.cloudflare.com/workers/configuration/secrets/
-	 */
-	"vars": {
-		// AUTH_TOKEN moved to wrangler secret for security
-		// Set via: wrangler secret put AUTH_TOKEN
-		// Local dev: use .dev.vars file
-		"GH_PROXY_JSD_ENABLE": "0",
-	},
-	/**
-	 * Service Bindings (communicate between multiple Workers)
-	 * https://developers.cloudflare.com/workers/wrangler/configuration/#service-bindings
-	 */
-	// "services": [  {   "binding": "MY_SERVICE",   "service": "my-service"  } ]
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "playbox",
+  "main": ".open-next/worker.js",
+  "compatibility_date": "2026-04-03",
+  "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
+  "assets": {
+    "directory": ".open-next/assets",
+    "binding": "ASSETS"
+  },
+  "observability": {
+    "enabled": false,
+    "head_sampling_rate": 1,
+    "logs": {
+      "enabled": true,
+      "head_sampling_rate": 1,
+      "persist": true,
+      "invocation_logs": true
+    },
+    "traces": {
+      "enabled": false,
+      "persist": true,
+      "head_sampling_rate": 1
+    }
+  },
+  "upload_source_maps": true,
+  /**
+   * Smart Placement
+   * https://developers.cloudflare.com/workers/configuration/smart-placement/#smart-placement
+   */
+  // "placement": {  "mode": "smart" }
+  /**
+   * Bindings
+   * Bindings allow your Worker to interact with resources on the Cloudflare Developer Platform, including
+   * databases, object storage, AI inference, real-time communication and more.
+   * https://developers.cloudflare.com/workers/runtime-apis/bindings/
+   */
+  "d1_databases": [
+    {
+      "binding": "PLAYBOX_D1",
+      "database_id": "53a52a57-8375-4979-b764-b9277b5b1cb7"
+    }
+  ],
+  "kv_namespaces": [
+    {
+      "id": "85fe9a9b4cd54015b78dcba0c5486279",
+      "binding": "PLAYBOX_KV"
+    }
+  ],
+  "analytics_engine_datasets": [
+    {
+      "binding": "PLAYBOX_EVENTS",
+      "dataset": "playbox_events"
+    }
+  ],
+  "r2_buckets": [
+    {
+      "binding": "PLAYBOX_R2",
+      "bucket_name": "playbox-r2"
+    }
+  ],
+  /**
+   * Environment Variables
+   * https://developers.cloudflare.com/workers/wrangler/configuration/#environment-variables
+   * Note: Use secrets to store sensitive data.
+   * https://developers.cloudflare.com/workers/configuration/secrets/
+   */
+  "vars": {
+    // AUTH_TOKEN moved to wrangler secret for security
+    // Set via: wrangler secret put AUTH_TOKEN
+    // Local dev: use .dev.vars file
+    "GH_PROXY_JSD_ENABLE": "0",
+    "API_CONFIG": ""
+  }
+  /**
+   * Service Bindings (communicate between multiple Workers)
+   * https://developers.cloudflare.com/workers/wrangler/configuration/#service-bindings
+   */
+  // "services": [  {   "binding": "MY_SERVICE",   "service": "my-service"  } ]
 }

@@ -101,5 +101,15 @@ export default tseslint.config(
       "react/no-array-index-key": "off", // Ant Design commonly uses array indices
       "@typescript-eslint/no-unused-vars": ["warn", { argsIgnorePattern: "^_" }],
     },
+  },
+
+  // Relaxed rules - project convention: Prettier only, no strict ESLint
+  {
+    rules: {
+      "@typescript-eslint/no-explicit-any": "warn",
+      "@typescript-eslint/no-unused-vars": "warn",
+      "@typescript-eslint/no-empty-function": "warn",
+      "no-empty": "warn",
+    },
   }
 );
