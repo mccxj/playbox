@@ -19,7 +19,7 @@ export type GeminiProtocolType = 'google' | 'gemini-cli' | 'gemini';
 /**
  * All supported protocol types
  */
-export type ProtocolType = OpenAIProtocolType | GeminiProtocolType;
+export type ProtocolType = OpenAIProtocolType | GeminiProtocolType | 'worker';
 
 /**
  * Authentication type for API requests

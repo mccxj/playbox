@@ -110,6 +110,13 @@ export const DEFAULT_CONFIG: Config = {
       key: 'Doubao',
       models: ['ark-code-latest'],
     },
+    cloudflare: {
+      type: 'worker',
+      family: 'openai',
+      endpoint: 'https://api.cloudflare.com',
+      key: 'Cloudflare',
+      models: ['@cf/moonshotai/kimi-k2.6'],
+    },
   },
   default_provider: 'longcat',
 };

@@ -3,12 +3,14 @@ import { createOpenAIProtocol } from './openai';
 import { createAnthropicProtocol } from './anthropic';
 import { createGoogleProtocol } from './google';
 import { createGeminiCliProtocol } from './gemini-cli';
+import { createWorkerProtocol } from './worker';
 
 const protocols: Record<string, () => ProtocolAdapter> = {
   'openai': createOpenAIProtocol,
   'anthropic': createAnthropicProtocol,
   'google': createGoogleProtocol,
   'gemini-cli': createGeminiCliProtocol,
+  'worker': createWorkerProtocol,
 };
 
 interface IdentityTransforms {
@@ -57,3 +59,4 @@ export { createOpenAIProtocol } from './openai';
 export { createAnthropicProtocol } from './anthropic';
 export { createGoogleProtocol } from './google';
 export { createGeminiCliProtocol } from './gemini-cli';
+export { createWorkerProtocol } from './worker';
