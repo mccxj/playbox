@@ -45,6 +45,12 @@ jobs:
         run: |
           mkdir -p ~/.config/opencode
           cat > ~/.config/opencode/AGENTS.md << 'EOF'
+          ## Output Protocol (CRITICAL)
+          - **NEVER** use `<longcat_tool_call>`, `<longcat_arg_key>`, or `<longcat_arg_value>` tags.
+          - Use the standard tool calling interface provided by the environment. 
+          - Tool calls must be formatted as raw functional calls (JSON), not wrapped in any custom XML tags.
+          - If you use XML tags for tool calling, the system will crash and your task will fail.
+
           ## Approach
           - Think before acting. Read existing files before writing code.
           - Be concise in output but thorough in reasoning.
