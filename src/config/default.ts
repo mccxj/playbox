@@ -103,6 +103,13 @@ export const DEFAULT_CONFIG: Config = {
         'nvidia/nemotron-3-super-120b-a12b',
       ],
     },
+    doubao: {
+      type: 'openai',
+      family: 'openai',
+      endpoint: 'https://ark.cn-beijing.volces.com/api/coding/v3',
+      key: 'Doubao',
+      models: ['ark-code-latest'],
+    },
   },
   default_provider: 'longcat',
 };

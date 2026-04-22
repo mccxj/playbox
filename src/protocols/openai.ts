@@ -9,7 +9,8 @@ export function createOpenAIProtocol(): ProtocolAdapter {
       KeyManager.getRandomApiKey(env, provider, ctx),
     getEndpoint: async (provider: Provider, _model: string, _isStream: boolean, _apiKey: string): Promise<string> => {
       const baseUrl = provider.endpoint ?? 'https://api.openai.com';
-      return `${baseUrl}/v1/chat/completions`;
+      const suffix = baseUrl.match(/\/v\d+$/) ? '' : '/v1';
+      return `${baseUrl}${suffix}/chat/completions`;
     },
     getHeaders: async (provider: Provider, env: Env, ctx: ExecutionContext, apiKey: string): Promise<Record<string, string>> => ({
       'Content-Type': 'application/json',

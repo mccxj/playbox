@@ -16,7 +16,8 @@ interface SpeedTestRequest {
 }
 
 function buildOpenAIRequest(model: string, endpoint: string, apiKey: string): Request {
-  const url = `${endpoint}/v1/chat/completions`;
+  const suffix = endpoint.match(/\/v\d+$/) ? '' : '/v1';
+  const url = `${endpoint}${suffix}/chat/completions`;
   return new Request(url, {
     method: 'POST',
     headers: {
