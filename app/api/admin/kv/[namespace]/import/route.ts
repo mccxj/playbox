@@ -16,7 +16,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     }
 
     const body = (await request.json()) as {
-      items: Array<{ key: string; value: string; expirationTtl?: number }>;
+      items: { key: string; value: string; expirationTtl?: number }[];
     };
 
     if (!Array.isArray(body.items) || body.items.length === 0) {

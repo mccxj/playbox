@@ -32,7 +32,7 @@ export function createAnthropicProtocol(): ProtocolAdapter {
         if (sys) messages.push({ role: 'system', content: sys });
       }
       for (const msg of body.messages || []) {
-        let content = Array.isArray(msg.content) ? msg.content.map((b: any) => (b.type === 'text' ? b.text : '')).join('\n') : msg.content;
+        const content = Array.isArray(msg.content) ? msg.content.map((b: any) => (b.type === 'text' ? b.text : '')).join('\n') : msg.content;
         messages.push({ role: msg.role, content });
       }
       return {

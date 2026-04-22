@@ -61,7 +61,7 @@ export function createMockExecutionContext(): any {
   return ctx;
 }
 
-export function createTestHeaders(token: string = 'sk-test-token'): Headers {
+export function createTestHeaders(token = 'sk-test-token'): Headers {
   const headers = new Headers();
   headers.set('Authorization', `Bearer ${token}`);
   headers.set('Content-Type', 'application/json');
@@ -69,7 +69,7 @@ export function createTestHeaders(token: string = 'sk-test-token'): Headers {
   return headers;
 }
 
-export function createMockRequest(path: string = '/test', options?: any): Request {
+export function createMockRequest(path = '/test', options?: any): Request {
   return new Request(`http://localhost${path}`, {
     method: 'GET',
     headers: createTestHeaders(),

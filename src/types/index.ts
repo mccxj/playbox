@@ -14,8 +14,8 @@ export interface Config {
   default_provider: string;
 }
 
-export type ResolvedProvider = {
+export interface ResolvedProvider {
   name: string;
   provider: ProviderConfig;
   realModel: string;
-};
+}

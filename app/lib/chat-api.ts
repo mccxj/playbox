@@ -23,11 +23,11 @@ export interface ChatCompletionResponse {
   object: string;
   created: number;
   model: string;
-  choices: Array<{
+  choices: {
     index: number;
     message: ChatMessage;
     finish_reason: string | null;
-  }>;
+  }[];
   usage?: {
     prompt_tokens: number;
     completion_tokens: number;
@@ -40,11 +40,11 @@ export interface StreamChunk {
   object: string;
   created: number;
   model: string;
-  choices: Array<{
+  choices: {
     index: number;
     delta: Partial<ChatMessage> & { reasoning_content?: string };
     finish_reason: string | null;
-  }>;
+  }[];
 }
 
 export interface ApiError {

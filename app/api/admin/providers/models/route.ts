@@ -55,7 +55,7 @@ async function fetchGeminiModels(baseUrl: string, apiKey: string): Promise<Model
   }
 
   const data = (await response.json()) as {
-    models?: Array<{ name: string; supportedGenerationMethods?: string[] }>;
+    models?: { name: string; supportedGenerationMethods?: string[] }[];
   };
   return (data.models || []).map((m) => ({
     id: m.name.replace('models/', ''),

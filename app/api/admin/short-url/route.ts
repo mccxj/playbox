@@ -32,7 +32,7 @@ export async function GET(request: NextRequest) {
     }
 
     const list = await kv.list({ prefix: 'short_url:', limit: 1000 });
-    const urls: Array<{ id: string; originalUrl: string; createdAt: string }> = [];
+    const urls: { id: string; originalUrl: string; createdAt: string }[] = [];
 
     for (const key of list.keys) {
       const value = await kv.get(key.name);

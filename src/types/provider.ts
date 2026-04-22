@@ -42,6 +42,4 @@ export interface ProviderConfig {
   modelAliases?: Record<string, string>; // Optional: alias -> realModel mapping
 }
 
-export interface Provider {
-  [key: string]: ProviderConfig;
-}
+export type Provider = Record<string, ProviderConfig>;

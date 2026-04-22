@@ -1,6 +1,6 @@
 import { CORS_HEADERS } from '../utils/constants';
 
-export function createJsonResponse(data: any, status: number = 200): Response {
+export function createJsonResponse(data: any, status = 200): Response {
   return new Response(JSON.stringify(data), {
     status,
     headers: {
@@ -10,7 +10,7 @@ export function createJsonResponse(data: any, status: number = 200): Response {
   });
 }
 
-export function createUnauthorizedResponse(message: string = 'Incorrect API key provided.'): Response {
+export function createUnauthorizedResponse(message = 'Incorrect API key provided.'): Response {
   return new Response(
     JSON.stringify({
       error: {
@@ -25,7 +25,7 @@ export function createUnauthorizedResponse(message: string = 'Incorrect API key 
   );
 }
 
-export function createNotFoundResponse(message: string = 'Endpoint not found'): Response {
+export function createNotFoundResponse(message = 'Endpoint not found'): Response {
   return new Response(
     JSON.stringify({
       error: message,
@@ -37,7 +37,7 @@ export function createNotFoundResponse(message: string = 'Endpoint not found'): 
   );
 }
 
-export function createInternalErrorResponse(message: string = 'Internal Server Error'): Response {
+export function createInternalErrorResponse(message = 'Internal Server Error'): Response {
   return new Response(
     JSON.stringify({
       error: {

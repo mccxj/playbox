@@ -83,7 +83,7 @@ export async function POST(request: NextRequest) {
     let lastResponse: Response | undefined;
     for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
       const apiKey = await upstreamProtocol.getApiKey(env, provider, ctx);
-      let fetchUrl = await upstreamProtocol.getEndpoint(provider, realModel, isStream, apiKey);
+      const fetchUrl = await upstreamProtocol.getEndpoint(provider, realModel, isStream, apiKey);
       const fetchHeaders = await upstreamProtocol.getHeaders(provider, env, ctx, apiKey);
       lastResponse = await fetch(fetchUrl, {
         method: 'POST',
