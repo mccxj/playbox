@@ -4,100 +4,119 @@
 
 ## OVERVIEW
 
-AI API Gateway & Protocol Converter — converts between AI provider protocols (OpenAI, Anthropic, Google, Gemini CLI) on Next.js with Cloudflare Workers deployment. Multi-protocol support with OAuth token management, D1 key storage, KV caching, R2 object storage, GitHub proxy, download proxy with SSRF protection, and Cloudflare Analytics Engine integration.
+AI API Gateway & Protocol Converter — converts between AI provider protocols (OpenAI, Anthropic, Google, Gemini CLI) on
+Next.js with Cloudflare Workers deployment. Multi-protocol support with OAuth token management, D1 key storage, KV
+caching, R2 object storage, GitHub proxy, download proxy with SSRF protection, and Cloudflare Analytics Engine
+integration.
 
 ## STRUCTURE
 
 ```
 ./
 ├── app/ # Next.js App Router
-│ ├── v1/ # Public API (non-standard location - NOT under app/api/)
+│ ├── v1/ # Public API (non-standard location - NOT under app/api/) — [AGENTS.md]
 │ │ ├── chat/completions/ # OpenAI-compatible chat completions
 │ │ ├── models/ # Model listing endpoint (excludes Gemini)
 │ │ └── messages/ # Anthropic-compatible messages API
-│ ├── v1beta/ # Gemini native API endpoints (Google standard paths)
+│ ├── v1beta/ # Gemini native API endpoints (Google standard paths) — [AGENTS.md]
 │ │ └── models/ # Gemini API: models listing + generateContent/streamGenerateContent
 │ │ ├── route.ts # GET - List models
 │ │ └── [...action]/ # POST - generateContent/streamGenerateContent
-│ ├── api/admin/ # Admin API endpoints — [AGENTS.md]
-│ │ ├── kv/ # KV namespace management
-│ │ │ ├── [namespace]/ # KV operations
-│ │ │ ├── [namespace]/[key]/ # Single key operations
-│ │ │ ├── [namespace]/batch/ # Batch operations
-│ │ │ └── [namespace]/import/ # Import operations
-│ │ ├── r2/ # R2 bucket management
-│ │ │ ├── [bucket]/ # Bucket operations
-│ │ │ └── [bucket]/[key]/ # Object operations
-│ │ ├── tables/ # D1 table management
-│ │ │ ├── [table]/ # Table operations
-│ │ │ ├── [table]/rows/ # Row operations
-│ │ │ └── [table]/batch/ # Batch row operations
-│ │ ├── download/history/ # Download history
-│ │ └── analytics/ # Cloudflare Analytics Engine API
-│ ├── admin/ # Admin UI (React + Ant Design)
+│ ├── api/
+│ │ ├── admin/ # Admin API endpoints — [AGENTS.md]
+│ │ │ ├── kv/ # KV namespace CRUD
+│ │ │ ├── r2/ # R2 bucket CRUD
+│ │ │ ├── tables/ # D1 table CRUD
+│ │ │ ├── download/history/ # Download history
+│ │ │ ├── analytics/ # Cloudflare Analytics Engine
+│ │ │ ├── api-test/ # HTTP request proxy + history
+│ │ │ ├── llm-keys/ # LLM API key management
+│ │ │ ├── short-url/ # Short URL management
+│ │ │ ├── domains/ # Domain management
+│ │ │ ├── email/ # Email configuration
+│ │ │ └── providers/ # Provider config + speed test + models
+│ │ ├── download/ # Download proxy (SSRF-protected)
+│ │ └── docker/[...path]/ # Docker proxy
+│ ├── admin/ # Admin UI (React + Ant Design) — [AGENTS.md]
 │ │ ├── kv/ # KV management UI
 │ │ ├── r2/ # R2 storage management UI
-│ │ ├── download/ # Download proxy management
+│ │ ├── download/ # Download proxy management — [AGENTS.md]
 │ │ ├── chat/ # Chat test interface
 │ │ ├── api-test/ # API testing interface
-│ │ ├── analytics/ # API usage analytics
+│ │ ├── analytics/ # API usage analytics (Recharts)
+│ │ ├── llm-keys/ # LLM key management UI
+│ │ ├── short-url/ # Short URL management UI
+│ │ ├── providers/ # Provider configuration UI
+│ │ ├── domains/ # Domain management UI
+│ │ ├── email/ # Email configuration UI
 │ │ └── components/ # Shared admin components
-│ ├── api/download/ # Download proxy endpoint
-│ ├── api/gh/ # GitHub file proxy endpoint
-│ ├── components/ # React components
+│ ├── components/ # React components — [AGENTS.md]
 │ │ └── Chat/ # Chat UI components
 │ └── lib/ # Client-side utilities
 ├── src/
 │ ├── protocols/ # Protocol adapters (OpenAI, Anthropic, Google, Gemini CLI) — [AGENTS.md]
-│ ├── managers/ # KeyManager (KV/D1 token management)
-│ ├── config/ # ConfigManager, provider configs
-│ ├── utils/ # Logger, CORS constants, SSRF protection
-│ ├── lib/ # Auth middleware, response helpers
-│ └── types/ # Protocol, request, response, R2 types
-├── test/ # Vitest + Cloudflare Workers pool
+│ ├── managers/ # KeyManager (KV/D1 token management) — [AGENTS.md]
+│ ├── config/ # ConfigManager, provider configs — [AGENTS.md]
+│ ├── utils/ # Logger, CORS constants, SSRF protection — [AGENTS.md]
+│ ├── lib/ # Auth middleware, response helpers — [AGENTS.md]
+│ └── types/ # Protocol, request, response, R2 types — [AGENTS.md]
+├── test/ # Vitest + Cloudflare Workers pool — [AGENTS.md]
 │ ├── unit/ # Protocol + manager tests
 │ └── factories/ # Mock data generators
-├── prisma/migrations/ # D1 schema migrations
+├── prisma/migrations/ # D1 schema migrations (6 tables)
+├── scripts/ # Utility scripts (smoke-test.mjs)
 ├── wrangler.jsonc # Cloudflare Workers config (D1, KV, R2, secrets)
 └── vitest.config.mts # Test config with CF pool
 ```
 
 ## WHERE TO LOOK
 
-| Task | Location | Notes |
-|------|----------|-------|
-| Add new protocol adapter | `src/protocols/` | Implement `ProtocolAdapter` interface, export factory |
-| Add new public API route | `app/v1/` | Non-standard: v1 routes are NOT under `app/api/` |
-| Add Gemini native route | `app/v1beta/` | Gemini native format endpoints (standard Google REST paths) |
-| Add Gemini content generation | `app/v1beta/models/[...action]/` | Catch-all for :generateContent/:streamGenerateContent |
-| Add admin API endpoint | `app/api/admin/` | Follow existing CRUD patterns |
-| Modify auth logic | `src/lib/auth.ts` | `authenticate()` function |
-| Add provider config | `src/config/default.ts` | Add to `providers` object |
-| Type definitions | `src/types/` | All types in barrel export |
-| Public API endpoints | `app/v1/` | Chat completions, models, messages |
-| Gemini native endpoints | `app/v1beta/` | Standard Google Gemini REST paths (`models/{model}:generateContent`) |
-| Admin UI pages | `app/admin/` | React + Ant Design components |
-| API testing UI | `app/admin/api-test/` | Interactive API testing interface |
-| Analytics API | `app/api/admin/analytics/` | Cloudflare Analytics Engine queries |
-| Analytics UI | `app/admin/analytics/` | Charts with Recharts |
-| KV/D1/R2 bindings | `wrangler.jsonc` | PLAYBOX_KV, PLAYBOX_D1, PLAYBOX_R2 |
-| R2 operations | `app/api/admin/r2/` | List, upload, download, delete objects |
-| R2 UI | `app/admin/r2/` | Object browser with prefix navigation |
-| Test factories | `test/factories/` | Mock env, requests, providers |
-| SSRF protection | `src/utils/ssrf-protection.ts` | `validateSafeUrl()` function |
-| Download proxy | `app/api/download/route.ts` | File download with SSRF protection |
-| GitHub proxy | `app/api/gh/[...path]/route.ts` | GitHub file proxy with jsDelivr CDN support |
-| GitHub proxy utils | `src/utils/gh-proxy.ts` | URL matching and rewriting |
+| Task                          | Location                          | Notes                                                                                          |
+| ----------------------------- | --------------------------------- | ---------------------------------------------------------------------------------------------- |
+| Add new protocol adapter      | `src/protocols/`                  | Implement `ProtocolAdapter` interface, export factory                                          |
+| Add new public API route      | `app/v1/`                         | Non-standard: v1 routes are NOT under `app/api/`                                               |
+| Add Gemini native route       | `app/v1beta/`                     | Gemini native format endpoints (standard Google REST paths)                                    |
+| Add Gemini content generation | `app/v1beta/models/[...action]/`  | Catch-all for :generateContent/:streamGenerateContent                                          |
+| Add admin API endpoint        | `app/api/admin/`                  | Follow existing CRUD patterns                                                                  |
+| Modify auth logic             | `src/lib/auth.ts`                 | `authenticate()` function                                                                      |
+| Add provider config           | `src/config/default.ts`           | Add to `providers` object                                                                      |
+| Type definitions              | `src/types/`                      | All types in barrel export                                                                     |
+| Public API endpoints          | `app/v1/`                         | Chat completions, models, messages                                                             |
+| Gemini native endpoints       | `app/v1beta/`                     | Standard Google Gemini REST paths (`models/{model}:generateContent`)                           |
+| Admin UI pages                | `app/admin/`                      | React + Ant Design components                                                                  |
+| API testing UI                | `app/admin/api-test/`             | Interactive API testing interface                                                              |
+| Analytics API                 | `app/api/admin/analytics/`        | Cloudflare Analytics Engine queries                                                            |
+| Analytics UI                  | `app/admin/analytics/`            | Charts with Recharts                                                                           |
+| KV/D1/R2 bindings             | `wrangler.jsonc`                  | PLAYBOX_KV, PLAYBOX_D1, PLAYBOX_R2                                                             |
+| R2 operations                 | `app/api/admin/r2/`               | List, upload, download, delete objects                                                         |
+| R2 UI                         | `app/admin/r2/`                   | Object browser with prefix navigation                                                          |
+| Test factories                | `test/factories/`                 | Mock env, requests, providers                                                                  |
+| SSRF protection               | `src/utils/ssrf-protection.ts`    | `validateSafeUrl()` function                                                                   |
+| Download proxy                | `app/api/download/route.ts`       | File download with SSRF protection                                                             |
+| GitHub proxy                  | `app/api/gh/[...path]/route.ts`   | GitHub file proxy with jsDelivr CDN support                                                    |
+| GitHub proxy utils            | `src/utils/gh-proxy.ts`           | URL matching and rewriting                                                                     |
+| LLM key management            | `app/api/admin/llm-keys/`         | CRUD for LLM API keys                                                                          |
+| LLM key UI                    | `app/admin/llm-keys/`             | Key management interface                                                                       |
+| Short URL API                 | `app/api/admin/short-url/`        | Short URL CRUD + redirect                                                                      |
+| Short URL UI                  | `app/admin/short-url/`            | Short URL management                                                                           |
+| Provider config API           | `app/api/admin/providers/`        | Provider CRUD + speed test + models                                                            |
+| Provider config UI            | `app/admin/providers/`            | Provider configuration                                                                         |
+| Domain management             | `app/api/admin/domains/`          | Domain CRUD                                                                                    |
+| Domain UI                     | `app/admin/domains/`              | Domain management                                                                              |
+| Email config API              | `app/api/admin/email/`            | Email configuration                                                                            |
+| Email config UI               | `app/admin/email/`                | Email settings                                                                                 |
+| API test history              | `app/api/admin/api-test/history/` | Test execution history                                                                         |
+| D1 schema                     | `prisma/migrations/`              | 6 tables: llm_api_keys, security_keys, download_history, api_test_history, short_urls, domains |
 
 ## CODE MAP
 
-| Symbol | Type | Location | Role |
-|--------|------|----------|------|
-| `ProtocolFactory` | class | `src/protocols/index.ts` | Protocol adapter factory |
-| `KeyManager` | object | `src/managers/key.ts` | Token refresh, API key management |
-| `ConfigManager` | object | `src/config/index.ts` | Config resolution |
-| `authenticate` | function | `src/lib/auth.ts` | API key verification |
-| `CORS_HEADERS` | const | `src/utils/constants.ts` | CORS header map |
+| Symbol            | Type     | Location                 | Role                              |
+| ----------------- | -------- | ------------------------ | --------------------------------- |
+| `ProtocolFactory` | class    | `src/protocols/index.ts` | Protocol adapter factory          |
+| `KeyManager`      | object   | `src/managers/key.ts`    | Token refresh, API key management |
+| `ConfigManager`   | object   | `src/config/index.ts`    | Config resolution                 |
+| `authenticate`    | function | `src/lib/auth.ts`        | API key verification              |
+| `CORS_HEADERS`    | const    | `src/utils/constants.ts` | CORS header map                   |
 
 ## CONVENTIONS
 
@@ -120,6 +139,8 @@ AI API Gateway & Protocol Converter — converts between AI provider protocols (
 - **DO NOT** expose secrets in `wrangler.jsonc` — use `wrangler secret put` for sensitive values
 - **DO NOT** use server components in admin UI — requires `'use client'` directive
 - **DO NOT** forget CORS headers — use response helpers or spread `CORS_HEADERS`
+- **DO NOT** skip table validation — use `validateTable()` before all D1 operations
+- **DO NOT** use raw column names in SQL — always use `escapeColumnName()`
 
 ## UNIQUE STYLES
 
@@ -153,22 +174,26 @@ npm test # Run Vitest tests
 - **Non-standard API paths**: Public API at `app/v1/` (not `app/api/v1/`)
 - **Gemini standard paths**: `/v1beta/models/{model}:generateContent` and `/v1beta/models/{model}:streamGenerateContent`
 - **Admin routes**: Admin API at `app/api/admin/`, UI at `app/admin/`
-- **Prettier config**: 140 char width, single quotes, tabs
+- **Prettier config**: 140 char width, single quotes, 2-space tabs (not actual tabs), LF endings
 - **Test coverage**: 70% branches, 85% functions, 80% lines (enforced)
 - **SSRF protection**: Blocks private IPs, link-local, multicast, and blocked TLDs (.local, .internal, .localhost)
 - **D1 schema**: Managed via prisma/migrations/
 - **Cloudflare context**: Use `getCloudflareContext()` from `@opennextjs/cloudflare`
 - **Analytics**: Requires `ANALYTICS_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` secrets
-- **GitHub proxy**: Configured via `GH_PROXY_JSD_ENABLE` env var (0=disabled, 1=jsDelivr CDN) — **NOTE: Route not implemented**
+- **GitHub proxy**: Configured via `GH_PROXY_JSD_ENABLE` env var (0=disabled, 1=jsDelivr CDN) — **NOTE: Route not
+  implemented**
+- **No ESLint**: Project uses Prettier only, no ESLint configured
+- **Build entry**: `.open-next/worker.js` (OpenNext output), not `src/index.ts`
+- **Analytics Engine**: `PLAYBOX_EVENTS` binding for Cloudflare Analytics Engine
+- **D1 tables**: 6 tables — llm_api_keys, security_keys, download_history, api_test_history, short_urls, domains
 
 <!-- code-review-graph MCP tools -->
+
 ## MCP Tools: code-review-graph
 
-**IMPORTANT: This project has a knowledge graph. ALWAYS use the
-code-review-graph MCP tools BEFORE using Grep/Glob/Read to explore
-the codebase.** The graph is faster, cheaper (fewer tokens), and gives
-you structural context (callers, dependents, test coverage) that file
-scanning cannot.
+**IMPORTANT: This project has a knowledge graph. ALWAYS use the code-review-graph MCP tools BEFORE using Grep/Glob/Read
+to explore the codebase.** The graph is faster, cheaper (fewer tokens), and gives you structural context (callers,
+dependents, test coverage) that file scanning cannot.
 
 ### When to use graph tools FIRST
 
@@ -182,16 +207,16 @@ Fall back to Grep/Glob/Read **only** when the graph doesn't cover what you need.
 
 ### Key Tools
 
-| Tool | Use when |
-|------|----------|
-| `detect_changes` | Reviewing code changes — gives risk-scored analysis |
-| `get_review_context` | Need source snippets for review — token-efficient |
-| `get_impact_radius` | Understanding blast radius of a change |
-| `get_affected_flows` | Finding which execution paths are impacted |
-| `query_graph` | Tracing callers, callees, imports, tests, dependencies |
-| `semantic_search_nodes` | Finding functions/classes by name or keyword |
-| `get_architecture_overview` | Understanding high-level codebase structure |
-| `refactor_tool` | Planning renames, finding dead code |
+| Tool                        | Use when                                               |
+| --------------------------- | ------------------------------------------------------ |
+| `detect_changes`            | Reviewing code changes — gives risk-scored analysis    |
+| `get_review_context`        | Need source snippets for review — token-efficient      |
+| `get_impact_radius`         | Understanding blast radius of a change                 |
+| `get_affected_flows`        | Finding which execution paths are impacted             |
+| `query_graph`               | Tracing callers, callees, imports, tests, dependencies |
+| `semantic_search_nodes`     | Finding functions/classes by name or keyword           |
+| `get_architecture_overview` | Understanding high-level codebase structure            |
+| `refactor_tool`             | Planning renames, finding dead code                    |
 
 ### Workflow
 
