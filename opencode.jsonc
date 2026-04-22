@@ -78,7 +78,13 @@
         },
         "kimi-k2.6": {
           "name": "kimi-k2.6"
+        },
+        "ark-code-latest": {
+          "name": "ark-code-latest"
         }
+        // "@cf/moonshotai/kimi-k2.6": {
+        //   "name": "@cf/moonshotai/kimi-k2.6"
+        // }
       },
       "npm": "@ai-sdk/openai-compatible",
       "options": {
