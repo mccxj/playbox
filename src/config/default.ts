@@ -23,14 +23,14 @@ export const DEFAULT_CONFIG: Config = {
       family: 'openai',
       endpoint: 'https://api.longcat.chat/openai',
       key: 'LongCat',
-      models: ['LongCat-Flash-Chat', 'LongCat-Flash-Lite', 'LongCat-Flash-Thinking'],
+      models: ['LongCat-Flash-Chat', 'LongCat-Flash-Lite', 'LongCat-Flash-Thinking', 'LongCat-Pro-Preview'],
     },
     longcat_claude: {
       type: 'anthropic',
       family: 'anthropic',
       endpoint: 'https://api.longcat.chat/anthropic',
       key: 'LongCat',
-      models: ['LongCat-Flash-Chat', 'LongCat-Flash-Lite', 'LongCat-Flash-Thinking'],
+      models: ['LongCat-Flash-Chat', 'LongCat-Flash-Lite', 'LongCat-Flash-Thinking', 'LongCat-Pro-Preview'],
       authType: 'bearer',
     },
     cerebras: {
