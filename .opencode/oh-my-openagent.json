@@ -34,7 +34,7 @@
       "temperature": 0.1
     },
     "atlas": {
-      "model": "x-openai/z-ai/glm-5.1",
+      "model": "x-openai/LongCat-Pro-Preview",
       "temperature": 0.1
     },
     "sisyphus-junior": {
@@ -42,7 +42,7 @@
       "temperature": 0.1
     },
     "sisyphus": {
-      "model": "x-openai/z-ai/glm-5.1",
+      "model": "x-openai/LongCat-Pro-Preview",
       "temperature": 0.1
     }
   },
@@ -56,7 +56,7 @@
       "temperature": 0.1
     },
     "deep": {
-      "model": "x-openai/z-ai/glm-5.1",
+      "model": "x-openai/LongCat-Pro-Preview",
       "temperature": 0.1
     },
     "artistry": {
