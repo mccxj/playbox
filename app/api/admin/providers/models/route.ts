@@ -24,12 +24,6 @@ interface ProviderModels {
   error?: string;
 }
 
-interface ModelsResponse {
-  openai: ProviderModels[];
-  anthropic: ProviderModels[];
-  gemini: ProviderModels[];
-}
-
 async function fetchOpenAIModels(baseUrl: string, apiKey: string): Promise<ModelInfo[]> {
   const url = `${baseUrl}/v1/models`;
   const response = await fetch(url, {
@@ -55,7 +49,7 @@ async function fetchGeminiModels(baseUrl: string, apiKey: string): Promise<Model
   }
 
   const data = (await response.json()) as {
-    models?: Array<{ name: string; supportedGenerationMethods?: string[] }>;
+    models?: { name: string; supportedGenerationMethods?: string[] }[];
   };
   return (data.models || []).map((m) => ({
     id: m.name.replace('models/', ''),
@@ -64,7 +58,7 @@ async function fetchGeminiModels(baseUrl: string, apiKey: string): Promise<Model
   }));
 }
 
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   try {
     const { env: rawEnv, ctx } = getCloudflareContext();
     const env = rawEnv as unknown as Env;

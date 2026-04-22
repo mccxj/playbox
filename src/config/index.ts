@@ -7,7 +7,7 @@ export interface ResolvedProvider {
   realModel: string;
 }
 
-export function getConfig(env: any): Config {
+export function getConfig(env: Cloudflare.Env): Config {
   return env.API_CONFIG ? JSON.parse(env.API_CONFIG) : DEFAULT_CONFIG;
 }
 

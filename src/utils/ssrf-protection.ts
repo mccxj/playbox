@@ -3,7 +3,7 @@ export interface SSRFValidationResult {
   error?: string;
 }
 
-const PRIVATE_IPV4_RANGES: Array<{ start: number; end: number; name: string }> = [
+const PRIVATE_IPV4_RANGES: { start: number; end: number; name: string }[] = [
   { start: 0x7f000000, end: 0x7fffffff, name: '127.0.0.0/8 (loopback)' },
   { start: 0x0a000000, end: 0x0affffff, name: '10.0.0.0/8 (private)' },
   { start: 0xac100000, end: 0xac1fffff, name: '172.16.0.0/12 (private)' },

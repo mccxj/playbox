@@ -1,13 +1,11 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Card, Form, Input, Button, Select, Space, Table, Tag, message, Typography, Tabs, Upload, Alert, Popconfirm } from 'antd';
-import { SendOutlined, ReloadOutlined, PlusOutlined, DeleteOutlined, MailOutlined, HistoryOutlined } from '@ant-design/icons';
+import { Card, Form, Input, Button, Space, Table, Tag, message, Tabs, Upload, Alert } from 'antd';
+import { SendOutlined, ReloadOutlined, PlusOutlined, MailOutlined, HistoryOutlined } from '@ant-design/icons';
 import type { UploadFile } from 'antd/es/upload/interface';
 
 const { TextArea } = Input;
-const { Title } = Typography;
-
 interface EmailRecord {
   id: string;
   recipients: string[];
@@ -43,7 +41,7 @@ export default function EmailTestPage() {
       } else {
         message.error(data.error || 'Failed to fetch email history');
       }
-    } catch (err) {
+    } catch (_err) {
       message.error('Failed to fetch email history');
     } finally {
       setHistoryLoading(false);
@@ -90,7 +88,7 @@ export default function EmailTestPage() {
       } else {
         message.error(data.error || 'Failed to send email');
       }
-    } catch (err) {
+    } catch (_err) {
       message.error('Failed to send email');
     } finally {
       setLoading(false);

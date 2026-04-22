@@ -1,13 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { Card, Button, Space, Alert, Typography } from 'antd';
-import { ReloadOutlined } from '@ant-design/icons';
+import { Alert } from 'antd';
 import { DownloadList } from './components/DownloadList';
 import { DownloadForm } from './components/DownloadForm';
 import { useDownloads } from './hooks/useDownloads';
-
-const { Title } = Typography;
 
 export default function DownloadPage() {
   const { downloads, loading, error, page, pageSize, total, fetchDownloads, setParams } = useDownloads();
@@ -36,7 +32,18 @@ export default function DownloadPage() {
 
   return (
     <div>
-      {error && <Alert message="Error" description={error} type="error" closable onClose={() => {}} style={{ marginBottom: 24 }} />}
+      {error && (
+        <Alert
+          message="Error"
+          description={error}
+          type="error"
+          closable
+          onClose={() => {
+            return;
+          }}
+          style={{ marginBottom: 24 }}
+        />
+      )}
 
       <DownloadForm onDownload={handleFormDownload} />
 

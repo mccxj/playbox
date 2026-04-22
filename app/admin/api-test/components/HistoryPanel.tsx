@@ -90,7 +90,7 @@ export default function HistoryPanel({ onSelect }: HistoryPanelProps) {
     }
   };
 
-  const truncateUrl = (url: string, maxLen: number = 40) => {
+  const truncateUrl = (url: string, maxLen = 40) => {
     if (url.length <= maxLen) return url;
     return url.substring(0, maxLen) + '...';
   };

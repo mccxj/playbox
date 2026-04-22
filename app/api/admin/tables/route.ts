@@ -28,7 +28,7 @@ interface TableSchema {
  * GET /api/admin/tables
  * Returns list of all tables with their column definitions
  */
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   try {
     // Get Cloudflare bindings from global context
     const { env } = getCloudflareContext() as any;

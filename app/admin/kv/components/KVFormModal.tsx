@@ -14,7 +14,7 @@ interface KVFormModalProps {
 export default function KVFormModal({ open, namespace, editingKey, onClose, onSuccess }: KVFormModalProps) {
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
-  const [initialValue, setInitialValue] = useState<string>('');
+
   const isEditing = !!editingKey;
 
   useEffect(() => {
@@ -22,7 +22,6 @@ export default function KVFormModal({ open, namespace, editingKey, onClose, onSu
       fetchKeyValue();
     } else if (open) {
       form.resetFields();
-      setInitialValue('');
     }
   }, [open, editingKey]);
 
@@ -40,7 +39,6 @@ export default function KVFormModal({ open, namespace, editingKey, onClose, onSu
           value: data.value,
           expirationTtl: undefined,
         });
-        setInitialValue(data.value);
       } else {
         message.error(data.error || 'Failed to fetch key');
       }
@@ -100,7 +98,6 @@ export default function KVFormModal({ open, namespace, editingKey, onClose, onSu
 
   const handleClose = () => {
     form.resetFields();
-    setInitialValue('');
     onClose();
   };
 

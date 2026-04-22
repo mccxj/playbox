@@ -1,4 +1,4 @@
-import { ProtocolType, ProviderConfig } from './provider';
+import type { ProviderConfig } from './provider';
 
 /**
  * Tool Definition (OpenAI Format)

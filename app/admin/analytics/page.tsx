@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { Card, Row, Col, DatePicker, Button, Spin, Alert, Table, Statistic, Typography } from 'antd';
+import { Card, Row, Col, DatePicker, Button, Spin, Alert, Table, Statistic } from 'antd';
 import { BarChartOutlined, ReloadOutlined } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
 import {
@@ -21,7 +21,6 @@ import {
 } from 'recharts';
 import dayjs from 'dayjs';
 
-const { Title, Text } = Typography;
 const { RangePicker } = DatePicker;
 
 interface AnalyticsRow {

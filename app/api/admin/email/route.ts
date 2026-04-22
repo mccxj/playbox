@@ -15,11 +15,11 @@ interface SendEmailRequest {
   subject: string;
   body: string;
   html?: string;
-  attachments?: Array<{
+  attachments?: {
     filename: string;
     content: string;
     contentType: string;
-  }>;
+  }[];
 }
 
 function generateId(): string {

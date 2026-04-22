@@ -29,7 +29,7 @@ export async function authenticate(request: Request, env: Env): Promise<boolean>
   const apiKey = extractApiKey(request);
   if (!apiKey) return false;
 
-  const db = (env as any).PLAYBOX_D1;
+  const db = env.PLAYBOX_D1;
   if (!db) return false;
 
   const result = await db.prepare('SELECT * FROM llm_api_keys WHERE api_key = ? AND is_active = 1').bind(apiKey).first();

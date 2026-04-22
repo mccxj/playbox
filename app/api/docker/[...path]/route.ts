@@ -25,9 +25,8 @@ export const dynamic = 'force-dynamic';
 
 /** Docker Hub 相关域名 */
 const REGISTRY_HOST = 'https://registry-1.docker.io';
-const AUTH_HOST = 'https://auth.docker.io';
+
 /** auth.docker.io 的认证服务标识 */
-const AUTH_SERVICE = 'registry.docker.io';
 
 /**
  * 从 WWW-Authenticate 头中提取 Bearer token

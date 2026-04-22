@@ -83,7 +83,7 @@ export async function POST(request: NextRequest) {
     let lastResponse: Response | undefined;
     for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
       const apiKey = await upstreamProtocol.getApiKey(env, provider, ctx);
-      let fetchUrl = await upstreamProtocol.getEndpoint(provider, realModel, isStream, apiKey);
+      const fetchUrl = await upstreamProtocol.getEndpoint(provider, realModel, isStream, apiKey);
       const fetchHeaders = await upstreamProtocol.getHeaders(provider, env, ctx, apiKey);
       lastResponse = await fetch(fetchUrl, {
         method: 'POST',
@@ -153,13 +153,13 @@ export async function POST(request: NextRequest) {
                       total_tokens: (json.usage.input_tokens || 0) + (json.usage.output_tokens || 0),
                     };
                   }
-                } catch (e) {
+                } catch (_e) {
                   // Ignore parse errors
                 }
               }
             }
           }
-        } catch (e) {
+        } catch (_e) {
           // Ignore errors in usage extraction
         } finally {
           reader.releaseLock();

@@ -15,14 +15,6 @@ interface SpeedTestRequest {
   model: string;
 }
 
-interface SpeedTestResult {
-  provider: string;
-  model: string;
-  latency: number;
-  error?: string;
-  timestamp: number;
-}
-
 function buildOpenAIRequest(model: string, endpoint: string, apiKey: string): Request {
   const url = `${endpoint}/v1/chat/completions`;
   return new Request(url, {
@@ -169,7 +161,9 @@ export async function POST(request: NextRequest) {
             errorDetail = errorBody.length > 200 ? errorBody.slice(0, 200) + '...' : errorBody;
           }
         }
-      } catch {}
+      } catch {
+        /* noop */
+      }
 
       return createJsonResponse({
         success: true,

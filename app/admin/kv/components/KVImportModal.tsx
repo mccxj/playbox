@@ -1,11 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import { Modal, Upload, Button, Input, message, Typography, Space, Alert } from 'antd';
-import { UploadOutlined, FileTextOutlined } from '@ant-design/icons';
+import { Modal, Upload, Button, Input, message, Space, Alert } from 'antd';
+import { UploadOutlined } from '@ant-design/icons';
 import type { UploadFile } from 'antd/es/upload/interface';
-
-const { Text, Paragraph } = Typography;
 
 interface KVImportModalProps {
   open: boolean;
@@ -137,7 +135,7 @@ export default function KVImportModal({ open, namespace, onClose, onSuccess }: K
         </Upload>
 
         <div>
-          <Text strong>Paste or edit JSON:</Text>
+          <strong>Paste or edit JSON:</strong>
           <Input.TextArea
             rows={10}
             value={jsonText}
@@ -164,13 +162,13 @@ Or object format:
           message="Format Options"
           description={
             <div>
-              <Text>
+              <div>
                 • <strong>Array</strong>: Array of objects with key, value, and optional expirationTtl
-              </Text>
+              </div>
               <br />
-              <Text>
+              <div>
                 • <strong>Object</strong>: Simple key-value object (keys as strings, values will be JSON-stringified if not strings)
-              </Text>
+              </div>
             </div>
           }
           type="info"
