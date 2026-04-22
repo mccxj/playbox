@@ -23,48 +23,24 @@ jobs:
         uses: actions/checkout@v6
         with:
           persist-credentials: false
-
-  parallel_setup:
-    runs-on: ubuntu-latest
-    needs: opencode
-    strategy:
-      matrix:
-        environment: [node, python]  # 设置并行执行 Node.js 和 Python 环境配置
-    steps:
       - name: Setup Node.js
-        if: matrix.environment == 'node'
         uses: actions/setup-node@v5
         with:
           node-version: "22"
           cache: "npm"
-
-      - name: Setup Python
-        if: matrix.environment == 'python'
+      - name: Install dependencies
+        run: npm ci
+      - name: Set up Python
         uses: actions/setup-python@v6
         with:
           python-version: "3.10"
-
-  install_dependencies:
-    runs-on: ubuntu-latest
-    needs: parallel_setup
-    steps:
-      - name: Install Node.js dependencies
-        run: npm ci
-        if: success()  # 只有在前面步骤成功时才运行
-
+          cache: "pip"
       - name: Install code-review-graph
         run: |
           pip install code-review-graph
           code-review-graph install --platform opencode
-        if: success()
-
-  build_and_run:
-    runs-on: ubuntu-latest
-    needs: install_dependencies
-    steps:
       - name: Build code-review-graph
         run: code-review-graph build
-
       - name: Write global AGENTS.md
         run: |
           mkdir -p ~/.config/opencode
@@ -82,7 +58,6 @@ jobs:
           - Keep solutions simple and direct.
           - User instructions always override this file.
           EOF
-
       - name: Run opencode
         uses: anomalyco/opencode/github@latest
         env:
