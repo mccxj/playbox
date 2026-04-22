@@ -30,12 +30,12 @@ export function DownloadForm({ onDownload }: DownloadFormProps) {
     }
 
     setLoading(true);
-    
+
     const downloadUrl = `/api/download?url=${encodeURIComponent(url)}`;
     window.open(downloadUrl, '_blank');
     message.success('Download initiated');
     onDownload?.();
-    
+
     setTimeout(() => setLoading(false), 1000);
   };
 
@@ -50,13 +50,7 @@ export function DownloadForm({ onDownload }: DownloadFormProps) {
           allowClear
           size="large"
         />
-        <Button
-          type="primary"
-          icon={<DownloadOutlined />}
-          onClick={handleDownload}
-          loading={loading}
-          size="large"
-        >
+        <Button type="primary" icon={<DownloadOutlined />} onClick={handleDownload} loading={loading} size="large">
           Download
         </Button>
       </Space.Compact>

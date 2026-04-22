@@ -2,19 +2,11 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import dynamic from 'next/dynamic';
-import { 
-  Select, 
-  Typography, 
-  Spin, 
-  Alert, 
-  Card,
-  Row,
-  Col
-} from 'antd';
+import { Select, Typography, Spin, Alert, Card, Row, Col } from 'antd';
 import { TableOutlined, DatabaseOutlined } from '@ant-design/icons';
 import type { TableSchema, TableRow, ColumnInfo } from './types';
 
-const Statistic = dynamic(() => import('antd').then(mod => ({ default: mod.Statistic })), { ssr: false });
+const Statistic = dynamic(() => import('antd').then((mod) => ({ default: mod.Statistic })), { ssr: false });
 const DataTable = dynamic(() => import('./components/DataTable'), { ssr: false });
 const SearchBar = dynamic(() => import('./components/SearchBar'), { ssr: false });
 const CreateRowModal = dynamic(() => import('./components/CreateRowModal'), { ssr: false });
@@ -54,7 +46,7 @@ export default function AdminPage() {
     try {
       setLoading(true);
       const response = await fetch('/api/admin/tables');
-      const data = await response.json() as any;
+      const data = (await response.json()) as any;
       if (data.success) {
         setTables(data.tables);
         if (data.tables.length > 0 && !selectedTable) {
@@ -89,12 +81,12 @@ export default function AdminPage() {
       }
 
       const response = await fetch(`/api/admin/tables/${selectedTable}/rows?${params}`);
-      const data = await response.json() as any;
-      
+      const data = (await response.json()) as any;
+
       if (data.success) {
         setRows(data.rows);
         setColumns(data.columns || []);
-        setPagination(prev => ({
+        setPagination((prev) => ({
           ...prev,
           total: data.pagination.total,
           totalPages: data.pagination.totalPages,
@@ -115,7 +107,7 @@ export default function AdminPage() {
 
   useEffect(() => {
     if (selectedTable) {
-      const schema = tables.find(t => t.name === selectedTable);
+      const schema = tables.find((t) => t.name === selectedTable);
       setSelectedTableSchema(schema || null);
       fetchRows();
     }
@@ -123,7 +115,7 @@ export default function AdminPage() {
 
   const handleTableChange = (tableName: string) => {
     setSelectedTable(tableName);
-    setPagination(prev => ({ ...prev, page: 1 }));
+    setPagination((prev) => ({ ...prev, page: 1 }));
     setSort(null);
     setSearch('');
     setSearchColumn('');
@@ -131,7 +123,7 @@ export default function AdminPage() {
   };
 
   const handlePageChange = (page: number, pageSize: number) => {
-    setPagination(prev => ({ ...prev, page, pageSize }));
+    setPagination((prev) => ({ ...prev, page, pageSize }));
   };
 
   const handleSort = (column: string, newOrder: 'asc' | 'desc' | null) => {
@@ -146,7 +138,7 @@ export default function AdminPage() {
   const handleSearch = (value: string, column: string) => {
     setSearch(value);
     setSearchColumn(column);
-    setPagination(prev => ({ ...prev, page: 1 }));
+    setPagination((prev) => ({ ...prev, page: 1 }));
   };
 
   const handleCreate = () => {
@@ -163,7 +155,7 @@ export default function AdminPage() {
       const response = await fetch(`/api/admin/tables/${selectedTable}/rows/${rowid}`, {
         method: 'DELETE',
       });
-      const data = await response.json() as any;
+      const data = (await response.json()) as any;
       if (data.success) {
         fetchRows();
       } else {
@@ -186,7 +178,7 @@ export default function AdminPage() {
           ids: selectedRowKeys,
         }),
       });
-      const data = await response.json() as any;
+      const data = (await response.json()) as any;
       if (data.success) {
         setSelectedRowKeys([]);
         fetchRows();
@@ -217,14 +209,7 @@ export default function AdminPage() {
   return (
     <div>
       {error && (
-        <Alert
-          message="Error"
-          description={error}
-          type="error"
-          closable
-          onClose={() => setError(null)}
-          style={{ marginBottom: 16 }}
-        />
+        <Alert message="Error" description={error} type="error" closable onClose={() => setError(null)} style={{ marginBottom: 16 }} />
       )}
 
       <Card style={{ marginBottom: 16 }}>
@@ -238,28 +223,18 @@ export default function AdminPage() {
               placeholder="Select a table"
               value={selectedTable}
               onChange={handleTableChange}
-              options={tables.map(t => ({ label: t.name, value: t.name }))}
+              options={tables.map((t) => ({ label: t.name, value: t.name }))}
             />
           </Col>
           <Col>
-            <Statistic
-              title="Tables"
-              value={tables.length}
-              prefix={<TableOutlined />}
-            />
+            <Statistic title="Tables" value={tables.length} prefix={<TableOutlined />} />
           </Col>
         </Row>
       </Card>
 
       {selectedTableSchema && (
         <>
-          <SearchBar
-            columns={columns}
-            onSearch={handleSearch}
-            onCreate={handleCreate}
-            onImport={handleImport}
-            onRefresh={handleRefresh}
-          />
+          <SearchBar columns={columns} onSearch={handleSearch} onCreate={handleCreate} onImport={handleImport} onRefresh={handleRefresh} />
 
           <DataTable
             columns={columns}
@@ -275,42 +250,42 @@ export default function AdminPage() {
             loading={loading}
           />
 
-        <CreateRowModal
-          open={createModalOpen}
-          table={selectedTable || ''}
-          columns={columns}
-          onClose={() => setCreateModalOpen(false)}
-          onSuccess={() => {
-            setCreateModalOpen(false);
-            fetchRows();
-          }}
-        />
+          <CreateRowModal
+            open={createModalOpen}
+            table={selectedTable || ''}
+            columns={columns}
+            onClose={() => setCreateModalOpen(false)}
+            onSuccess={() => {
+              setCreateModalOpen(false);
+              fetchRows();
+            }}
+          />
 
-        <EditRowModal
-          open={editModalOpen}
-          table={selectedTable || ''}
-          columns={columns}
-          row={editingRow}
-          onClose={() => {
-            setEditModalOpen(false);
-            setEditingRow(null);
-          }}
-          onSuccess={() => {
-            setEditModalOpen(false);
-            setEditingRow(null);
-            fetchRows();
-          }}
-        />
+          <EditRowModal
+            open={editModalOpen}
+            table={selectedTable || ''}
+            columns={columns}
+            row={editingRow}
+            onClose={() => {
+              setEditModalOpen(false);
+              setEditingRow(null);
+            }}
+            onSuccess={() => {
+              setEditModalOpen(false);
+              setEditingRow(null);
+              fetchRows();
+            }}
+          />
 
-        <ImportModal
-          open={importModalOpen}
-          table={selectedTable || ''}
-          onClose={() => setImportModalOpen(false)}
-          onSuccess={() => {
-            setImportModalOpen(false);
-            fetchRows();
-          }}
-        />
+          <ImportModal
+            open={importModalOpen}
+            table={selectedTable || ''}
+            onClose={() => setImportModalOpen(false)}
+            onSuccess={() => {
+              setImportModalOpen(false);
+              fetchRows();
+            }}
+          />
         </>
       )}
     </div>

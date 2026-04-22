@@ -22,7 +22,7 @@ interface DownloadRecord {
  */
 export async function GET(request: NextRequest) {
   try {
-		const { env } = getCloudflareContext() as any;
+    const { env } = getCloudflareContext() as any;
     const db = env.PLAYBOX_D1;
 
     if (!db) {
@@ -61,7 +61,10 @@ export async function GET(request: NextRequest) {
 
     // Get total count
     const countQuery = `SELECT COUNT(*) as total FROM download_history ${whereClause}`;
-    const countResult = await db.prepare(countQuery).bind(...params).all();
+    const countResult = await db
+      .prepare(countQuery)
+      .bind(...params)
+      .all();
     const total = (countResult.results as any[])[0]?.total || 0;
 
     // Get records
@@ -74,7 +77,8 @@ export async function GET(request: NextRequest) {
     `;
 
     const queryParams = [...params, pageSize, offset];
-    const result = await db.prepare(query)
+    const result = await db
+      .prepare(query)
       .bind(...queryParams)
       .all();
 
@@ -87,7 +91,7 @@ export async function GET(request: NextRequest) {
       error: r.error || undefined,
       rangeHeader: r.range_header || undefined,
       createdAt: r.created_at,
-      completedAt: r.completed_at || undefined
+      completedAt: r.completed_at || undefined,
     }));
 
     return createJsonResponse({
@@ -95,7 +99,7 @@ export async function GET(request: NextRequest) {
       records,
       total,
       page,
-      pageSize
+      pageSize,
     });
   } catch (error) {
     console.error('Error fetching download history:', error);

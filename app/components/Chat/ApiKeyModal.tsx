@@ -49,11 +49,7 @@ export default function ApiKeyModal({ open, onClose }: Props) {
       cancelText="Cancel"
     >
       <Form form={form} initialValues={initialValues} layout="vertical">
-        <Form.Item
-          name="apiKey"
-          label="API Key"
-          rules={[{ required: true, message: 'Please enter your API key' }]}
-        >
+        <Form.Item name="apiKey" label="API Key" rules={[{ required: true, message: 'Please enter your API key' }]}>
           <Input.Password placeholder="Enter your API key" />
         </Form.Item>
       </Form>

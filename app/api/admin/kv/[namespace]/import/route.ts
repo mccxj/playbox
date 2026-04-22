@@ -6,7 +6,7 @@ export const dynamic = 'force-dynamic';
 
 export async function POST(request: NextRequest, { params }: { params: Promise<{ namespace: string }> }) {
   try {
-		const { env } = getCloudflareContext() as any;
+    const { env } = getCloudflareContext() as any;
     const { namespace } = await params;
 
     const kv = env[namespace];
@@ -15,8 +15,8 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       return createNotFoundResponse(`KV namespace '${namespace}' not found`);
     }
 
-    const body = await request.json() as { 
-      items: Array<{ key: string; value: string; expirationTtl?: number }> 
+    const body = (await request.json()) as {
+      items: Array<{ key: string; value: string; expirationTtl?: number }>;
     };
 
     if (!Array.isArray(body.items) || body.items.length === 0) {
@@ -48,13 +48,16 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       }
     }
 
-    return createJsonResponse({
-      success: true,
-      message: `Imported ${processed} keys${failed > 0 ? `, ${failed} failed` : ''}`,
-      processed,
-      failed: failed > 0 ? failed : undefined,
-      errors: errors.length > 0 ? errors : undefined
-    }, 201);
+    return createJsonResponse(
+      {
+        success: true,
+        message: `Imported ${processed} keys${failed > 0 ? `, ${failed} failed` : ''}`,
+        processed,
+        failed: failed > 0 ? failed : undefined,
+        errors: errors.length > 0 ? errors : undefined,
+      },
+      201
+    );
   } catch (error) {
     console.error('Error importing KV keys:', error);
     return createInternalErrorResponse((error as Error).message);

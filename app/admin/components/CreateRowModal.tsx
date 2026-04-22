@@ -12,13 +12,7 @@ interface CreateRowModalProps {
   onSuccess: () => void;
 }
 
-export default function CreateRowModal({
-  open,
-  table,
-  columns,
-  onClose,
-  onSuccess,
-}: CreateRowModalProps) {
+export default function CreateRowModal({ open, table, columns, onClose, onSuccess }: CreateRowModalProps) {
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
 
@@ -33,7 +27,7 @@ export default function CreateRowModal({
         body: JSON.stringify(values),
       });
 
-      const data = await response.json() as any;
+      const data = (await response.json()) as any;
 
       if (data.success) {
         message.success('Row created successfully');
@@ -53,7 +47,11 @@ export default function CreateRowModal({
     if (column.type.toLowerCase().includes('int')) {
       return <InputNumber style={{ width: '100%' }} placeholder={`Enter ${column.name}`} />;
     }
-    if (column.type.toLowerCase().includes('real') || column.type.toLowerCase().includes('float') || column.type.toLowerCase().includes('double')) {
+    if (
+      column.type.toLowerCase().includes('real') ||
+      column.type.toLowerCase().includes('float') ||
+      column.type.toLowerCase().includes('double')
+    ) {
       return <InputNumber style={{ width: '100%' }} step="any" placeholder={`Enter ${column.name}`} />;
     }
     return <Input.TextArea rows={2} placeholder={`Enter ${column.name}`} />;
@@ -72,7 +70,7 @@ export default function CreateRowModal({
       width={600}
     >
       <Form form={form} layout="vertical">
-        {columns.map(column => (
+        {columns.map((column) => (
           <Form.Item
             key={column.name}
             name={column.name}

@@ -6,7 +6,7 @@ export const dynamic = 'force-dynamic';
 
 export async function POST(request: NextRequest, { params }: { params: Promise<{ namespace: string }> }) {
   try {
-		const { env } = getCloudflareContext() as any;
+    const { env } = getCloudflareContext() as any;
     const { namespace } = await params;
 
     const kv = env[namespace];
@@ -15,7 +15,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       return createNotFoundResponse(`KV namespace '${namespace}' not found`);
     }
 
-    const body = await request.json() as { operation: 'delete'; keys: string[] };
+    const body = (await request.json()) as { operation: 'delete'; keys: string[] };
 
     if (body.operation !== 'delete' || !Array.isArray(body.keys)) {
       return createJsonResponse({ error: 'Invalid operation. Expected { operation: "delete", keys: string[] }' }, 400);
@@ -35,7 +35,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     return createJsonResponse({
       success: true,
       message: `Deleted ${processed} keys`,
-      processed
+      processed,
     });
   } catch (error) {
     console.error('Error in batch operation:', error);

@@ -22,8 +22,8 @@ export default function DownloadPage() {
       const response = await fetch(`/api/download?url=${encodeURIComponent(url)}`);
 
       if (!response.ok) {
-const errorData = await response.json().catch(() => ({ error: 'Download failed' })) as { error?: string };
-			throw new Error(errorData.error || 'Download failed');
+        const errorData = (await response.json().catch(() => ({ error: 'Download failed' }))) as { error?: string };
+        throw new Error(errorData.error || 'Download failed');
       }
 
       // Get filename from Content-Disposition header or use default
@@ -57,19 +57,21 @@ const errorData = await response.json().catch(() => ({ error: 'Download failed' 
   };
 
   return (
-    <div style={{ 
-      display: 'flex', 
-      justifyContent: 'center', 
-      alignItems: 'center', 
-      minHeight: '100vh',
-      padding: '24px',
-      background: '#f0f2f5'
-    }}>
-      <Card 
-        style={{ 
-          width: '100%', 
+    <div
+      style={{
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        minHeight: '100vh',
+        padding: '24px',
+        background: '#f0f2f5',
+      }}
+    >
+      <Card
+        style={{
+          width: '100%',
           maxWidth: 600,
-          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)'
+          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
         }}
       >
         <div style={{ textAlign: 'center', marginBottom: 24 }}>
@@ -77,20 +79,11 @@ const errorData = await response.json().catch(() => ({ error: 'Download failed' 
             <DownloadOutlined style={{ marginRight: 8 }} />
             File Downloader
           </Title>
-          <Text type="secondary">
-            Enter a URL to download files directly to your device
-          </Text>
+          <Text type="secondary">Enter a URL to download files directly to your device</Text>
         </div>
 
         {error && (
-          <Alert
-            message="Error"
-            description={error}
-            type="error"
-            closable
-            onClose={() => setError(null)}
-            style={{ marginBottom: 16 }}
-          />
+          <Alert message="Error" description={error} type="error" closable onClose={() => setError(null)} style={{ marginBottom: 16 }} />
         )}
 
         {success && (
@@ -104,24 +97,16 @@ const errorData = await response.json().catch(() => ({ error: 'Download failed' 
           />
         )}
 
-        <Form
-          form={form}
-          layout="vertical"
-          onFinish={onFinish}
-        >
+        <Form form={form} layout="vertical" onFinish={onFinish}>
           <Form.Item
             label="URL"
             name="url"
             rules={[
               { required: true, message: 'Please enter a URL' },
-              { type: 'url', message: 'Please enter a valid URL' }
+              { type: 'url', message: 'Please enter a valid URL' },
             ]}
           >
-            <Input 
-              placeholder="https://example.com/file.pdf" 
-              size="large"
-              disabled={loading}
-            />
+            <Input placeholder="https://example.com/file.pdf" size="large" disabled={loading} />
           </Form.Item>
 
           <Form.Item>
@@ -144,8 +129,8 @@ const errorData = await response.json().catch(() => ({ error: 'Download failed' 
           description={
             <div>
               <Text type="secondary" style={{ fontSize: 12 }}>
-                Only download files from trusted sources. The system validates URLs but cannot guarantee file safety.
-                Allowed URL schemes: http, https
+                Only download files from trusted sources. The system validates URLs but cannot guarantee file safety. Allowed URL schemes:
+                http, https
               </Text>
             </div>
           }

@@ -35,22 +35,8 @@ export default function ChatMessage({ message, onDelete }: Props) {
       }}
       bordered={false}
       actions={[
-        <Button
-          key="copy"
-          type="text"
-          icon={<CopyOutlined />}
-          size="small"
-          onClick={handleCopy}
-        />,
-        onDelete ? (
-          <Button
-            key="delete"
-            type="text"
-            icon={<DeleteOutlined />}
-            size="small"
-            onClick={onDelete}
-          />
-        ) : null,
+        <Button key="copy" type="text" icon={<CopyOutlined />} size="small" onClick={handleCopy} />,
+        onDelete ? <Button key="delete" type="text" icon={<DeleteOutlined />} size="small" onClick={onDelete} /> : null,
       ].filter(Boolean)}
     >
       <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
@@ -70,13 +56,15 @@ export default function ChatMessage({ message, onDelete }: Props) {
                     </span>
                   ),
                   children: (
-                    <div style={{
-                      whiteSpace: 'pre-wrap',
-                      wordBreak: 'break-word',
-                      color: '#666',
-                      fontSize: '13px',
-                      lineHeight: '1.6',
-                    }}>
+                    <div
+                      style={{
+                        whiteSpace: 'pre-wrap',
+                        wordBreak: 'break-word',
+                        color: '#666',
+                        fontSize: '13px',
+                        lineHeight: '1.6',
+                      }}
+                    >
                       {message.reasoning_content}
                     </div>
                   ),
@@ -85,9 +73,7 @@ export default function ChatMessage({ message, onDelete }: Props) {
             />
           )}
           <div className={styles.markdownContent}>
-            <ReactMarkdown remarkPlugins={[remarkGfm]}>
-              {message.content}
-            </ReactMarkdown>
+            <ReactMarkdown remarkPlugins={[remarkGfm]}>{message.content}</ReactMarkdown>
           </div>
         </div>
       </div>

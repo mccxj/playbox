@@ -20,12 +20,7 @@ interface ImportItem {
   expirationTtl?: number;
 }
 
-export default function KVImportModal({
-  open,
-  namespace,
-  onClose,
-  onSuccess,
-}: KVImportModalProps) {
+export default function KVImportModal({ open, namespace, onClose, onSuccess }: KVImportModalProps) {
   const [jsonText, setJsonText] = useState('');
   const [fileList, setFileList] = useState<UploadFile[]>([]);
   const [loading, setLoading] = useState(false);
@@ -52,7 +47,7 @@ export default function KVImportModal({
       const parsed = JSON.parse(jsonText);
 
       if (Array.isArray(parsed)) {
-        return parsed.map(item => ({
+        return parsed.map((item) => ({
           key: item.key,
           value: typeof item.value === 'string' ? item.value : JSON.stringify(item.value),
           expirationTtl: item.expirationTtl,
@@ -69,7 +64,7 @@ export default function KVImportModal({
     } catch (err) {
       setError('Invalid JSON: ' + (err as Error).message);
       return null;
-    };
+    }
   };
 
   const handleImport = async () => {
@@ -77,7 +72,7 @@ export default function KVImportModal({
     const items = parseImportData();
     if (!items || items.length === 0) return;
 
-    const validItems = items.filter(item => item.key && item.value !== undefined);
+    const validItems = items.filter((item) => item.key && item.value !== undefined);
     if (validItems.length === 0) {
       setError('No valid items to import. Each item must have a key and value.');
       return;
@@ -91,7 +86,7 @@ export default function KVImportModal({
         body: JSON.stringify({ items: validItems }),
       });
 
-      const data = await response.json() as any;
+      const data = (await response.json()) as any;
 
       if (data.success) {
         message.success(data.message);
@@ -126,9 +121,7 @@ export default function KVImportModal({
       okText="Import"
     >
       <Space direction="vertical" style={{ width: '100%' }} size="large">
-        {error && (
-          <Alert message={error} type="error" closable onClose={() => setError(null)} />
-        )}
+        {error && <Alert message={error} type="error" closable onClose={() => setError(null)} />}
 
         <Upload
           accept=".json,.txt"
@@ -171,9 +164,13 @@ Or object format:
           message="Format Options"
           description={
             <div>
-              <Text>• <strong>Array</strong>: Array of objects with key, value, and optional expirationTtl</Text>
+              <Text>
+                • <strong>Array</strong>: Array of objects with key, value, and optional expirationTtl
+              </Text>
               <br />
-              <Text>• <strong>Object</strong>: Simple key-value object (keys as strings, values will be JSON-stringified if not strings)</Text>
+              <Text>
+                • <strong>Object</strong>: Simple key-value object (keys as strings, values will be JSON-stringified if not strings)
+              </Text>
             </div>
           }
           type="info"

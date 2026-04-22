@@ -17,12 +17,12 @@ managers/
 
 ## WHERE TO LOOK
 
-| Task | Location | Notes |
-|------|----------|-------|
-| Token refresh | `key.ts` | `KeyManager.getValidAccessToken()` |
-| API key rotation | `key.ts` | `KeyManager.getRandomApiKey()` |
-| D1 key queries | `key.ts` | `security_keys` table |
-| KV caching | `key.ts` | 300s TTL for keys, 3500s for tokens |
+| Task             | Location | Notes                               |
+| ---------------- | -------- | ----------------------------------- |
+| Token refresh    | `key.ts` | `KeyManager.getValidAccessToken()`  |
+| API key rotation | `key.ts` | `KeyManager.getRandomApiKey()`      |
+| D1 key queries   | `key.ts` | `security_keys` table               |
+| KV caching       | `key.ts` | 300s TTL for keys, 3500s for tokens |
 
 ## CONVENTIONS
 

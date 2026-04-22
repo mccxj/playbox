@@ -11,13 +11,7 @@ interface KVFormModalProps {
   onSuccess: () => void;
 }
 
-export default function KVFormModal({
-  open,
-  namespace,
-  editingKey,
-  onClose,
-  onSuccess,
-}: KVFormModalProps) {
+export default function KVFormModal({ open, namespace, editingKey, onClose, onSuccess }: KVFormModalProps) {
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
   const [initialValue, setInitialValue] = useState<string>('');
@@ -38,7 +32,7 @@ export default function KVFormModal({
     try {
       setLoading(true);
       const response = await fetch(`/api/admin/kv/${encodeURIComponent(namespace)}/${encodeURIComponent(editingKey)}`);
-      const data = await response.json() as any;
+      const data = (await response.json()) as any;
 
       if (data.success) {
         form.setFieldsValue({
@@ -72,7 +66,7 @@ export default function KVFormModal({
             expirationTtl: values.expirationTtl,
           }),
         });
-        const data = await response.json() as any;
+        const data = (await response.json()) as any;
 
         if (data.success) {
           message.success('Key updated successfully');
@@ -87,7 +81,7 @@ export default function KVFormModal({
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(values),
         });
-        const data = await response.json() as any;
+        const data = (await response.json()) as any;
 
         if (data.success) {
           message.success('Key created successfully');
@@ -122,25 +116,13 @@ export default function KVFormModal({
     >
       <Form form={form} layout="vertical">
         {!isEditing && (
-          <Form.Item
-            name="key"
-            label="Key"
-            rules={[{ required: true, message: 'Key is required' }]}
-          >
+          <Form.Item name="key" label="Key" rules={[{ required: true, message: 'Key is required' }]}>
             <Input placeholder="Enter key name" />
           </Form.Item>
         )}
 
-        <Form.Item
-          name="value"
-          label="Value"
-          rules={[{ required: true, message: 'Value is required' }]}
-        >
-          <Input.TextArea
-            rows={6}
-            placeholder="Enter value"
-            style={{ fontFamily: 'monospace' }}
-          />
+        <Form.Item name="value" label="Value" rules={[{ required: true, message: 'Value is required' }]}>
+          <Input.TextArea rows={6} placeholder="Enter value" style={{ fontFamily: 'monospace' }} />
         </Form.Item>
 
         <Form.Item
@@ -148,11 +130,7 @@ export default function KVFormModal({
           label="Expiration TTL (seconds)"
           extra="Leave empty for no expiration. Key will expire after this many seconds."
         >
-          <InputNumber
-            min={1}
-            style={{ width: '100%' }}
-            placeholder="e.g., 3600 for 1 hour"
-          />
+          <InputNumber min={1} style={{ width: '100%' }} placeholder="e.g., 3600 for 1 hour" />
         </Form.Item>
       </Form>
     </Modal>

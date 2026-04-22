@@ -1,15 +1,12 @@
 import { CORS_HEADERS } from '../utils/constants';
 
-export function createJsonResponse(
-  data: any,
-  status: number = 200
-): Response {
+export function createJsonResponse(data: any, status: number = 200): Response {
   return new Response(JSON.stringify(data), {
     status,
     headers: {
       'Content-Type': 'application/json',
-      ...CORS_HEADERS
-    }
+      ...CORS_HEADERS,
+    },
   });
 }
 
@@ -18,12 +15,12 @@ export function createUnauthorizedResponse(message: string = 'Incorrect API key 
     JSON.stringify({
       error: {
         message,
-        type: 'invalid_request_error'
-      }
+        type: 'invalid_request_error',
+      },
     }),
     {
       status: 401,
-      headers: { 'Content-Type': 'application/json', ...CORS_HEADERS }
+      headers: { 'Content-Type': 'application/json', ...CORS_HEADERS },
     }
   );
 }
@@ -31,11 +28,11 @@ export function createUnauthorizedResponse(message: string = 'Incorrect API key 
 export function createNotFoundResponse(message: string = 'Endpoint not found'): Response {
   return new Response(
     JSON.stringify({
-      error: message
+      error: message,
     }),
     {
       status: 404,
-      headers: { 'Content-Type': 'application/json', ...CORS_HEADERS }
+      headers: { 'Content-Type': 'application/json', ...CORS_HEADERS },
     }
   );
 }
@@ -45,12 +42,12 @@ export function createInternalErrorResponse(message: string = 'Internal Server E
     JSON.stringify({
       error: {
         message,
-        type: 'internal_error'
-      }
+        type: 'internal_error',
+      },
     }),
     {
       status: 500,
-      headers: { 'Content-Type': 'application/json', ...CORS_HEADERS }
+      headers: { 'Content-Type': 'application/json', ...CORS_HEADERS },
     }
   );
 }
@@ -58,6 +55,6 @@ export function createInternalErrorResponse(message: string = 'Internal Server E
 export function createOptionsResponse(): Response {
   return new Response(null, {
     status: 204,
-    headers: CORS_HEADERS
+    headers: CORS_HEADERS,
   });
 }

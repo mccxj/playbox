@@ -4,7 +4,8 @@
 
 ## OVERVIEW
 
-Shared React components for Chat and Admin interfaces. Chat components implement real-time chat UI with model selection and API key management.
+Shared React components for Chat and Admin interfaces. Chat components implement real-time chat UI with model selection
+and API key management.
 
 ## STRUCTURE
 
@@ -20,13 +21,13 @@ components/
 
 ## WHERE TO LOOK
 
-| Task | Location | Notes |
-|------|----------|-------|
-| Modify chat input | `Chat/ChatInput.tsx` | Input field + send logic |
-| Change message style | `Chat/ChatMessage.tsx` | User/assistant rendering |
-| Add history feature | `Chat/ChatHistorySidebar.tsx` | Sidebar navigation |
-| Add new model | `Chat/ModelSelector.tsx` | Model dropdown options |
-| API key handling | `Chat/ApiKeyModal.tsx` | Modal for key input |
+| Task                 | Location                      | Notes                    |
+| -------------------- | ----------------------------- | ------------------------ |
+| Modify chat input    | `Chat/ChatInput.tsx`          | Input field + send logic |
+| Change message style | `Chat/ChatMessage.tsx`        | User/assistant rendering |
+| Add history feature  | `Chat/ChatHistorySidebar.tsx` | Sidebar navigation       |
+| Add new model        | `Chat/ModelSelector.tsx`      | Model dropdown options   |
+| API key handling     | `Chat/ApiKeyModal.tsx`        | Modal for key input      |
 
 ## CONVENTIONS
 

@@ -13,21 +13,14 @@ interface EditRowModalProps {
   onSuccess: () => void;
 }
 
-export default function EditRowModal({
-  open,
-  table,
-  columns,
-  row,
-  onClose,
-  onSuccess,
-}: EditRowModalProps) {
+export default function EditRowModal({ open, table, columns, row, onClose, onSuccess }: EditRowModalProps) {
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (row && open) {
       const values: Record<string, any> = {};
-      columns.forEach(col => {
+      columns.forEach((col) => {
         values[col.name] = row[col.name];
       });
       form.setFieldsValue(values);
@@ -47,7 +40,7 @@ export default function EditRowModal({
         body: JSON.stringify(values),
       });
 
-      const data = await response.json() as any;
+      const data = (await response.json()) as any;
 
       if (data.success) {
         message.success('Row updated successfully');
@@ -67,7 +60,11 @@ export default function EditRowModal({
     if (column.type.toLowerCase().includes('int')) {
       return <InputNumber style={{ width: '100%' }} placeholder={`Enter ${column.name}`} />;
     }
-    if (column.type.toLowerCase().includes('real') || column.type.toLowerCase().includes('float') || column.type.toLowerCase().includes('double')) {
+    if (
+      column.type.toLowerCase().includes('real') ||
+      column.type.toLowerCase().includes('float') ||
+      column.type.toLowerCase().includes('double')
+    ) {
       return <InputNumber style={{ width: '100%' }} step="any" placeholder={`Enter ${column.name}`} />;
     }
     return <Input.TextArea rows={2} placeholder={`Enter ${column.name}`} />;
@@ -86,7 +83,7 @@ export default function EditRowModal({
       width={600}
     >
       <Form form={form} layout="vertical">
-        {columns.map(column => (
+        {columns.map((column) => (
           <Form.Item
             key={column.name}
             name={column.name}

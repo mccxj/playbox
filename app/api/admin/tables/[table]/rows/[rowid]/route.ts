@@ -11,13 +11,18 @@ interface ColumnInfo {
 }
 
 async function validateTable(db: any, tableName: string): Promise<ColumnInfo[] | null> {
-  const tablesResult = await db.prepare(`
+  const tablesResult = await db
+    .prepare(
+      `
     SELECT name FROM sqlite_master 
     WHERE type = 'table' 
       AND name = ? 
       AND name NOT LIKE 'sqlite_%' 
       AND name NOT LIKE '_cf_%'
-  `).bind(tableName).first();
+  `
+    )
+    .bind(tableName)
+    .first();
 
   if (!tablesResult) return null;
 
@@ -32,12 +37,9 @@ function escapeColumnName(name: string): string {
   return `"${name}"`;
 }
 
-export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ table: string; rowid: string }> }
-) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ table: string; rowid: string }> }) {
   try {
-		const { env } = getCloudflareContext() as any;
+    const { env } = getCloudflareContext() as any;
     const db = env.PLAYBOX_D1;
 
     if (!db) {
@@ -56,9 +58,14 @@ export async function GET(
       return createNotFoundResponse(`Table '${tableName}' not found`);
     }
 
-    const row = await db.prepare(`
+    const row = await db
+      .prepare(
+        `
       SELECT * FROM ${escapeColumnName(tableName)} WHERE rowid = ?
-    `).bind(rowid).first();
+    `
+      )
+      .bind(rowid)
+      .first();
 
     if (!row) {
       return createNotFoundResponse(`Row with rowid ${rowid} not found`);
@@ -66,7 +73,7 @@ export async function GET(
 
     return createJsonResponse({
       success: true,
-      row
+      row,
     });
   } catch (error) {
     console.error('Error fetching row:', error);
@@ -74,12 +81,9 @@ export async function GET(
   }
 }
 
-export async function PUT(
-  request: NextRequest,
-  { params }: { params: Promise<{ table: string; rowid: string }> }
-) {
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ table: string; rowid: string }> }) {
   try {
-		const { env } = getCloudflareContext() as any;
+    const { env } = getCloudflareContext() as any;
     const db = env.PLAYBOX_D1;
 
     if (!db) {
@@ -98,8 +102,8 @@ export async function PUT(
       return createNotFoundResponse(`Table '${tableName}' not found`);
     }
 
-    const body = await request.json() as Record<string, any>;
-    const validColumnNames = columns.map(c => c.name);
+    const body = (await request.json()) as Record<string, any>;
+    const validColumnNames = columns.map((c) => c.name);
 
     const updateClauses: string[] = [];
     const bindParams: any[] = [];
@@ -117,19 +121,29 @@ export async function PUT(
 
     bindParams.push(rowid);
 
-    await db.prepare(`
+    await db
+      .prepare(
+        `
       UPDATE ${escapeColumnName(tableName)} 
       SET ${updateClauses.join(', ')} 
       WHERE rowid = ?
-    `).bind(...bindParams).run();
+    `
+      )
+      .bind(...bindParams)
+      .run();
 
-    const updatedRow = await db.prepare(`
+    const updatedRow = await db
+      .prepare(
+        `
       SELECT * FROM ${escapeColumnName(tableName)} WHERE rowid = ?
-    `).bind(rowid).first();
+    `
+      )
+      .bind(rowid)
+      .first();
 
     return createJsonResponse({
       success: true,
-      row: updatedRow
+      row: updatedRow,
     });
   } catch (error) {
     console.error('Error updating row:', error);
@@ -137,12 +151,9 @@ export async function PUT(
   }
 }
 
-export async function DELETE(
-  request: NextRequest,
-  { params }: { params: Promise<{ table: string; rowid: string }> }
-) {
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ table: string; rowid: string }> }) {
   try {
-		const { env } = getCloudflareContext() as any;
+    const { env } = getCloudflareContext() as any;
     const db = env.PLAYBOX_D1;
 
     if (!db) {
@@ -161,21 +172,31 @@ export async function DELETE(
       return createNotFoundResponse(`Table '${tableName}' not found`);
     }
 
-    const existingRow = await db.prepare(`
+    const existingRow = await db
+      .prepare(
+        `
       SELECT rowid FROM ${escapeColumnName(tableName)} WHERE rowid = ?
-    `).bind(rowid).first();
+    `
+      )
+      .bind(rowid)
+      .first();
 
     if (!existingRow) {
       return createNotFoundResponse(`Row with rowid ${rowid} not found`);
     }
 
-    await db.prepare(`
+    await db
+      .prepare(
+        `
       DELETE FROM ${escapeColumnName(tableName)} WHERE rowid = ?
-    `).bind(rowid).run();
+    `
+      )
+      .bind(rowid)
+      .run();
 
     return createJsonResponse({
       success: true,
-      message: `Row ${rowid} deleted successfully`
+      message: `Row ${rowid} deleted successfully`,
     });
   } catch (error) {
     console.error('Error deleting row:', error);

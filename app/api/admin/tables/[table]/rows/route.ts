@@ -14,13 +14,18 @@ interface ColumnInfo {
 }
 
 async function validateTable(db: any, tableName: string): Promise<ColumnInfo[] | null> {
-  const tablesResult = await db.prepare(`
+  const tablesResult = await db
+    .prepare(
+      `
     SELECT name FROM sqlite_master 
     WHERE type = 'table' 
       AND name = ? 
       AND name NOT LIKE 'sqlite_%' 
       AND name NOT LIKE '_cf_%'
-  `).bind(tableName).first();
+  `
+    )
+    .bind(tableName)
+    .first();
 
   if (!tablesResult) return null;
 
@@ -35,12 +40,9 @@ function escapeColumnName(name: string): string {
   return `"${name}"`;
 }
 
-export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ table: string }> }
-) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ table: string }> }) {
   try {
-		const { env } = getCloudflareContext() as any;
+    const { env } = getCloudflareContext() as any;
     const db = env.PLAYBOX_D1;
 
     if (!db) {
@@ -62,7 +64,7 @@ export async function GET(
     const search = url.searchParams.get('search');
     const searchColumn = url.searchParams.get('searchColumn');
 
-    const validColumnNames = columns.map(c => c.name);
+    const validColumnNames = columns.map((c) => c.name);
 
     if (sort && !validColumnNames.includes(sort)) {
       return createJsonResponse({ error: 'Invalid sort column' }, 400);
@@ -83,22 +85,30 @@ export async function GET(
 
     const whereClause = whereClauses.length > 0 ? `WHERE ${whereClauses.join(' AND ')}` : '';
 
-    const countResult = await db.prepare(`
+    const countResult = await db
+      .prepare(
+        `
       SELECT COUNT(*) as total FROM ${escapeColumnName(tableName)} ${whereClause}
-    `).bind(...bindParams).first();
+    `
+      )
+      .bind(...bindParams)
+      .first();
 
     const total = (countResult as any)?.total || 0;
 
-    const orderByClause = sort 
-      ? `ORDER BY ${escapeColumnName(sort)} ${order}` 
-      : 'ORDER BY rowid ASC';
+    const orderByClause = sort ? `ORDER BY ${escapeColumnName(sort)} ${order}` : 'ORDER BY rowid ASC';
 
-    const rowsResult = await db.prepare(`
+    const rowsResult = await db
+      .prepare(
+        `
       SELECT *, rowid as _rowid FROM ${escapeColumnName(tableName)} 
       ${whereClause} 
       ${orderByClause} 
       LIMIT ? OFFSET ?
-    `).bind(...bindParams, pageSize, offset).all();
+    `
+      )
+      .bind(...bindParams, pageSize, offset)
+      .all();
 
     return createJsonResponse({
       success: true,
@@ -108,8 +118,8 @@ export async function GET(
         page,
         pageSize,
         total,
-        totalPages: Math.ceil(total / pageSize)
-      }
+        totalPages: Math.ceil(total / pageSize),
+      },
     });
   } catch (error) {
     console.error('Error fetching table data:', error);
@@ -117,12 +127,9 @@ export async function GET(
   }
 }
 
-export async function POST(
-  request: NextRequest,
-  { params }: { params: Promise<{ table: string }> }
-) {
+export async function POST(request: NextRequest, { params }: { params: Promise<{ table: string }> }) {
   try {
-		const { env } = getCloudflareContext() as any;
+    const { env } = getCloudflareContext() as any;
     const db = env.PLAYBOX_D1;
 
     if (!db) {
@@ -136,8 +143,8 @@ export async function POST(
       return createNotFoundResponse(`Table '${tableName}' not found`);
     }
 
-    const body = await request.json() as Record<string, any>;
-    const validColumnNames = columns.map(c => c.name);
+    const body = (await request.json()) as Record<string, any>;
+    const validColumnNames = columns.map((c) => c.name);
 
     const insertColumns: string[] = [];
     const insertValues: string[] = [];
@@ -155,19 +162,31 @@ export async function POST(
       return createJsonResponse({ error: 'No valid columns provided' }, 400);
     }
 
-    await db.prepare(`
+    await db
+      .prepare(
+        `
       INSERT INTO ${escapeColumnName(tableName)} (${insertColumns.join(', ')})
       VALUES (${insertValues.join(', ')})
-    `).bind(...bindParams).run();
+    `
+      )
+      .bind(...bindParams)
+      .run();
 
-    const lastRow = await db.prepare(`
+    const lastRow = await db
+      .prepare(
+        `
       SELECT * FROM ${escapeColumnName(tableName)} WHERE rowid = last_insert_rowid()
-    `).first();
+    `
+      )
+      .first();
 
-    return createJsonResponse({
-      success: true,
-      row: lastRow
-    }, 201);
+    return createJsonResponse(
+      {
+        success: true,
+        row: lastRow,
+      },
+      201
+    );
   } catch (error) {
     console.error('Error creating row:', error);
     return createInternalErrorResponse((error as Error).message);

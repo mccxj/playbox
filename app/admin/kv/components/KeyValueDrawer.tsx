@@ -1,20 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import {
-  Drawer,
-  Descriptions,
-  Input,
-  Button,
-  Spin,
-  message,
-  Space,
-  Alert
-} from 'antd';
-import {
-  CopyOutlined,
-  LoadingOutlined
-} from '@ant-design/icons';
+import { Drawer, Descriptions, Input, Button, Spin, message, Space, Alert } from 'antd';
+import { CopyOutlined, LoadingOutlined } from '@ant-design/icons';
 
 interface KeyValueDrawerProps {
   open: boolean;
@@ -32,12 +20,7 @@ interface KeyValuePairResponse {
 
 type LoadingState = 'idle' | 'loading' | 'success' | 'error';
 
-export default function KeyValueDrawer({
-  open,
-  namespace,
-  keyName,
-  onClose
-}: KeyValueDrawerProps) {
+export default function KeyValueDrawer({ open, namespace, keyName, onClose }: KeyValueDrawerProps) {
   const [loadingState, setLoadingState] = useState<LoadingState>('idle');
   const [keyData, setKeyData] = useState<KeyValuePairResponse | null>(null);
   const [errorMessage, setErrorMessage] = useState<string>('');
@@ -69,9 +52,10 @@ export default function KeyValueDrawer({
         setLoadingState('success');
       } else {
         setLoadingState('error');
-        const errorMessage = typeof data === 'object' && data !== null
-          ? ((data as any).message || (data as any).error || 'Failed to fetch key details')
-          : 'Failed to fetch key details';
+        const errorMessage =
+          typeof data === 'object' && data !== null
+            ? (data as any).message || (data as any).error || 'Failed to fetch key details'
+            : 'Failed to fetch key details';
         setErrorMessage(errorMessage);
         message.error('Key not found or access denied');
       }
@@ -98,7 +82,7 @@ export default function KeyValueDrawer({
       {
         key: 'key',
         label: 'Key Name',
-        children: keyData?.key || ''
+        children: keyData?.key || '',
       },
       {
         key: 'value',
@@ -122,15 +106,15 @@ export default function KeyValueDrawer({
               Copy
             </Button>
           </Space>
-        )
-      }
+        ),
+      },
     ];
 
     if (keyData?.metadata) {
       items.push({
         key: 'metadata',
         label: 'Metadata',
-        children: JSON.stringify(keyData.metadata, null, 2)
+        children: JSON.stringify(keyData.metadata, null, 2),
       });
     }
 
@@ -154,9 +138,7 @@ export default function KeyValueDrawer({
             description={
               <div>
                 <p>{errorMessage}</p>
-                <p style={{ marginBottom: 0 }}>
-                  The key "{keyName}" may not exist or you don't have permission to access it.
-                </p>
+                <p style={{ marginBottom: 0 }}>The key "{keyName}" may not exist or you don't have permission to access it.</p>
               </div>
             }
             type="error"
@@ -166,15 +148,7 @@ export default function KeyValueDrawer({
         );
 
       case 'success':
-        return (
-          <Descriptions
-            bordered
-            column={1}
-            size="small"
-            items={getDescriptionsItems()}
-            style={{ marginTop: 16 }}
-          />
-        );
+        return <Descriptions bordered column={1} size="small" items={getDescriptionsItems()} style={{ marginTop: 16 }} />;
 
       default:
         return null;
@@ -182,21 +156,12 @@ export default function KeyValueDrawer({
   };
 
   return (
-    <Drawer
-      title="Key Details"
-      placement="right"
-      onClose={onClose}
-      open={open}
-      width={520}
-      footer={null}
-    >
+    <Drawer title="Key Details" placement="right" onClose={onClose} open={open} width={520} footer={null}>
       {keyName && namespace ? (
         renderContent()
       ) : (
         <div style={{ textAlign: 'center', padding: '40px 0' }}>
-          <p style={{ color: '#999' }}>
-            Select a key to view its details
-          </p>
+          <p style={{ color: '#999' }}>Select a key to view its details</p>
         </div>
       )}
     </Drawer>

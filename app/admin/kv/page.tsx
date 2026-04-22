@@ -2,18 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import dynamic from 'next/dynamic';
-import {
-  Card,
-  Table,
-  Input,
-  Button,
-  Space,
-  Spin,
-  Alert,
-  Typography,
-  Popconfirm,
-  message,
-} from 'antd';
+import { Card, Table, Input, Button, Space, Spin, Alert, Typography, Popconfirm, message } from 'antd';
 import {
   SearchOutlined,
   ClearOutlined,
@@ -56,7 +45,7 @@ export default function KVAdminPage() {
   const fetchNamespaces = async () => {
     try {
       const response = await fetch('/api/admin/kv');
-      const data = await response.json() as any;
+      const data = (await response.json()) as any;
       if (data.success) {
         const nsOptions: KVNamespaceOption[] = data.namespaces.map((ns: any) => ({
           value: ns.binding,
@@ -75,39 +64,40 @@ export default function KVAdminPage() {
     }
   };
 
-  const fetchKeys = useCallback(async (resetCursor = false) => {
-    if (!selectedNamespace) return;
+  const fetchKeys = useCallback(
+    async (resetCursor = false) => {
+      if (!selectedNamespace) return;
 
-    try {
-      setLoading(true);
-      const params = new URLSearchParams();
-      if (prefix) params.set('prefix', prefix);
-      if (!resetCursor && cursor && !listComplete) params.set('cursor', cursor);
-      params.set('limit', '100');
+      try {
+        setLoading(true);
+        const params = new URLSearchParams();
+        if (prefix) params.set('prefix', prefix);
+        if (!resetCursor && cursor && !listComplete) params.set('cursor', cursor);
+        params.set('limit', '100');
 
-      const response = await fetch(`/api/admin/kv/${selectedNamespace}?${params}`);
-      const data = await response.json() as any;
+        const response = await fetch(`/api/admin/kv/${selectedNamespace}?${params}`);
+        const data = (await response.json()) as any;
 
-      if (data.success) {
-        const keyDisplays: KVKeyDisplay[] = data.keys.map((k: KVKeyInfo) => ({
-          name: k.name,
-          expiration: k.expiration,
-          expirationFormatted: k.expiration
-            ? new Date(k.expiration * 1000).toLocaleString()
-            : 'Never',
-        }));
-        setKeys(keyDisplays);
-        setListComplete(data.list_complete);
-        setCursor(data.cursor || undefined);
-      } else {
-        setError(data.error || 'Failed to fetch keys');
+        if (data.success) {
+          const keyDisplays: KVKeyDisplay[] = data.keys.map((k: KVKeyInfo) => ({
+            name: k.name,
+            expiration: k.expiration,
+            expirationFormatted: k.expiration ? new Date(k.expiration * 1000).toLocaleString() : 'Never',
+          }));
+          setKeys(keyDisplays);
+          setListComplete(data.list_complete);
+          setCursor(data.cursor || undefined);
+        } else {
+          setError(data.error || 'Failed to fetch keys');
+        }
+      } catch (err) {
+        setError((err as Error).message);
+      } finally {
+        setLoading(false);
       }
-    } catch (err) {
-      setError((err as Error).message);
-    } finally {
-      setLoading(false);
-    }
-  }, [selectedNamespace, prefix, cursor, listComplete]);
+    },
+    [selectedNamespace, prefix, cursor, listComplete]
+  );
 
   useEffect(() => {
     fetchNamespaces();
@@ -157,7 +147,7 @@ export default function KVAdminPage() {
       const response = await fetch(`/api/admin/kv/${selectedNamespace}/${encodedKey}`, {
         method: 'DELETE',
       });
-      const data = await response.json() as any;
+      const data = (await response.json()) as any;
       if (data.success) {
         message.success(data.message);
         fetchKeys(true);
@@ -181,7 +171,7 @@ export default function KVAdminPage() {
           keys: selectedRowKeys,
         }),
       });
-      const data = await response.json() as any;
+      const data = (await response.json()) as any;
       if (data.success) {
         message.success(data.message);
         setSelectedRowKeys([]);
@@ -222,30 +212,10 @@ export default function KVAdminPage() {
       width: 150,
       render: (_, record) => (
         <Space>
-          <Button
-            type="text"
-            icon={<EyeOutlined />}
-            onClick={() => handleView(record.name)}
-            size="small"
-          />
-          <Button
-            type="text"
-            icon={<EditOutlined />}
-            onClick={() => handleEdit(record.name)}
-            size="small"
-          />
-          <Popconfirm
-            title="Delete this key?"
-            onConfirm={() => handleDelete(record.name)}
-            okText="Delete"
-            okType="danger"
-          >
-            <Button
-              type="text"
-              icon={<DeleteOutlined />}
-              danger
-              size="small"
-            />
+          <Button type="text" icon={<EyeOutlined />} onClick={() => handleView(record.name)} size="small" />
+          <Button type="text" icon={<EditOutlined />} onClick={() => handleEdit(record.name)} size="small" />
+          <Popconfirm title="Delete this key?" onConfirm={() => handleDelete(record.name)} okText="Delete" okType="danger">
+            <Button type="text" icon={<DeleteOutlined />} danger size="small" />
           </Popconfirm>
         </Space>
       ),
@@ -268,14 +238,7 @@ export default function KVAdminPage() {
   return (
     <div>
       {error && (
-        <Alert
-          message="Error"
-          description={error}
-          type="error"
-          closable
-          onClose={() => setError(null)}
-          style={{ marginBottom: 16 }}
-        />
+        <Alert message="Error" description={error} type="error" closable onClose={() => setError(null)} style={{ marginBottom: 16 }} />
       )}
 
       <Card style={{ marginBottom: 16 }}>

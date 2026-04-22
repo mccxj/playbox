@@ -11,13 +11,18 @@ interface ColumnInfo {
 }
 
 async function validateTable(db: any, tableName: string): Promise<ColumnInfo[] | null> {
-  const tablesResult = await db.prepare(`
+  const tablesResult = await db
+    .prepare(
+      `
     SELECT name FROM sqlite_master 
     WHERE type = 'table' 
       AND name = ? 
       AND name NOT LIKE 'sqlite_%' 
       AND name NOT LIKE '_cf_%'
-  `).bind(tableName).first();
+  `
+    )
+    .bind(tableName)
+    .first();
 
   if (!tablesResult) return null;
 
@@ -36,11 +41,11 @@ function parseCSV(content: string): Record<string, any>[] {
   const lines = content.trim().split('\n');
   if (lines.length < 2) return [];
 
-  const headers = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g, ''));
+  const headers = lines[0].split(',').map((h) => h.trim().replace(/^"|"$/g, ''));
   const rows: Record<string, any>[] = [];
 
   for (let i = 1; i < lines.length; i++) {
-    const values = lines[i].split(',').map(v => v.trim().replace(/^"|"$/g, ''));
+    const values = lines[i].split(',').map((v) => v.trim().replace(/^"|"$/g, ''));
     const row: Record<string, any> = {};
     headers.forEach((header, idx) => {
       row[header] = values[idx] || null;
@@ -51,12 +56,9 @@ function parseCSV(content: string): Record<string, any>[] {
   return rows;
 }
 
-export async function POST(
-  request: NextRequest,
-  { params }: { params: Promise<{ table: string }> }
-) {
+export async function POST(request: NextRequest, { params }: { params: Promise<{ table: string }> }) {
   try {
-		const { env } = getCloudflareContext() as any;
+    const { env } = getCloudflareContext() as any;
     const db = env.PLAYBOX_D1;
 
     if (!db) {
@@ -70,25 +72,30 @@ export async function POST(
       return createNotFoundResponse(`Table '${tableName}' not found`);
     }
 
-    const body = await request.json() as {
+    const body = (await request.json()) as {
       operation?: 'delete';
       ids?: number[];
       data?: Record<string, any>[] | string;
       format?: 'json' | 'csv';
     };
 
-    const validColumnNames = columns.map(c => c.name);
+    const validColumnNames = columns.map((c) => c.name);
 
     if (body.operation === 'delete' && body.ids?.length) {
       const placeholders = body.ids.map(() => '?').join(', ');
-      const result = await db.prepare(`
+      const result = await db
+        .prepare(
+          `
         DELETE FROM ${escapeColumnName(tableName)} WHERE rowid IN (${placeholders})
-      `).bind(...body.ids).run();
+      `
+        )
+        .bind(...body.ids)
+        .run();
 
       return createJsonResponse({
         success: true,
         message: `Deleted ${result.meta?.changes || 0} rows`,
-        affected: result.meta?.changes || 0
+        affected: result.meta?.changes || 0,
       });
     }
 
@@ -126,10 +133,14 @@ export async function POST(
 
         if (insertColumns.length > 0) {
           statements.push(
-            db.prepare(`
+            db
+              .prepare(
+                `
               INSERT INTO ${escapeColumnName(tableName)} (${insertColumns.join(', ')})
               VALUES (${insertValues.join(', ')})
-            `).bind(...bindParams)
+            `
+              )
+              .bind(...bindParams)
           );
           successCount++;
         } else {
@@ -141,12 +152,15 @@ export async function POST(
         await db.batch(statements);
       }
 
-      return createJsonResponse({
-        success: true,
-        message: `Imported ${successCount} rows${errorCount > 0 ? `, ${errorCount} rows skipped due to invalid columns` : ''}`,
-        imported: successCount,
-        skipped: errorCount
-      }, 201);
+      return createJsonResponse(
+        {
+          success: true,
+          message: `Imported ${successCount} rows${errorCount > 0 ? `, ${errorCount} rows skipped due to invalid columns` : ''}`,
+          imported: successCount,
+          skipped: errorCount,
+        },
+        201
+      );
     }
 
     return createJsonResponse({ error: 'Invalid operation' }, 400);

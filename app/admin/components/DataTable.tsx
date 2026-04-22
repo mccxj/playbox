@@ -47,7 +47,7 @@ export default function DataTable({
       width: 80,
       sorter: true,
     },
-    ...columns.map(col => ({
+    ...columns.map((col) => ({
       title: col.name,
       dataIndex: col.name,
       key: col.name,
@@ -70,12 +70,7 @@ export default function DataTable({
       fixed: 'right',
       render: (_, record) => (
         <Space>
-          <Button
-            type="text"
-            icon={<EditOutlined />}
-            onClick={() => onEdit(record)}
-            size="small"
-          />
+          <Button type="text" icon={<EditOutlined />} onClick={() => onEdit(record)} size="small" />
           <Popconfirm
             title="Delete this row?"
             description="This action cannot be undone."
@@ -83,12 +78,7 @@ export default function DataTable({
             okText="Delete"
             okType="danger"
           >
-            <Button
-              type="text"
-              icon={<DeleteOutlined />}
-              danger
-              size="small"
-            />
+            <Button type="text" icon={<DeleteOutlined />} danger size="small" />
           </Popconfirm>
         </Space>
       ),
@@ -132,10 +122,7 @@ export default function DataTable({
         }}
         onChange={(pagination, filters, sorter: any) => {
           if (sorter.field) {
-            onSort(
-              sorter.field as string,
-              sorter.order === 'ascend' ? 'asc' : sorter.order === 'descend' ? 'desc' : null
-            );
+            onSort(sorter.field as string, sorter.order === 'ascend' ? 'asc' : sorter.order === 'descend' ? 'desc' : null);
           }
         }}
         scroll={{ x: 'max-content' }}

@@ -30,39 +30,29 @@ export default function ChatInput({ onSend, onStop, disabled, isLoading }: Props
     }
   };
 
-	return (
-		<div style={{ padding: 16, borderTop: '1px solid #f0f0f0' }}>
-			<div style={{ display: 'flex', gap: 8, alignItems: 'flex-end' }}>
-				<Input.TextArea
-					ref={textAreaRef}
-					value={value}
-					onChange={(e) => setValue(e.target.value)}
-					onKeyDown={handleKeyDown}
-					placeholder="Type a message... (Shift+Enter for new line)"
-					autoSize={{ minRows: 1, maxRows: 4 }}
-					disabled={disabled}
-					style={{ flex: 1 }}
-				/>
-				{isLoading ? (
-					<Button
-						type="primary"
-						icon={<StopOutlined />}
-						onClick={onStop}
-						disabled={disabled}
-					>
-						Stop
-					</Button>
-				) : (
-					<Button
-						type="primary"
-						icon={<SendOutlined />}
-						onClick={handleSend}
-						disabled={!value.trim() || disabled}
-					>
-						Send
-					</Button>
-				)}
-			</div>
-		</div>
-	);
+  return (
+    <div style={{ padding: 16, borderTop: '1px solid #f0f0f0' }}>
+      <div style={{ display: 'flex', gap: 8, alignItems: 'flex-end' }}>
+        <Input.TextArea
+          ref={textAreaRef}
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
+          onKeyDown={handleKeyDown}
+          placeholder="Type a message... (Shift+Enter for new line)"
+          autoSize={{ minRows: 1, maxRows: 4 }}
+          disabled={disabled}
+          style={{ flex: 1 }}
+        />
+        {isLoading ? (
+          <Button type="primary" icon={<StopOutlined />} onClick={onStop} disabled={disabled}>
+            Stop
+          </Button>
+        ) : (
+          <Button type="primary" icon={<SendOutlined />} onClick={handleSend} disabled={!value.trim() || disabled}>
+            Send
+          </Button>
+        )}
+      </div>
+    </div>
+  );
 }

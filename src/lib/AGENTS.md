@@ -4,7 +4,8 @@
 
 ## OVERVIEW
 
-Core library functions for authentication, middleware, and response helpers. Provides reusable utilities for API routes and protocol adapters.
+Core library functions for authentication, middleware, and response helpers. Provides reusable utilities for API routes
+and protocol adapters.
 
 ## STRUCTURE
 
@@ -18,12 +19,12 @@ lib/
 
 ## WHERE TO LOOK
 
-| Task | Location | Notes |
-|------|----------|-------|
-| API key auth | `auth.ts` | `authenticate()` function |
-| Route wrappers | `middleware.ts` | `withAuthentication`, `withCorsPreflight`, `withErrorHandling` |
-| Response builders | `response-helpers.ts` | `createJsonResponse`, `createUnauthorizedResponse`, etc. |
-| CF context types | `cloudflare-context.ts` | Cloudflare bindings interface |
+| Task              | Location                | Notes                                                          |
+| ----------------- | ----------------------- | -------------------------------------------------------------- |
+| API key auth      | `auth.ts`               | `authenticate()` function                                      |
+| Route wrappers    | `middleware.ts`         | `withAuthentication`, `withCorsPreflight`, `withErrorHandling` |
+| Response builders | `response-helpers.ts`   | `createJsonResponse`, `createUnauthorizedResponse`, etc.       |
+| CF context types  | `cloudflare-context.ts` | Cloudflare bindings interface                                  |
 
 ## CONVENTIONS
 

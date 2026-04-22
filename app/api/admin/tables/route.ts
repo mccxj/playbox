@@ -31,7 +31,7 @@ interface TableSchema {
 export async function GET(request: NextRequest) {
   try {
     // Get Cloudflare bindings from global context
-		const { env } = getCloudflareContext() as any;
+    const { env } = getCloudflareContext() as any;
     const db = env.PLAYBOX_D1;
 
     if (!db) {
@@ -39,14 +39,18 @@ export async function GET(request: NextRequest) {
     }
 
     // Get all user tables (exclude system tables)
-    const tablesResult = await db.prepare(`
+    const tablesResult = await db
+      .prepare(
+        `
       SELECT name, sql 
       FROM sqlite_master 
       WHERE type = 'table' 
         AND name NOT LIKE 'sqlite_%' 
         AND name NOT LIKE '_cf_%'
       ORDER BY name
-    `).all();
+    `
+      )
+      .all();
 
     const tables = tablesResult.results as TableInfo[];
 
@@ -58,13 +62,13 @@ export async function GET(request: NextRequest) {
       tableSchemas.push({
         name: table.name,
         sql: table.sql,
-        columns: columnsResult.results as ColumnInfo[]
+        columns: columnsResult.results as ColumnInfo[],
       });
     }
 
     return createJsonResponse({
       success: true,
-      tables: tableSchemas
+      tables: tableSchemas,
     });
   } catch (error) {
     console.error('Error fetching tables:', error);

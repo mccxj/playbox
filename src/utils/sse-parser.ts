@@ -26,7 +26,7 @@ export function createSSEParser(onMessage: (event: SSEEvent) => void): SSEParser
           onMessage({ event: currentEvent, data: line.slice(5).trim() });
           currentEvent = '';
         }
-}
-    }
+      }
+    },
   };
 }

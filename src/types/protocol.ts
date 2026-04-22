@@ -15,18 +15,18 @@ export interface StandardTool {
 /**
  * Tool Call (OpenAI Format)
  */
-	export interface StandardToolCall {
-	id: string;
-	type: 'function';
-	function: {
-	name: string;
-	arguments: string;
-	};
-	}
+export interface StandardToolCall {
+  id: string;
+  type: 'function';
+  function: {
+    name: string;
+    arguments: string;
+  };
+}
 
-	export type ToolChoice = 'none' | 'auto' | 'required' | { type: 'function'; function: { name: string } };
+export type ToolChoice = 'none' | 'auto' | 'required' | { type: 'function'; function: { name: string } };
 
-	export interface StandardMessage {
+export interface StandardMessage {
   role: 'system' | 'user' | 'assistant' | 'tool';
   content: string | null;
   tool_calls?: StandardToolCall[]; // For assistant messages

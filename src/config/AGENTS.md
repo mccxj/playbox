@@ -4,7 +4,8 @@
 
 ## OVERVIEW
 
-Provider configuration and runtime config resolution. Manages AI provider endpoints, model lists, and provider-type mapping.
+Provider configuration and runtime config resolution. Manages AI provider endpoints, model lists, and provider-type
+mapping.
 
 ## STRUCTURE
 
@@ -16,12 +17,12 @@ config/
 
 ## WHERE TO LOOK
 
-| Task | Location | Notes |
-|------|----------|-------|
-| Add new provider | `default.ts` | Add to `providers` object |
-| Change default provider | `default.ts:83` | `default_provider` field |
-| Modify resolution logic | `index.ts:12` | `resolveProvider()` function |
-| Config interface | `default.ts:7` | `Config` type definition |
+| Task                    | Location        | Notes                        |
+| ----------------------- | --------------- | ---------------------------- |
+| Add new provider        | `default.ts`    | Add to `providers` object    |
+| Change default provider | `default.ts:83` | `default_provider` field     |
+| Modify resolution logic | `index.ts:12`   | `resolveProvider()` function |
+| Config interface        | `default.ts:7`  | `Config` type definition     |
 
 ## CONVENTIONS
 

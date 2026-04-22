@@ -10,12 +10,7 @@ interface NamespaceSelectorProps {
   loading?: boolean;
 }
 
-export default function NamespaceSelector({
-  namespaces,
-  selected,
-  onChange,
-  loading = false,
-}: NamespaceSelectorProps) {
+export default function NamespaceSelector({ namespaces, selected, onChange, loading = false }: NamespaceSelectorProps) {
   return (
     <div style={{ minWidth: 300 }}>
       <Select
@@ -26,13 +21,11 @@ export default function NamespaceSelector({
         loading={loading}
         optionLabelProp="label"
         disabled={loading || namespaces.length === 0}
-        options={
-          namespaces.map(ns => ({
-            label: `${ns.label} (${ns.id})`,
-            value: ns.value,
-            id: ns.id,
-          }))
-        }
+        options={namespaces.map((ns) => ({
+          label: `${ns.label} (${ns.id})`,
+          value: ns.value,
+          id: ns.id,
+        }))}
       />
     </div>
   );

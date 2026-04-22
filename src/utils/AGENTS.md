@@ -19,12 +19,12 @@ utils/
 
 ## WHERE TO LOOK
 
-| Task | Location | Notes |
-|------|----------|-------|
-| Add logging | `logger.ts` | `Logger.create()` with reqId |
-| Parse SSE streams | `sse-parser.ts` | Used by protocol adapters |
+| Task                   | Location             | Notes                                  |
+| ---------------------- | -------------------- | -------------------------------------- |
+| Add logging            | `logger.ts`          | `Logger.create()` with reqId           |
+| Parse SSE streams      | `sse-parser.ts`      | Used by protocol adapters              |
 | Validate external URLs | `ssrf-protection.ts` | `validateSafeUrl()` blocks private IPs |
-| CORS headers | `constants.ts` | `CORS_HEADERS` constant |
+| CORS headers           | `constants.ts`       | `CORS_HEADERS` constant                |
 
 ## CONVENTIONS
 
@@ -40,7 +40,8 @@ utils/
 
 ## UNIQUE STYLES
 
-- **SSRF protection**: Blocks private IP ranges (127.0.0.0/8, 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16), link-local, multicast, and blocked TLDs (.local, .internal, .localhost)
+- **SSRF protection**: Blocks private IP ranges (127.0.0.0/8, 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16), link-local,
+  multicast, and blocked TLDs (.local, .internal, .localhost)
 - **Async validation**: `validateSafeUrlAsync()` for non-blocking URL checks
 
 ## NOTES

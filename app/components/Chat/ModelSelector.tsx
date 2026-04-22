@@ -15,7 +15,7 @@ export default function ModelSelector({ models, value, onChange, loading }: Prop
   // Deduplicate models by id
   const uniqueModels = useMemo(() => {
     const seen = new Set<string>();
-    return models.filter(m => {
+    return models.filter((m) => {
       if (seen.has(m.id)) return false;
       seen.add(m.id);
       return true;
@@ -31,9 +31,7 @@ export default function ModelSelector({ models, value, onChange, loading }: Prop
       loading={loading}
       style={{ width: 200 }}
       options={uniqueModels.map((m) => ({ label: m.id, value: m.id }))}
-      filterOption={(input, option) =>
-        (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
-      }
+      filterOption={(input, option) => (option?.label ?? '').toLowerCase().includes(input.toLowerCase())}
     />
   );
 }

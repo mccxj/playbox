@@ -17,14 +17,14 @@ export async function GET(_request: NextRequest) {
     // Parse KV namespaces from wrangler.jsonc configuration
     const kvNamespaces: KVNamespaceInfo[] = [
       {
-        binding: "PLAYBOX_KV",
-        id: "85fe9a9b4cd54015b78dcba0c5486279"
-      }
+        binding: 'PLAYBOX_KV',
+        id: '85fe9a9b4cd54015b78dcba0c5486279',
+      },
     ];
 
     return createJsonResponse({
       success: true,
-      namespaces: kvNamespaces
+      namespaces: kvNamespaces,
     });
   } catch (error) {
     console.error('Error fetching KV namespaces:', error);

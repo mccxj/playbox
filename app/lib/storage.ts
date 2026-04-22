@@ -53,13 +53,13 @@ export function createSession(model: string): ChatSession {
 
 export function getSession(id: string): ChatSession | undefined {
   const sessions = getSessions();
-  return sessions.find(s => s.id === id);
+  return sessions.find((s) => s.id === id);
 }
 
 export function saveSession(session: ChatSession): ChatSession {
   const sessions = getSessions();
-  const existingIndex = sessions.findIndex(s => s.id === session.id);
-  
+  const existingIndex = sessions.findIndex((s) => s.id === session.id);
+
   const updatedSession = {
     ...session,
     updatedAt: Date.now(),
@@ -76,12 +76,12 @@ export function saveSession(session: ChatSession): ChatSession {
 }
 
 export function deleteSession(id: string): void {
-  const sessions = getSessions().filter(s => s.id !== id);
+  const sessions = getSessions().filter((s) => s.id !== id);
   saveSessions(sessions);
 }
 
 export function updateSessionTitle(session: ChatSession): ChatSession {
-  const firstUserMessage = session.messages.find(m => m.role === 'user');
+  const firstUserMessage = session.messages.find((m) => m.role === 'user');
   if (firstUserMessage) {
     const title = firstUserMessage.content.slice(0, 50);
     const updatedSession = {

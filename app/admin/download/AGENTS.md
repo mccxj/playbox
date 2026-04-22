@@ -4,7 +4,8 @@
 
 ## OVERVIEW
 
-Download proxy management UI with history viewer, filtering, and manual download form. Uses custom hooks for state management.
+Download proxy management UI with history viewer, filtering, and manual download form. Uses custom hooks for state
+management.
 
 ## STRUCTURE
 
@@ -21,17 +22,18 @@ download/
 
 ## WHERE TO LOOK
 
-| Task | Location | Notes |
-|------|----------|-------|
-| Add download feature | `page.tsx` | Main component |
-| Modify history table | `components/DownloadList.tsx` | Pagination, filters |
-| Change download form | `components/DownloadForm.tsx` | URL input |
-| State management | `hooks/useDownloads.ts` | `fetchDownloads`, `setParams` |
-| Type definitions | `types.ts` | `Download` interface |
+| Task                 | Location                      | Notes                         |
+| -------------------- | ----------------------------- | ----------------------------- |
+| Add download feature | `page.tsx`                    | Main component                |
+| Modify history table | `components/DownloadList.tsx` | Pagination, filters           |
+| Change download form | `components/DownloadForm.tsx` | URL input                     |
+| State management     | `hooks/useDownloads.ts`       | `fetchDownloads`, `setParams` |
+| Type definitions     | `types.ts`                    | `Download` interface          |
 
 ## CONVENTIONS
 
-- **Custom hook**: `useDownloads()` returns `{ downloads, loading, error, page, pageSize, total, fetchDownloads, setParams }`
+- **Custom hook**: `useDownloads()` returns
+  `{ downloads, loading, error, page, pageSize, total, fetchDownloads, setParams }`
 - **Status filter**: `success` | `failed` dropdown filter
 
 ## ANTI-PATTERNS

@@ -13,7 +13,7 @@ async function fetchWithTimeout(url: string, options?: RequestInit, timeout = FE
   try {
     const response = await fetch(url, {
       ...options,
-      signal: controller.signal
+      signal: controller.signal,
     });
     return response;
   } finally {
@@ -45,52 +45,55 @@ export function useDownloads(): UseDownloadsReturn {
   const [statusFilter, setStatusFilter] = useState<string>('');
   const [searchQuery, setSearchQuery] = useState('');
 
-  const fetchDownloads = useCallback(async (params?: Partial<DownloadHistoryParams>) => {
-    setLoading(true);
-    setError(null);
+  const fetchDownloads = useCallback(
+    async (params?: Partial<DownloadHistoryParams>) => {
+      setLoading(true);
+      setError(null);
 
-    try {
-      const queryParams = new URLSearchParams();
-      queryParams.set('page', params?.page?.toString() || page.toString());
-      queryParams.set('pageSize', pageSize.toString());
-      queryParams.set('sortBy', sortField);
-      queryParams.set('sortOrder', sortOrder);
+      try {
+        const queryParams = new URLSearchParams();
+        queryParams.set('page', params?.page?.toString() || page.toString());
+        queryParams.set('pageSize', pageSize.toString());
+        queryParams.set('sortBy', sortField);
+        queryParams.set('sortOrder', sortOrder);
 
-      if (params?.status || statusFilter) {
-        queryParams.set('status', params?.status || statusFilter);
-      }
-      if (params?.search || searchQuery) {
-        queryParams.set('search', params?.search || searchQuery);
-      }
-
-      const response = await fetchWithTimeout(`/api/admin/download/history?${queryParams}`);
-      const data = await response.json() as DownloadHistoryResponse;
-
-      if (!response.ok) {
-        throw new Error((data as any).error || 'Failed to fetch download history');
-      }
-
-      setDownloads(data.records);
-      setTotal(data.total);
-
-      if (params?.page) {
-        setPage(params.page);
-      }
-    } catch (err) {
-      let errorMessage = 'Failed to fetch download history';
-      if (err instanceof Error) {
-        if (err.name === 'AbortError') {
-          errorMessage = 'Request timeout. Please try again.';
-        } else {
-          errorMessage = err.message;
+        if (params?.status || statusFilter) {
+          queryParams.set('status', params?.status || statusFilter);
         }
+        if (params?.search || searchQuery) {
+          queryParams.set('search', params?.search || searchQuery);
+        }
+
+        const response = await fetchWithTimeout(`/api/admin/download/history?${queryParams}`);
+        const data = (await response.json()) as DownloadHistoryResponse;
+
+        if (!response.ok) {
+          throw new Error((data as any).error || 'Failed to fetch download history');
+        }
+
+        setDownloads(data.records);
+        setTotal(data.total);
+
+        if (params?.page) {
+          setPage(params.page);
+        }
+      } catch (err) {
+        let errorMessage = 'Failed to fetch download history';
+        if (err instanceof Error) {
+          if (err.name === 'AbortError') {
+            errorMessage = 'Request timeout. Please try again.';
+          } else {
+            errorMessage = err.message;
+          }
+        }
+        setError(errorMessage);
+        message.error(errorMessage);
+      } finally {
+        setLoading(false);
       }
-      setError(errorMessage);
-      message.error(errorMessage);
-    } finally {
-      setLoading(false);
-    }
-  }, [page, pageSize, sortField, sortOrder, statusFilter, searchQuery]);
+    },
+    [page, pageSize, sortField, sortOrder, statusFilter, searchQuery]
+  );
 
   const setParams = useCallback((params: Partial<DownloadHistoryParams>) => {
     if (params.status !== undefined) {
@@ -116,6 +119,6 @@ export function useDownloads(): UseDownloadsReturn {
     pageSize,
     total,
     fetchDownloads,
-    setParams
+    setParams,
   };
 }

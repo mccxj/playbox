@@ -10,7 +10,7 @@ export function createCloudflareContext(executionCtx: ExecutionContext, env: any
 
     getBinding<T>(name: string): T | undefined {
       return env[name] as T | undefined;
-    }
+    },
   };
 }
 

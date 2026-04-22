@@ -65,11 +65,11 @@ export async function fetchModels(apiKey: string): Promise<Model[]> {
   });
 
   if (!response.ok) {
-    const errorData = await response.json().catch(() => ({})) as ApiError;
+    const errorData = (await response.json().catch(() => ({}))) as ApiError;
     throw new Error(errorData.error?.message || `Failed to fetch models: ${response.status}`);
   }
 
-  const data = await response.json() as { data: Model[] };
+  const data = (await response.json()) as { data: Model[] };
   return data.data || [];
 }
 
@@ -88,43 +88,43 @@ export async function chatCompletion(
   });
 
   if (!response.ok) {
-    const errorData = await response.json().catch(() => ({})) as ApiError;
+    const errorData = (await response.json().catch(() => ({}))) as ApiError;
     throw new Error(errorData.error?.message || `Failed to send message: ${response.status}`);
   }
 
-	// Handle streaming response
-	if (request.stream && response.body) {
-		const reader = response.body.getReader();
-		const decoder = new TextDecoder();
-		let buffer = '';
+  // Handle streaming response
+  if (request.stream && response.body) {
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '';
 
-		while (true) {
-			const { done, value } = await reader.read();
-			if (done) break;
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
 
-			const chunk = decoder.decode(value, { stream: true });
-			buffer += chunk;
+      const chunk = decoder.decode(value, { stream: true });
+      buffer += chunk;
 
-			const lines = buffer.split('\n');
-			buffer = lines.pop() || '';
+      const lines = buffer.split('\n');
+      buffer = lines.pop() || '';
 
-			for (const line of lines) {
-				if (line.startsWith('data:')) {
-					const data = line.startsWith('data: ') ? line.slice(6) : line.slice(5);
-					if (data === '[DONE]') continue;
+      for (const line of lines) {
+        if (line.startsWith('data:')) {
+          const data = line.startsWith('data: ') ? line.slice(6) : line.slice(5);
+          if (data === '[DONE]') continue;
 
-					try {
-						const parsed = JSON.parse(data) as StreamChunk;
-						onStream?.(parsed);
-					} catch (e) {
-						console.warn('Failed to parse stream chunk:', data);
-					}
-				}
-			}
-		}
+          try {
+            const parsed = JSON.parse(data) as StreamChunk;
+            onStream?.(parsed);
+          } catch (e) {
+            console.warn('Failed to parse stream chunk:', data);
+          }
+        }
+      }
+    }
 
-		return;
-	}
+    return;
+  }
 
   const responseData = await response.json();
   return responseData as ChatCompletionResponse;

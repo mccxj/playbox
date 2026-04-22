@@ -4,7 +4,8 @@
 
 ## OVERVIEW
 
-TypeScript type definitions for protocols, requests, responses, and shared interfaces. Barrel-exported for clean imports.
+TypeScript type definitions for protocols, requests, responses, and shared interfaces. Barrel-exported for clean
+imports.
 
 ## STRUCTURE
 
@@ -20,14 +21,14 @@ types/
 
 ## WHERE TO LOOK
 
-| Task | Location | Notes |
-|------|----------|-------|
-| Add new type | Create file + export from `index.ts` | Follow barrel pattern |
-| Protocol types | `protocol.ts` | `ProtocolAdapter`, message types |
-| Provider config types | `provider.ts` | `ProviderConfig`, provider options |
-| Request types | `request.ts` | Chat request, messages request |
-| Response types | `response.ts` | Standard response format |
-| Env type | `index.ts` | Auto-generated from `worker-configuration.d.ts` |
+| Task                  | Location                             | Notes                                           |
+| --------------------- | ------------------------------------ | ----------------------------------------------- |
+| Add new type          | Create file + export from `index.ts` | Follow barrel pattern                           |
+| Protocol types        | `protocol.ts`                        | `ProtocolAdapter`, message types                |
+| Provider config types | `provider.ts`                        | `ProviderConfig`, provider options              |
+| Request types         | `request.ts`                         | Chat request, messages request                  |
+| Response types        | `response.ts`                        | Standard response format                        |
+| Env type              | `index.ts`                           | Auto-generated from `worker-configuration.d.ts` |
 
 ## CONVENTIONS
 
@@ -42,4 +43,4 @@ types/
 ## NOTES
 
 - **Import pattern**: `import { SomeType } from '@/types'`
-- **Env bindings**: PLAYBOX_KV, PLAYBOX_D1, AUTH_TOKEN, GEMINI_CLI_*
+- **Env bindings**: PLAYBOX*KV, PLAYBOX_D1, AUTH_TOKEN, GEMINI_CLI*\*

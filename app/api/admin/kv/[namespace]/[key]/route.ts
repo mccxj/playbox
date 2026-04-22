@@ -6,7 +6,7 @@ export const dynamic = 'force-dynamic';
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ namespace: string; key: string }> }) {
   try {
-		const { env } = getCloudflareContext() as any;
+    const { env } = getCloudflareContext() as any;
     const { namespace, key } = await params;
 
     const kv = env[namespace];
@@ -26,17 +26,17 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       success: true,
       key: decodedKey,
       value,
-      metadata: metadata || undefined
+      metadata: metadata || undefined,
     });
-} catch (error) {
+  } catch (error) {
     console.error('Error getting KV key:', error);
-return createInternalErrorResponse((error as Error).message);
+    return createInternalErrorResponse((error as Error).message);
   }
 }
 
 export async function PUT(request: NextRequest, { params }: { params: Promise<{ namespace: string; key: string }> }) {
   try {
-		const { env } = getCloudflareContext() as any;
+    const { env } = getCloudflareContext() as any;
     const { namespace, key } = await params;
 
     const kv = env[namespace];
@@ -46,7 +46,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     }
 
     const decodedKey = decodeURIComponent(key);
-    const body = await request.json() as { value: string; expirationTtl?: number };
+    const body = (await request.json()) as { value: string; expirationTtl?: number };
 
     if (body.value === undefined) {
       return createJsonResponse({ error: 'Value is required' }, 400);
@@ -62,7 +62,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     return createJsonResponse({
       success: true,
       key: decodedKey,
-      message: `Key '${decodedKey}' updated successfully`
+      message: `Key '${decodedKey}' updated successfully`,
     });
   } catch (error) {
     console.error('Error updating KV key:', error);
@@ -72,7 +72,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
 
 export async function DELETE(request: NextRequest, { params }: { params: Promise<{ namespace: string; key: string }> }) {
   try {
-		const { env } = getCloudflareContext() as any;
+    const { env } = getCloudflareContext() as any;
     const { namespace, key } = await params;
 
     const kv = env[namespace];
@@ -86,7 +86,7 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
 
     return createJsonResponse({
       success: true,
-      message: `Key '${decodedKey}' deleted successfully`
+      message: `Key '${decodedKey}' deleted successfully`,
     });
   } catch (error) {
     console.error('Error deleting KV key:', error);

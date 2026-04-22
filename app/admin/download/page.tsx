@@ -10,16 +10,7 @@ import { useDownloads } from './hooks/useDownloads';
 const { Title } = Typography;
 
 export default function DownloadPage() {
-  const {
-    downloads,
-    loading,
-    error,
-    page,
-    pageSize,
-    total,
-    fetchDownloads,
-    setParams
-  } = useDownloads();
+  const { downloads, loading, error, page, pageSize, total, fetchDownloads, setParams } = useDownloads();
 
   const handlePageChange = (newPage: number) => {
     fetchDownloads({ page: newPage });
@@ -45,18 +36,9 @@ export default function DownloadPage() {
 
   return (
     <div>
-	{error && (
-		<Alert
-			message="Error"
-			description={error}
-			type="error"
-			closable
-			onClose={() => {}}
-			style={{ marginBottom: 24 }}
-		/>
-	)}
+      {error && <Alert message="Error" description={error} type="error" closable onClose={() => {}} style={{ marginBottom: 24 }} />}
 
-	<DownloadForm onDownload={handleFormDownload} />
+      <DownloadForm onDownload={handleFormDownload} />
 
       <DownloadList
         downloads={downloads}

@@ -1,11 +1,14 @@
 # Download Proxy Feature
 
 ## Overview
-This feature provides a simple HTTP download proxy with automatic logging. Files are downloaded through the server and logged to D1 database.
+
+This feature provides a simple HTTP download proxy with automatic logging. Files are downloaded through the server and
+logged to D1 database.
 
 ## How It Works
 
 ### Download Flow
+
 1. User provides a URL
 2. Server validates the URL (SSRF protection)
 3. Server fetches the file from the remote source
@@ -15,20 +18,25 @@ This feature provides a simple HTTP download proxy with automatic logging. Files
 ### Endpoints
 
 #### GET /api/download
+
 Download a file through the proxy.
 
 **Query Parameters:**
+
 - `url` (required) - The URL to download from
 
 **Example:**
+
 ```bash
 curl "https://your-domain.com/api/download?url=https://example.com/file.pdf" -o file.pdf
 ```
 
 #### GET /api/admin/download/history
+
 View download history with pagination and filtering.
 
 **Query Parameters:**
+
 - `page` (default: 1) - Page number
 - `pageSize` (default: 10) - Items per page
 - `status` (optional) - Filter by status: `success` or `failed`
@@ -39,6 +47,7 @@ View download history with pagination and filtering.
 ## Database Schema
 
 ### download_history Table
+
 ```sql
 CREATE TABLE IF NOT EXISTS download_history (
   id TEXT PRIMARY KEY,
@@ -52,7 +61,9 @@ CREATE TABLE IF NOT EXISTS download_history (
 ```
 
 ### Setup
+
 Run the migration to create the table:
+
 ```bash
 # Local development
 npx wrangler d1 execute playbox --local --file=prisma/migrations/download_history.sql
@@ -64,7 +75,9 @@ npx wrangler d1 execute playbox --remote --file=prisma/migrations/download_histo
 ## Security
 
 ### SSRF Protection
+
 All URLs are validated before downloading:
+
 - Only HTTP/HTTPS protocols allowed
 - Private IP ranges blocked (127.0.0.0/8, 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16)
 - Link-local and multicast addresses blocked
@@ -73,10 +86,13 @@ All URLs are validated before downloading:
 ## UI
 
 ### /download
+
 Simple download page with URL input form.
 
 ### /admin/download
+
 Download history viewer with:
+
 - Table showing all download records
 - Search by URL or filename
 - Filter by status
@@ -86,6 +102,7 @@ Download history viewer with:
 ## API Response Examples
 
 ### Successful Download
+
 ```json
 {
   "success": true,
@@ -106,6 +123,7 @@ Download history viewer with:
 ```
 
 ### Failed Download
+
 ```json
 {
   "success": true,

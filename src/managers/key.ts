@@ -27,7 +27,7 @@ export const KeyManager = {
     const cacheKey = `oauth_cache_${provider}`;
 
     // Try to get from KV cache first
-    let credList = await env.PLAYBOX_KV.get(cacheKey, { type: 'json' }) as OAuthCredentials[] | null;
+    let credList = (await env.PLAYBOX_KV.get(cacheKey, { type: 'json' })) as OAuthCredentials[] | null;
 
     if (!credList || !Array.isArray(credList) || credList.length === 0) {
       // Fetch from D1 database
@@ -44,9 +44,7 @@ export const KeyManager = {
       });
 
       // Cache with 300s TTL
-      ctx.waitUntil(
-        env.PLAYBOX_KV.put(cacheKey, JSON.stringify(credList), { expirationTtl: 300 })
-      );
+      ctx.waitUntil(env.PLAYBOX_KV.put(cacheKey, JSON.stringify(credList), { expirationTtl: 300 }));
     }
 
     // Return random credentials
@@ -76,8 +74,10 @@ export const KeyManager = {
       throw new Error(`刷新凭证失败：${errorText}`);
     }
 
-    const data = await response.json() as { access_token: string; expires_in: number };
-    console.warn(`Token Refresh: ${JSON.stringify({ access_token: '***', expires_in: (data as { access_token: string; expires_in: number }).expires_in })}`);
+    const data = (await response.json()) as { access_token: string; expires_in: number };
+    console.warn(
+      `Token Refresh: ${JSON.stringify({ access_token: '***', expires_in: (data as { access_token: string; expires_in: number }).expires_in })}`
+    );
 
     return {
       accessToken: (data as { access_token: string; expires_in: number }).access_token,
@@ -86,7 +86,7 @@ export const KeyManager = {
   },
 
   async getValidAccessToken(env: Env, provider: string, ctx: ExecutionContext): Promise<string> {
-    const cached = await env.PLAYBOX_KV.get('gemini_cli_access_token', { type: 'json' }) as TokenCache | null;
+    const cached = (await env.PLAYBOX_KV.get('gemini_cli_access_token', { type: 'json' })) as TokenCache | null;
 
     if (cached && cached.expiresAt > Date.now() + 60 * 1000) {
       return cached.accessToken;
@@ -94,9 +94,7 @@ export const KeyManager = {
 
     const newToken = await this.refreshGeminiAccessToken(env, provider, ctx);
 
-    ctx.waitUntil(
-      env.PLAYBOX_KV.put('gemini_cli_access_token', JSON.stringify(newToken), { expirationTtl: 3500 })
-    );
+    ctx.waitUntil(env.PLAYBOX_KV.put('gemini_cli_access_token', JSON.stringify(newToken), { expirationTtl: 3500 }));
 
     return newToken.accessToken;
   },
@@ -106,7 +104,7 @@ export const KeyManager = {
     const cacheKey = `keys_cache_${providerKey}`;
 
     // Try to get from KV cache first
-    let keyList = await env.PLAYBOX_KV.get(cacheKey, { type: 'json' }) as string[] | null;
+    let keyList = (await env.PLAYBOX_KV.get(cacheKey, { type: 'json' })) as string[] | null;
 
     if (!keyList || !Array.isArray(keyList) || keyList.length === 0) {
       // Fetch from D1 database
@@ -123,9 +121,7 @@ export const KeyManager = {
       });
 
       // Cache with 300s TTL
-      ctx.waitUntil(
-        env.PLAYBOX_KV.put(cacheKey, JSON.stringify(keyList), { expirationTtl: 300 })
-      );
+      ctx.waitUntil(env.PLAYBOX_KV.put(cacheKey, JSON.stringify(keyList), { expirationTtl: 300 }));
     }
 
     // Return random key

@@ -15,13 +15,7 @@ interface SearchBarProps {
   onRefresh: () => void;
 }
 
-export default function SearchBar({
-  columns,
-  onSearch,
-  onCreate,
-  onImport,
-  onRefresh,
-}: SearchBarProps) {
+export default function SearchBar({ columns, onSearch, onCreate, onImport, onRefresh }: SearchBarProps) {
   const [searchValue, setSearchValue] = useState('');
   const [searchColumn, setSearchColumn] = useState('');
 
@@ -49,14 +43,14 @@ export default function SearchBar({
           style={{ width: 150 }}
           value={searchColumn}
           onChange={setSearchColumn}
-          options={columns.map(c => ({ label: c.name, value: c.name }))}
+          options={columns.map((c) => ({ label: c.name, value: c.name }))}
           placeholder="Select column"
         />
         <Input
           style={{ width: 200 }}
           placeholder="Search..."
           value={searchValue}
-          onChange={e => setSearchValue(e.target.value)}
+          onChange={(e) => setSearchValue(e.target.value)}
           onPressEnter={handleSearch}
         />
         <Button type="primary" icon={<SearchOutlined />} onClick={handleSearch}>

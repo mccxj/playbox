@@ -9,13 +9,13 @@ const MAX_LIMIT = 1000;
 const DEFAULT_LIMIT = 100;
 
 /**
-* GET /api/admin/kv/{namespace}
-* Lists keys with pagination/prefix search
-* Query params: prefix, cursor, limit, page, pageSize
-*/
+ * GET /api/admin/kv/{namespace}
+ * Lists keys with pagination/prefix search
+ * Query params: prefix, cursor, limit, page, pageSize
+ */
 export async function GET(request: NextRequest, { params }: { params: Promise<{ namespace: string }> }) {
   try {
-		const { env } = getCloudflareContext() as any;
+    const { env } = getCloudflareContext() as any;
     const { namespace } = await params;
 
     const kv = env[namespace];
@@ -52,13 +52,13 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 }
 
 /**
-* POST /api/admin/kv/{namespace}
-* Creates new key with optional TTL
-* Body: { key: string, value: string, expirationTtl?: number }
-*/
+ * POST /api/admin/kv/{namespace}
+ * Creates new key with optional TTL
+ * Body: { key: string, value: string, expirationTtl?: number }
+ */
 export async function POST(request: NextRequest, { params }: { params: Promise<{ namespace: string }> }) {
   try {
-		const { env } = getCloudflareContext() as any;
+    const { env } = getCloudflareContext() as any;
     const { namespace } = await params;
 
     const kv = env[namespace];
@@ -67,7 +67,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       return createNotFoundResponse(`KV namespace '${namespace}' not found`);
     }
 
-    const body = await request.json() as { key: string; value: string; expirationTtl?: number };
+    const body = (await request.json()) as { key: string; value: string; expirationTtl?: number };
 
     if (!body.key || body.value === undefined) {
       return createJsonResponse({ error: 'Key and value are required' }, 400);
@@ -80,11 +80,14 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 
     await kv.put(body.key, body.value, options);
 
-    return createJsonResponse({
-      success: true,
-      key: body.key,
-      message: `Key '${body.key}' created successfully`
-    }, 201);
+    return createJsonResponse(
+      {
+        success: true,
+        key: body.key,
+        message: `Key '${body.key}' created successfully`,
+      },
+      201
+    );
   } catch (error) {
     console.error('Error creating KV key:', error);
     return createInternalErrorResponse((error as Error).message);

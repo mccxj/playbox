@@ -2,34 +2,19 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import dynamic from 'next/dynamic';
+import { Card, Table, Input, Button, Space, Spin, Alert, Typography, Popconfirm, message, Upload, Modal, Drawer, Tag } from 'antd';
 import {
-	Card,
-	Table,
-	Input,
-	Button,
-	Space,
-	Spin,
-	Alert,
-	Typography,
-	Popconfirm,
-	message,
-	Upload,
-	Modal,
-	Drawer,
-	Tag,
-} from 'antd';
-import {
-	SearchOutlined,
-	ClearOutlined,
-	PlusOutlined,
-	ReloadOutlined,
-	EyeOutlined,
-	DeleteOutlined,
-	CloudUploadOutlined,
-	DownloadOutlined,
-	CloudServerOutlined,
-	FolderOutlined,
-	FileOutlined,
+  SearchOutlined,
+  ClearOutlined,
+  PlusOutlined,
+  ReloadOutlined,
+  EyeOutlined,
+  DeleteOutlined,
+  CloudUploadOutlined,
+  DownloadOutlined,
+  CloudServerOutlined,
+  FolderOutlined,
+  FileOutlined,
 } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
 import type { UploadProps } from 'antd';
@@ -39,509 +24,470 @@ import type { KVNamespaceOption } from '../types/kv';
 const { Title, Text } = Typography;
 
 interface R2ObjectInfo {
-	key: string;
-	size: number;
-	etag: string;
-	httpEtag: string;
-	uploaded: string;
-	contentType?: string;
-	customMetadata?: Record<string, string>;
+  key: string;
+  size: number;
+  etag: string;
+  httpEtag: string;
+  uploaded: string;
+  contentType?: string;
+  customMetadata?: Record<string, string>;
 }
 
 interface R2ObjectDisplay extends R2ObjectInfo {
-	sizeFormatted: string;
-	uploadedFormatted: string;
-	type: 'file' | 'folder';
+  sizeFormatted: string;
+  uploadedFormatted: string;
+  type: 'file' | 'folder';
 }
 
 export default function R2AdminPage() {
-	const [buckets, setBuckets] = useState<KVNamespaceOption[]>([]);
-	const [selectedBucket, setSelectedBucket] = useState<string>('');
-	const [objects, setObjects] = useState<R2ObjectDisplay[]>([]);
-	const [loading, setLoading] = useState(true);
-	const [error, setError] = useState<string | null>(null);
-	const [prefix, setPrefix] = useState('');
-	const [cursor, setCursor] = useState<string | undefined>();
-	const [truncated, setTruncated] = useState(false);
-	const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
+  const [buckets, setBuckets] = useState<KVNamespaceOption[]>([]);
+  const [selectedBucket, setSelectedBucket] = useState<string>('');
+  const [objects, setObjects] = useState<R2ObjectDisplay[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [prefix, setPrefix] = useState('');
+  const [cursor, setCursor] = useState<string | undefined>();
+  const [truncated, setTruncated] = useState(false);
+  const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
 
-	const [uploadModalOpen, setUploadModalOpen] = useState(false);
-	const [drawerOpen, setDrawerOpen] = useState(false);
-	const [viewingKey, setViewingKey] = useState<string | null>(null);
+  const [uploadModalOpen, setUploadModalOpen] = useState(false);
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [viewingKey, setViewingKey] = useState<string | null>(null);
 
-	const formatSize = (bytes: number): string => {
-		if (bytes < 1024) return `${bytes} B`;
-		if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(2)} KB`;
-		if (bytes < 1024 * 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
-		return `${(bytes / (1024 * 1024 * 1024)).toFixed(2)} GB`;
-	};
+  const formatSize = (bytes: number): string => {
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(2)} KB`;
+    if (bytes < 1024 * 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
+    return `${(bytes / (1024 * 1024 * 1024)).toFixed(2)} GB`;
+  };
 
-	const fetchBuckets = async () => {
-		try {
-			const response = await fetch('/api/admin/r2');
-			const data = await response.json() as any;
-			if (data.success) {
-				const bucketOptions: KVNamespaceOption[] = data.buckets.map((b: any) => ({
-					value: b.binding,
-					label: b.binding,
-					id: b.bucket_name,
-				}));
-				setBuckets(bucketOptions);
-				if (bucketOptions.length > 0 && !selectedBucket) {
-					setSelectedBucket(bucketOptions[0].value);
-				}
-			} else {
-				setError(data.error || 'Failed to fetch buckets');
-			}
-		} catch (err) {
-			setError((err as Error).message);
-		}
-	};
+  const fetchBuckets = async () => {
+    try {
+      const response = await fetch('/api/admin/r2');
+      const data = (await response.json()) as any;
+      if (data.success) {
+        const bucketOptions: KVNamespaceOption[] = data.buckets.map((b: any) => ({
+          value: b.binding,
+          label: b.binding,
+          id: b.bucket_name,
+        }));
+        setBuckets(bucketOptions);
+        if (bucketOptions.length > 0 && !selectedBucket) {
+          setSelectedBucket(bucketOptions[0].value);
+        }
+      } else {
+        setError(data.error || 'Failed to fetch buckets');
+      }
+    } catch (err) {
+      setError((err as Error).message);
+    }
+  };
 
-	const fetchObjects = useCallback(async (resetCursor = false) => {
-		if (!selectedBucket) return;
+  const fetchObjects = useCallback(
+    async (resetCursor = false) => {
+      if (!selectedBucket) return;
 
-		try {
-			setLoading(true);
-			const params = new URLSearchParams();
-			if (prefix) params.set('prefix', prefix);
-			if (!resetCursor && cursor && truncated) params.set('cursor', cursor);
-			params.set('limit', '100');
+      try {
+        setLoading(true);
+        const params = new URLSearchParams();
+        if (prefix) params.set('prefix', prefix);
+        if (!resetCursor && cursor && truncated) params.set('cursor', cursor);
+        params.set('limit', '100');
 
-			const response = await fetch(`/api/admin/r2/${selectedBucket}?${params}`);
-			const data = await response.json() as any;
+        const response = await fetch(`/api/admin/r2/${selectedBucket}?${params}`);
+        const data = (await response.json()) as any;
 
-			if (data.success) {
-				const objectDisplays: R2ObjectDisplay[] = [
-					...(data.delimitedPrefixes || []).map((p: string) => ({
-						key: p,
-						size: 0,
-						etag: '',
-						httpEtag: '',
-						uploaded: '',
-						sizeFormatted: '-',
-						uploadedFormatted: '-',
-						type: 'folder' as const,
-						contentType: 'folder',
-					})),
-					...data.objects.map((o: R2ObjectInfo) => ({
-						...o,
-						sizeFormatted: formatSize(o.size),
-						uploadedFormatted: o.uploaded ? new Date(o.uploaded).toLocaleString() : '-',
-						type: 'file' as const,
-					})),
-				];
-				setObjects(objectDisplays);
-				setTruncated(data.truncated);
-				setCursor(data.cursor || undefined);
-			} else {
-				setError(data.error || 'Failed to fetch objects');
-			}
-		} catch (err) {
-			setError((err as Error).message);
-		} finally {
-			setLoading(false);
-		}
-	}, [selectedBucket, prefix, cursor, truncated]);
+        if (data.success) {
+          const objectDisplays: R2ObjectDisplay[] = [
+            ...(data.delimitedPrefixes || []).map((p: string) => ({
+              key: p,
+              size: 0,
+              etag: '',
+              httpEtag: '',
+              uploaded: '',
+              sizeFormatted: '-',
+              uploadedFormatted: '-',
+              type: 'folder' as const,
+              contentType: 'folder',
+            })),
+            ...data.objects.map((o: R2ObjectInfo) => ({
+              ...o,
+              sizeFormatted: formatSize(o.size),
+              uploadedFormatted: o.uploaded ? new Date(o.uploaded).toLocaleString() : '-',
+              type: 'file' as const,
+            })),
+          ];
+          setObjects(objectDisplays);
+          setTruncated(data.truncated);
+          setCursor(data.cursor || undefined);
+        } else {
+          setError(data.error || 'Failed to fetch objects');
+        }
+      } catch (err) {
+        setError((err as Error).message);
+      } finally {
+        setLoading(false);
+      }
+    },
+    [selectedBucket, prefix, cursor, truncated]
+  );
 
-	useEffect(() => {
-		fetchBuckets();
-	}, []);
+  useEffect(() => {
+    fetchBuckets();
+  }, []);
 
-	useEffect(() => {
-		if (selectedBucket) {
-			setCursor(undefined);
-			setTruncated(false);
-			fetchObjects(true);
-		}
-	}, [selectedBucket, prefix]);
+  useEffect(() => {
+    if (selectedBucket) {
+      setCursor(undefined);
+      setTruncated(false);
+      fetchObjects(true);
+    }
+  }, [selectedBucket, prefix]);
 
-	const handleSearch = () => {
-		setCursor(undefined);
-		fetchObjects(true);
-	};
+  const handleSearch = () => {
+    setCursor(undefined);
+    fetchObjects(true);
+  };
 
-	const handleClear = () => {
-		setPrefix('');
-		setCursor(undefined);
-	};
+  const handleClear = () => {
+    setPrefix('');
+    setCursor(undefined);
+  };
 
-	const handleRefresh = () => {
-		setCursor(undefined);
-		fetchObjects(true);
-	};
+  const handleRefresh = () => {
+    setCursor(undefined);
+    fetchObjects(true);
+  };
 
-	const handleFolderClick = (folderKey: string) => {
-		setPrefix(folderKey);
-		setCursor(undefined);
-	};
+  const handleFolderClick = (folderKey: string) => {
+    setPrefix(folderKey);
+    setCursor(undefined);
+  };
 
-	const handleDownload = (key: string) => {
-		const url = `/api/admin/r2/${selectedBucket}/${encodeURIComponent(key)}`;
-		window.open(url, '_blank');
-	};
+  const handleDownload = (key: string) => {
+    const url = `/api/admin/r2/${selectedBucket}/${encodeURIComponent(key)}`;
+    window.open(url, '_blank');
+  };
 
-	const handleView = (key: string) => {
-		setViewingKey(key);
-		setDrawerOpen(true);
-	};
+  const handleView = (key: string) => {
+    setViewingKey(key);
+    setDrawerOpen(true);
+  };
 
-	const handleDelete = async (key: string) => {
-		try {
-			const response = await fetch(`/api/admin/r2/${selectedBucket}/${encodeURIComponent(key)}`, {
-				method: 'DELETE',
-			});
-			const data = await response.json() as any;
-			if (data.success) {
-				message.success(data.message);
-				fetchObjects(true);
-			} else {
-				message.error(data.error || 'Failed to delete object');
-			}
-		} catch (err) {
-			message.error((err as Error).message);
-		}
-	};
+  const handleDelete = async (key: string) => {
+    try {
+      const response = await fetch(`/api/admin/r2/${selectedBucket}/${encodeURIComponent(key)}`, {
+        method: 'DELETE',
+      });
+      const data = (await response.json()) as any;
+      if (data.success) {
+        message.success(data.message);
+        fetchObjects(true);
+      } else {
+        message.error(data.error || 'Failed to delete object');
+      }
+    } catch (err) {
+      message.error((err as Error).message);
+    }
+  };
 
-	const handleBatchDelete = async () => {
-		if (selectedRowKeys.length === 0) return;
+  const handleBatchDelete = async () => {
+    if (selectedRowKeys.length === 0) return;
 
-		try {
-			const response = await fetch(`/api/admin/r2/${selectedBucket}/batch`, {
-				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({
-					operation: 'delete',
-					keys: selectedRowKeys,
-				}),
-			});
-			const data = await response.json() as any;
-			if (data.success) {
-				message.success(data.message);
-				setSelectedRowKeys([]);
-				fetchObjects(true);
-			} else {
-				message.error(data.error || 'Failed to delete objects');
-			}
-		} catch (err) {
-			message.error((err as Error).message);
-		}
-	};
+    try {
+      const response = await fetch(`/api/admin/r2/${selectedBucket}/batch`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          operation: 'delete',
+          keys: selectedRowKeys,
+        }),
+      });
+      const data = (await response.json()) as any;
+      if (data.success) {
+        message.success(data.message);
+        setSelectedRowKeys([]);
+        fetchObjects(true);
+      } else {
+        message.error(data.error || 'Failed to delete objects');
+      }
+    } catch (err) {
+      message.error((err as Error).message);
+    }
+  };
 
-	const uploadProps: UploadProps = {
-		name: 'file',
-		action: `/api/admin/r2/${selectedBucket}`,
-		data: (file) => {
-			const key = prefix ? `${prefix}${file.name}` : file.name;
-			return { key };
-		},
-		onChange(info) {
-			if (info.file.status === 'done') {
-				message.success(`${info.file.name} uploaded successfully`);
-				fetchObjects(true);
-				setUploadModalOpen(false);
-			} else if (info.file.status === 'error') {
-				message.error(`${info.file.name} upload failed`);
-			}
-		},
-	};
+  const uploadProps: UploadProps = {
+    name: 'file',
+    action: `/api/admin/r2/${selectedBucket}`,
+    data: (file) => {
+      const key = prefix ? `${prefix}${file.name}` : file.name;
+      return { key };
+    },
+    onChange(info) {
+      if (info.file.status === 'done') {
+        message.success(`${info.file.name} uploaded successfully`);
+        fetchObjects(true);
+        setUploadModalOpen(false);
+      } else if (info.file.status === 'error') {
+        message.error(`${info.file.name} upload failed`);
+      }
+    },
+  };
 
-	const columns: ColumnsType<R2ObjectDisplay> = [
-		{
-			title: 'Key',
-			dataIndex: 'key',
-			key: 'key',
-			ellipsis: true,
-			render: (text: string, record) => (
-				<Space>
-					{record.type === 'folder' ? (
-						<a onClick={() => handleFolderClick(text)} style={{ cursor: 'pointer' }}>
-							<FolderOutlined style={{ marginRight: 8, color: '#faad14' }} />
-							{text.replace(prefix, '').replace('/', '')}
-						</a>
-					) : (
-						<>
-							<FileOutlined style={{ marginRight: 8 }} />
-							<a onClick={() => handleView(text)} style={{ cursor: 'pointer' }}>
-								{text.replace(prefix, '')}
-							</a>
-						</>
-					)}
-				</Space>
-			),
-		},
-		{
-			title: 'Type',
-			dataIndex: 'contentType',
-			key: 'contentType',
-			width: 150,
-			render: (contentType: string) => contentType ? <Tag>{contentType}</Tag> : '-',
-		},
-		{
-			title: 'Size',
-			dataIndex: 'sizeFormatted',
-			key: 'size',
-			width: 100,
-		},
-		{
-			title: 'Uploaded',
-			dataIndex: 'uploadedFormatted',
-			key: 'uploaded',
-			width: 180,
-		},
-		{
-			title: 'Actions',
-			key: '_actions',
-			width: 150,
-			render: (_, record) => (
-				<Space>
-					{record.type === 'file' && (
-						<>
-							<Button
-								type="text"
-								icon={<DownloadOutlined />}
-								onClick={() => handleDownload(record.key)}
-								size="small"
-							/>
-							<Button
-								type="text"
-								icon={<EyeOutlined />}
-								onClick={() => handleView(record.key)}
-								size="small"
-							/>
-						</>
-					)}
-					<Popconfirm
-						title="Delete this object?"
-						onConfirm={() => handleDelete(record.key)}
-						okText="Delete"
-						okType="danger"
-					>
-						<Button
-							type="text"
-							icon={<DeleteOutlined />}
-							danger
-							size="small"
-						/>
-					</Popconfirm>
-				</Space>
-			),
-		},
-	];
+  const columns: ColumnsType<R2ObjectDisplay> = [
+    {
+      title: 'Key',
+      dataIndex: 'key',
+      key: 'key',
+      ellipsis: true,
+      render: (text: string, record) => (
+        <Space>
+          {record.type === 'folder' ? (
+            <a onClick={() => handleFolderClick(text)} style={{ cursor: 'pointer' }}>
+              <FolderOutlined style={{ marginRight: 8, color: '#faad14' }} />
+              {text.replace(prefix, '').replace('/', '')}
+            </a>
+          ) : (
+            <>
+              <FileOutlined style={{ marginRight: 8 }} />
+              <a onClick={() => handleView(text)} style={{ cursor: 'pointer' }}>
+                {text.replace(prefix, '')}
+              </a>
+            </>
+          )}
+        </Space>
+      ),
+    },
+    {
+      title: 'Type',
+      dataIndex: 'contentType',
+      key: 'contentType',
+      width: 150,
+      render: (contentType: string) => (contentType ? <Tag>{contentType}</Tag> : '-'),
+    },
+    {
+      title: 'Size',
+      dataIndex: 'sizeFormatted',
+      key: 'size',
+      width: 100,
+    },
+    {
+      title: 'Uploaded',
+      dataIndex: 'uploadedFormatted',
+      key: 'uploaded',
+      width: 180,
+    },
+    {
+      title: 'Actions',
+      key: '_actions',
+      width: 150,
+      render: (_, record) => (
+        <Space>
+          {record.type === 'file' && (
+            <>
+              <Button type="text" icon={<DownloadOutlined />} onClick={() => handleDownload(record.key)} size="small" />
+              <Button type="text" icon={<EyeOutlined />} onClick={() => handleView(record.key)} size="small" />
+            </>
+          )}
+          <Popconfirm title="Delete this object?" onConfirm={() => handleDelete(record.key)} okText="Delete" okType="danger">
+            <Button type="text" icon={<DeleteOutlined />} danger size="small" />
+          </Popconfirm>
+        </Space>
+      ),
+    },
+  ];
 
-	const rowSelection = {
-		selectedRowKeys,
-		onChange: (keys: React.Key[]) => setSelectedRowKeys(keys),
-	};
+  const rowSelection = {
+    selectedRowKeys,
+    onChange: (keys: React.Key[]) => setSelectedRowKeys(keys),
+  };
 
-	if (loading && buckets.length === 0) {
-		return (
-			<div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
-				<Spin size="large" />
-			</div>
-		);
-	}
+  if (loading && buckets.length === 0) {
+    return (
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
+        <Spin size="large" />
+      </div>
+    );
+  }
 
-	return (
-		<div>
-			{error && (
-				<Alert
-					message="Error"
-					description={error}
-					type="error"
-					closable
-					onClose={() => setError(null)}
-					style={{ marginBottom: 16 }}
-				/>
-			)}
+  return (
+    <div>
+      {error && (
+        <Alert message="Error" description={error} type="error" closable onClose={() => setError(null)} style={{ marginBottom: 16 }} />
+      )}
 
-			<Card style={{ marginBottom: 16 }}>
-				<Space size="large" align="center" wrap>
-					<CloudServerOutlined style={{ fontSize: 24, color: '#1890ff' }} />
-					<NamespaceSelector
-						namespaces={buckets}
-						selected={selectedBucket}
-						onChange={(b) => {
-							setSelectedBucket(b);
-							setPrefix('');
-							setSelectedRowKeys([]);
-						}}
-						loading={loading}
-					/>
-					<Space.Compact>
-						<Input
-							style={{ width: 300 }}
-							placeholder="Filter by prefix..."
-							value={prefix}
-							onChange={(e) => setPrefix(e.target.value)}
-							onPressEnter={handleSearch}
-						/>
-						<Button type="primary" icon={<SearchOutlined />} onClick={handleSearch}>
-							Search
-						</Button>
-						<Button icon={<ClearOutlined />} onClick={handleClear}>
-							Clear
-						</Button>
-					</Space.Compact>
-					<div style={{ flex: 1 }} />
-					<Space>
-						<Button icon={<ReloadOutlined />} onClick={handleRefresh}>
-							Refresh
-						</Button>
-						<Button type="primary" icon={<CloudUploadOutlined />} onClick={() => setUploadModalOpen(true)}>
-							Upload
-						</Button>
-					</Space>
-				</Space>
-			</Card>
+      <Card style={{ marginBottom: 16 }}>
+        <Space size="large" align="center" wrap>
+          <CloudServerOutlined style={{ fontSize: 24, color: '#1890ff' }} />
+          <NamespaceSelector
+            namespaces={buckets}
+            selected={selectedBucket}
+            onChange={(b) => {
+              setSelectedBucket(b);
+              setPrefix('');
+              setSelectedRowKeys([]);
+            }}
+            loading={loading}
+          />
+          <Space.Compact>
+            <Input
+              style={{ width: 300 }}
+              placeholder="Filter by prefix..."
+              value={prefix}
+              onChange={(e) => setPrefix(e.target.value)}
+              onPressEnter={handleSearch}
+            />
+            <Button type="primary" icon={<SearchOutlined />} onClick={handleSearch}>
+              Search
+            </Button>
+            <Button icon={<ClearOutlined />} onClick={handleClear}>
+              Clear
+            </Button>
+          </Space.Compact>
+          <div style={{ flex: 1 }} />
+          <Space>
+            <Button icon={<ReloadOutlined />} onClick={handleRefresh}>
+              Refresh
+            </Button>
+            <Button type="primary" icon={<CloudUploadOutlined />} onClick={() => setUploadModalOpen(true)}>
+              Upload
+            </Button>
+          </Space>
+        </Space>
+      </Card>
 
-			{prefix && (
-				<Card style={{ marginBottom: 16 }}>
-					<Space>
-						<Button onClick={() => setPrefix('')}>Root</Button>
-						{prefix.split('/').filter(Boolean).map((part, idx, arr) => (
-							<span key={idx}>
-								<span> / </span>
-								<Button
-									type="link"
-									onClick={() => setPrefix(arr.slice(0, idx + 1).join('/') + '/')}
-								>
-									{part}
-								</Button>
-							</span>
-						))}
-					</Space>
-				</Card>
-			)}
+      {prefix && (
+        <Card style={{ marginBottom: 16 }}>
+          <Space>
+            <Button onClick={() => setPrefix('')}>Root</Button>
+            {prefix
+              .split('/')
+              .filter(Boolean)
+              .map((part, idx, arr) => (
+                <span key={idx}>
+                  <span> / </span>
+                  <Button type="link" onClick={() => setPrefix(arr.slice(0, idx + 1).join('/') + '/')}>
+                    {part}
+                  </Button>
+                </span>
+              ))}
+          </Space>
+        </Card>
+      )}
 
-			{selectedRowKeys.length > 0 && (
-				<div style={{ marginBottom: 16 }}>
-					<Popconfirm
-						title={`Delete ${selectedRowKeys.length} selected objects?`}
-						onConfirm={handleBatchDelete}
-						okText="Delete All"
-						okType="danger"
-					>
-						<Button danger>Delete Selected ({selectedRowKeys.length})</Button>
-					</Popconfirm>
-				</div>
-			)}
+      {selectedRowKeys.length > 0 && (
+        <div style={{ marginBottom: 16 }}>
+          <Popconfirm
+            title={`Delete ${selectedRowKeys.length} selected objects?`}
+            onConfirm={handleBatchDelete}
+            okText="Delete All"
+            okType="danger"
+          >
+            <Button danger>Delete Selected ({selectedRowKeys.length})</Button>
+          </Popconfirm>
+        </div>
+      )}
 
-			<Table
-				columns={columns}
-				dataSource={objects}
-				rowKey="key"
-				loading={loading && objects.length === 0}
-				rowSelection={rowSelection}
-				pagination={false}
-				scroll={{ y: 'calc(100vh - 400px)' }}
-				size="small"
-			/>
+      <Table
+        columns={columns}
+        dataSource={objects}
+        rowKey="key"
+        loading={loading && objects.length === 0}
+        rowSelection={rowSelection}
+        pagination={false}
+        scroll={{ y: 'calc(100vh - 400px)' }}
+        size="small"
+      />
 
-			{truncated && (
-				<div style={{ textAlign: 'center', marginTop: 16 }}>
-					<Button onClick={() => fetchObjects(false)} loading={loading}>
-						Load More
-					</Button>
-				</div>
-			)}
+      {truncated && (
+        <div style={{ textAlign: 'center', marginTop: 16 }}>
+          <Button onClick={() => fetchObjects(false)} loading={loading}>
+            Load More
+          </Button>
+        </div>
+      )}
 
-			<Modal
-				title="Upload File"
-				open={uploadModalOpen}
-				onCancel={() => setUploadModalOpen(false)}
-				footer={null}
-			>
-				<Upload.Dragger {...uploadProps}>
-					<p className="ant-upload-drag-icon">
-						<CloudUploadOutlined />
-					</p>
-					<p className="ant-upload-text">Click or drag file to upload</p>
-					<p className="ant-upload-hint">
-						{prefix ? `Files will be uploaded to: ${prefix}` : 'Files will be uploaded to root'}
-					</p>
-				</Upload.Dragger>
-			</Modal>
+      <Modal title="Upload File" open={uploadModalOpen} onCancel={() => setUploadModalOpen(false)} footer={null}>
+        <Upload.Dragger {...uploadProps}>
+          <p className="ant-upload-drag-icon">
+            <CloudUploadOutlined />
+          </p>
+          <p className="ant-upload-text">Click or drag file to upload</p>
+          <p className="ant-upload-hint">{prefix ? `Files will be uploaded to: ${prefix}` : 'Files will be uploaded to root'}</p>
+        </Upload.Dragger>
+      </Modal>
 
-			<Drawer
-				title={`Object: ${viewingKey?.replace(prefix, '')}`}
-				open={drawerOpen}
-				onClose={() => {
-					setDrawerOpen(false);
-					setViewingKey(null);
-				}}
-				width={600}
-			>
-				{viewingKey && (
-					<ObjectDetails
-						bucket={selectedBucket}
-						keyName={viewingKey}
-						onDownload={() => handleDownload(viewingKey)}
-					/>
-				)}
-			</Drawer>
-		</div>
-	);
+      <Drawer
+        title={`Object: ${viewingKey?.replace(prefix, '')}`}
+        open={drawerOpen}
+        onClose={() => {
+          setDrawerOpen(false);
+          setViewingKey(null);
+        }}
+        width={600}
+      >
+        {viewingKey && <ObjectDetails bucket={selectedBucket} keyName={viewingKey} onDownload={() => handleDownload(viewingKey)} />}
+      </Drawer>
+    </div>
+  );
 }
 
 function ObjectDetails({ bucket, keyName, onDownload }: { bucket: string; keyName: string; onDownload: () => void }) {
-	const [loading, setLoading] = useState(true);
-	const [metadata, setMetadata] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [metadata, setMetadata] = useState<any>(null);
 
-	useEffect(() => {
-		const fetchMetadata = async () => {
-			try {
-				const response = await fetch(`/api/admin/r2/${bucket}/${encodeURIComponent(keyName)}`, {
-					method: 'HEAD',
-				});
-		const data = await response.json() as any;
-		if (data.success) {
-					setMetadata(data);
-				}
-			} catch (err) {
-				console.error('Failed to fetch metadata:', err);
-			} finally {
-				setLoading(false);
-			}
-		};
-		fetchMetadata();
-	}, [bucket, keyName]);
+  useEffect(() => {
+    const fetchMetadata = async () => {
+      try {
+        const response = await fetch(`/api/admin/r2/${bucket}/${encodeURIComponent(keyName)}`, {
+          method: 'HEAD',
+        });
+        const data = (await response.json()) as any;
+        if (data.success) {
+          setMetadata(data);
+        }
+      } catch (err) {
+        console.error('Failed to fetch metadata:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchMetadata();
+  }, [bucket, keyName]);
 
-	if (loading) {
-		return <Spin />;
-	}
+  if (loading) {
+    return <Spin />;
+  }
 
-	return (
-		<div>
-			<Space direction="vertical" style={{ width: '100%' }}>
-				<Text strong>Key:</Text>
-				<Text code>{keyName}</Text>
+  return (
+    <div>
+      <Space direction="vertical" style={{ width: '100%' }}>
+        <Text strong>Key:</Text>
+        <Text code>{keyName}</Text>
 
-				<Text strong>Size:</Text>
-				<Text>{metadata?.size ? `${(metadata.size / 1024).toFixed(2)} KB` : '-'}</Text>
+        <Text strong>Size:</Text>
+        <Text>{metadata?.size ? `${(metadata.size / 1024).toFixed(2)} KB` : '-'}</Text>
 
-				<Text strong>ETag:</Text>
-				<Text code>{metadata?.etag || '-'}</Text>
+        <Text strong>ETag:</Text>
+        <Text code>{metadata?.etag || '-'}</Text>
 
-				<Text strong>Uploaded:</Text>
-				<Text>{metadata?.uploaded ? new Date(metadata.uploaded).toLocaleString() : '-'}</Text>
+        <Text strong>Uploaded:</Text>
+        <Text>{metadata?.uploaded ? new Date(metadata.uploaded).toLocaleString() : '-'}</Text>
 
-				<Text strong>Content Type:</Text>
-				<Tag>{metadata?.contentType || 'unknown'}</Tag>
+        <Text strong>Content Type:</Text>
+        <Tag>{metadata?.contentType || 'unknown'}</Tag>
 
-				{metadata?.customMetadata && Object.keys(metadata.customMetadata).length > 0 && (
-					<>
-						<Text strong>Custom Metadata:</Text>
-						<pre style={{ background: '#f5f5f5', padding: 8, borderRadius: 4 }}>
-							{JSON.stringify(metadata.customMetadata, null, 2)}
-						</pre>
-					</>
-				)}
+        {metadata?.customMetadata && Object.keys(metadata.customMetadata).length > 0 && (
+          <>
+            <Text strong>Custom Metadata:</Text>
+            <pre style={{ background: '#f5f5f5', padding: 8, borderRadius: 4 }}>{JSON.stringify(metadata.customMetadata, null, 2)}</pre>
+          </>
+        )}
 
-				<Button type="primary" icon={<DownloadOutlined />} onClick={onDownload} style={{ marginTop: 16 }}>
-					Download
-				</Button>
-			</Space>
-		</div>
-	);
+        <Button type="primary" icon={<DownloadOutlined />} onClick={onDownload} style={{ marginTop: 16 }}>
+          Download
+        </Button>
+      </Space>
+    </div>
+  );
 }

@@ -1,13 +1,7 @@
 'use client';
 
 import { Table, Tag, Space, Button, Tooltip, Input, Select, message } from 'antd';
-import {
-  DownloadOutlined,
-  ReloadOutlined,
-  SearchOutlined,
-  FileTextOutlined,
-  CopyOutlined
-} from '@ant-design/icons';
+import { DownloadOutlined, ReloadOutlined, SearchOutlined, FileTextOutlined, CopyOutlined } from '@ant-design/icons';
 import type { DownloadRecord } from '../types';
 import type { ColumnsType } from 'antd/es/table';
 
@@ -38,7 +32,7 @@ function formatTime(isoString: string): string {
     month: '2-digit',
     day: '2-digit',
     hour: '2-digit',
-    minute: '2-digit'
+    minute: '2-digit',
   });
 }
 
@@ -65,7 +59,7 @@ export function DownloadList({
   onRefresh,
   onPageChange,
   onSearch,
-  onStatusFilter
+  onStatusFilter,
 }: DownloadListProps) {
   const handleDownloadFile = (download: DownloadRecord) => {
     if (download.status === 'success') {
@@ -78,7 +72,7 @@ export function DownloadList({
       message.error('No URL to copy');
       return;
     }
-    
+
     try {
       await navigator.clipboard.writeText(url);
       message.success('URL copied to clipboard');
@@ -121,7 +115,7 @@ export function DownloadList({
             <span style={{ wordBreak: 'break-all' }}>{url}</span>
           </Tooltip>
         </Space>
-      )
+      ),
     },
     {
       title: 'Filename',
@@ -133,17 +127,12 @@ export function DownloadList({
           <FileTextOutlined />
           <span>{filename}</span>
           {record.status === 'success' && (
-            <Button
-              type="link"
-              size="small"
-              icon={<DownloadOutlined />}
-              onClick={() => handleDownloadFile(record)}
-            >
+            <Button type="link" size="small" icon={<DownloadOutlined />} onClick={() => handleDownloadFile(record)}>
               Download
             </Button>
           )}
         </Space>
-      )
+      ),
     },
     {
       title: 'Size',
@@ -151,7 +140,7 @@ export function DownloadList({
       key: 'size',
       width: 100,
       render: (size: number) => formatSize(size),
-      sorter: true
+      sorter: true,
     },
     {
       title: 'Status',
@@ -160,19 +149,14 @@ export function DownloadList({
       width: 100,
       render: (status: string, record: DownloadRecord) => (
         <Tooltip title={record.error || ''}>
-          <Tag color={
-            status === 'success' ? 'green' :
-            status === 'failed' ? 'red' : 'blue'
-          }>
-            {status}
-          </Tag>
+          <Tag color={status === 'success' ? 'green' : status === 'failed' ? 'red' : 'blue'}>{status}</Tag>
         </Tooltip>
       ),
       filters: [
         { text: 'Success', value: 'success' },
-        { text: 'Failed', value: 'failed' }
+        { text: 'Failed', value: 'failed' },
       ],
-      onFilter: (value, record) => record.status === value
+      onFilter: (value, record) => record.status === value,
     },
     {
       title: 'Range Header',
@@ -182,16 +166,18 @@ export function DownloadList({
       ellipsis: true,
       render: (rangeHeader: string) => (
         <Tooltip title={rangeHeader}>
-          <code style={{ 
-            fontSize: '12px', 
-            background: '#f5f5f5', 
-            padding: '2px 4px', 
-            borderRadius: '3px' 
-          }}>
+          <code
+            style={{
+              fontSize: '12px',
+              background: '#f5f5f5',
+              padding: '2px 4px',
+              borderRadius: '3px',
+            }}
+          >
             {rangeHeader || '-'}
           </code>
         </Tooltip>
-      )
+      ),
     },
     {
       title: 'Created',
@@ -203,8 +189,8 @@ export function DownloadList({
           <span>{getTimeAgo(createdAt)}</span>
         </Tooltip>
       ),
-      sorter: true
-    }
+      sorter: true,
+    },
   ];
 
   return (
@@ -224,15 +210,10 @@ export function DownloadList({
           onChange={(value) => onStatusFilter?.(value || '')}
           options={[
             { label: 'Success', value: 'success' },
-            { label: 'Failed', value: 'failed' }
+            { label: 'Failed', value: 'failed' },
           ]}
         />
-        <Button
-          type="primary"
-          icon={<ReloadOutlined />}
-          onClick={onRefresh}
-          loading={loading}
-        >
+        <Button type="primary" icon={<ReloadOutlined />} onClick={onRefresh} loading={loading}>
           Refresh
         </Button>
       </Space>
@@ -248,7 +229,7 @@ export function DownloadList({
           total,
           showSizeChanger: true,
           showTotal: (total) => `Total ${total} items`,
-          onChange: onPageChange
+          onChange: onPageChange,
         }}
         scroll={{ x: 1000 }}
       />

@@ -14,12 +14,7 @@ interface ImportModalProps {
   onSuccess: () => void;
 }
 
-export default function ImportModal({
-  open,
-  table,
-  onClose,
-  onSuccess,
-}: ImportModalProps) {
+export default function ImportModal({ open, table, onClose, onSuccess }: ImportModalProps) {
   const [format, setFormat] = useState<'json' | 'csv'>('json');
   const [fileList, setFileList] = useState<UploadFile[]>([]);
   const [previewData, setPreviewData] = useState<string>('');
@@ -56,7 +51,7 @@ export default function ImportModal({
         }),
       });
 
-      const data = await response.json() as any;
+      const data = (await response.json()) as any;
 
       if (data.success) {
         message.success(data.message);
@@ -92,7 +87,7 @@ export default function ImportModal({
       <Space direction="vertical" style={{ width: '100%' }} size="large">
         <div>
           <Text strong>Format:</Text>
-          <Radio.Group value={format} onChange={e => setFormat(e.target.value)} style={{ marginLeft: 16 }}>
+          <Radio.Group value={format} onChange={(e) => setFormat(e.target.value)} style={{ marginLeft: 16 }}>
             <Radio value="json">JSON</Radio>
             <Radio value="csv">CSV</Radio>
           </Radio.Group>
@@ -133,7 +128,7 @@ export default function ImportModal({
         <div style={{ background: '#fffbe6', padding: 12, borderRadius: 4 }}>
           <Text type="secondary">
             <FileTextOutlined style={{ marginRight: 8 }} />
-            {format === 'json' 
+            {format === 'json'
               ? 'JSON format: Array of objects with column names as keys'
               : 'CSV format: First row should be column headers'}
           </Text>
