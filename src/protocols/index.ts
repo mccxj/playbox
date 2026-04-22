@@ -1,4 +1,4 @@
-import { ProtocolAdapter, Env, Provider, ExecutionContext } from './types';
+import { ProtocolAdapter } from './types';
 import { createOpenAIProtocol } from './openai';
 import { createAnthropicProtocol } from './anthropic';
 import { createGoogleProtocol } from './google';

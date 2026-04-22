@@ -76,7 +76,7 @@ export function DownloadList({
     try {
       await navigator.clipboard.writeText(url);
       message.success('URL copied to clipboard');
-    } catch (err) {
+    } catch (_err) {
       // Fallback for non-secure contexts
       const textArea = document.createElement('textarea');
       textArea.value = url;
@@ -85,7 +85,7 @@ export function DownloadList({
       try {
         document.execCommand('copy');
         message.success('URL copied to clipboard');
-      } catch (fallbackErr) {
+      } catch (_fallbackErr) {
         message.error('Failed to copy URL');
       }
       document.body.removeChild(textArea);

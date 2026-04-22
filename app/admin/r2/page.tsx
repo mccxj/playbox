@@ -1,12 +1,11 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import dynamic from 'next/dynamic';
-import { Card, Table, Input, Button, Space, Spin, Alert, Typography, Popconfirm, message, Upload, Modal, Drawer, Tag } from 'antd';
+import { Card, Table, Input, Button, Space, Spin, Alert, Popconfirm, message, Upload, Modal, Drawer, Tag, Typography } from 'antd';
+const { Text } = Typography;
 import {
   SearchOutlined,
   ClearOutlined,
-  PlusOutlined,
   ReloadOutlined,
   EyeOutlined,
   DeleteOutlined,
@@ -20,8 +19,6 @@ import type { ColumnsType } from 'antd/es/table';
 import type { UploadProps } from 'antd';
 import NamespaceSelector from '../kv/components/NamespaceSelector';
 import type { KVNamespaceOption } from '../types/kv';
-
-const { Title, Text } = Typography;
 
 interface R2ObjectInfo {
   key: string;

@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { Card, Table, Button, Space, Spin, Alert, Typography, Popconfirm, message, Tag, DatePicker, Tooltip, Input } from 'antd';
+import { Card, Table, Button, Space, Spin, Alert, Popconfirm, message, Tag, Tooltip, Input, Typography } from 'antd';
+const { Title } = Typography;
 import {
   PlusOutlined,
   ReloadOutlined,
@@ -13,8 +14,6 @@ import {
 } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
 import dayjs from 'dayjs';
-
-const { Title } = Typography;
 
 interface ApiKey {
   id: string;
@@ -49,8 +48,8 @@ export default function LLMKeysAdminPage() {
       } else {
         setError(data.error || 'Failed to fetch API keys');
       }
-    } catch (err) {
-      setError((err as Error).message);
+    } catch (_err) {
+      message.error('Failed to fetch API keys');
     } finally {
       setLoading(false);
     }
@@ -65,7 +64,7 @@ export default function LLMKeysAdminPage() {
     try {
       await navigator.clipboard.writeText(text);
       message.success('API key copied to clipboard');
-    } catch (err) {
+    } catch (_err) {
       message.error('Failed to copy to clipboard');
     }
   };

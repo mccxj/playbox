@@ -2,8 +2,6 @@
  * Request Types for AI API Gateway
  */
 
-import { ProtocolType, ProviderConfig } from './provider';
-
 export interface ChatCompletionRequest {
   model: string;
   messages: Message[];

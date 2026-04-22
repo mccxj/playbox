@@ -20,7 +20,7 @@ export default function ChatMessage({ message, onDelete }: Props) {
     try {
       await navigator.clipboard.writeText(message.content);
       antdMessage.success('Copied to clipboard');
-    } catch (err) {
+    } catch (_err) {
       antdMessage.error('Failed to copy');
     }
   };

@@ -1,11 +1,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Space, Select, Input, Button, Typography } from 'antd';
+import { Space, Select, Input, Button } from 'antd';
 import { SearchOutlined, ClearOutlined, PlusOutlined, UploadOutlined, ReloadOutlined } from '@ant-design/icons';
 import type { ColumnInfo } from '../types';
-
-const { Text } = Typography;
 
 interface SearchBarProps {
   columns: ColumnInfo[];

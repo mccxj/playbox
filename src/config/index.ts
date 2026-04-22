@@ -1,6 +1,5 @@
 import { DEFAULT_CONFIG, Config } from './default';
 import { ProtocolFamily, ProviderConfig } from '../types/provider';
-import type { Env } from '../types';
 
 export interface ResolvedProvider {
   name: string;

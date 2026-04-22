@@ -258,13 +258,13 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
                       total_tokens: json.usageMetadata.totalTokenCount || 0,
                     };
                   }
-                } catch (e) {
+                } catch (_e) {
                   // Ignore parse errors
                 }
               }
             }
           }
-        } catch (e) {
+        } catch (_e) {
           // Ignore errors in usage extraction
         } finally {
           reader.releaseLock();

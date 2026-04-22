@@ -227,7 +227,7 @@ export default function ProvidersPage() {
 
   if (!data) return null;
 
-  const columns = (family: string) => [
+  const columns = () => [
     {
       title: 'Provider',
       dataIndex: 'provider',
@@ -333,7 +333,7 @@ export default function ProvidersPage() {
     >
       <Table
         dataSource={providers}
-        columns={columns(family)}
+        columns={columns()}
         rowKey="provider"
         pagination={false}
         size="small"

@@ -116,7 +116,7 @@ export async function chatCompletion(
           try {
             const parsed = JSON.parse(data) as StreamChunk;
             onStream?.(parsed);
-          } catch (e) {
+          } catch (_e) {
             console.warn('Failed to parse stream chunk:', data);
           }
         }

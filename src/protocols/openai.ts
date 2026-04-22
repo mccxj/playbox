@@ -7,7 +7,7 @@ export function createOpenAIProtocol(): ProtocolAdapter {
     getAttempt: () => 3,
     getApiKey: async (env: Env, provider: Provider, ctx: ExecutionContext): Promise<string> =>
       KeyManager.getRandomApiKey(env, provider, ctx),
-    getEndpoint: async (provider: Provider, model: string, isStream: boolean, apiKey: string): Promise<string> => {
+    getEndpoint: async (provider: Provider, _model: string, _isStream: boolean, _apiKey: string): Promise<string> => {
       const baseUrl = provider.endpoint ?? 'https://api.openai.com';
       return `${baseUrl}/v1/chat/completions`;
     },

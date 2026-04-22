@@ -99,7 +99,7 @@ export default tseslint.config(
     files: ["**/*.tsx"],
     rules: {
       "react/no-array-index-key": "off", // Ant Design commonly uses array indices
-      "@typescript-eslint/no-unused-vars": ["warn", { argsIgnorePattern: "^_" }],
+      "@typescript-eslint/no-unused-vars": ["error", { argsIgnorePattern: "^_", varsIgnorePattern: "^_", caughtErrorsIgnorePattern: "^_" }],
     },
   },
 
@@ -107,8 +107,8 @@ export default tseslint.config(
   {
     rules: {
       "@typescript-eslint/no-explicit-any": "warn",
-      "@typescript-eslint/no-unused-vars": "warn",
-      "@typescript-eslint/no-empty-function": "warn",
+      "@typescript-eslint/no-unused-vars": ["error", { "argsIgnorePattern": "^_", "varsIgnorePattern": "^_", "caughtErrorsIgnorePattern": "^_" }],
+      "@typescript-eslint/no-empty-function": "error",
       "no-empty": "warn",
     },
   }

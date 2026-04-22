@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import dynamic from 'next/dynamic';
-import { Card, Table, Input, Button, Space, Spin, Alert, Typography, Popconfirm, message } from 'antd';
+import { Card, Table, Input, Button, Space, Spin, Alert, Popconfirm, message } from 'antd';
 import {
   SearchOutlined,
   ClearOutlined,
@@ -18,8 +18,6 @@ import type { ColumnsType } from 'antd/es/table';
 import NamespaceSelector from './components/NamespaceSelector';
 import type { KVNamespaceOption, KVKeyDisplay } from '../types/kv';
 import type { KVKeyInfo } from '@/types/kv';
-
-const { Title, Text } = Typography;
 
 const KVFormModal = dynamic(() => import('./components/KVFormModal'), { ssr: false });
 const KVImportModal = dynamic(() => import('./components/KVImportModal'), { ssr: false });

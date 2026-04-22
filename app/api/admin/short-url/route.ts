@@ -22,7 +22,7 @@ function generateShortId(length = 8): string {
  * GET /api/admin/short-url
  * Lists all short URLs from KV (no pagination needed per requirements - no logging)
  */
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   try {
     const { env } = getCloudflareContext() as any;
     const kv = env.PLAYBOX_KV;

@@ -37,7 +37,6 @@ export async function GET(request: NextRequest) {
 
   const startDate = searchParams.get('startDate');
   const endDate = searchParams.get('endDate');
-  const groupBy = searchParams.get('groupBy') || 'model';
 
   // ANALYTICS_API_TOKEN is a secret, must be set via: wrangler secret put ANALYTICS_API_TOKEN
   const envVars = env as unknown as Record<string, string | undefined>;

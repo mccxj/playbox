@@ -72,7 +72,7 @@ export default function KeyValueDrawer({ open, namespace, keyName, onClose }: Ke
     try {
       await navigator.clipboard.writeText(keyData.value);
       message.success('Value copied to clipboard');
-    } catch (error) {
+    } catch (_error) {
       message.error('Failed to copy value');
     }
   };

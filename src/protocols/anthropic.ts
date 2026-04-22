@@ -8,7 +8,7 @@ export function createAnthropicProtocol(): ProtocolAdapter {
     getAttempt: () => 3,
     getApiKey: async (env: Env, provider: Provider, ctx: ExecutionContext): Promise<string> =>
       KeyManager.getRandomApiKey(env, provider, ctx),
-    getEndpoint: async (provider: Provider, model: string, isStream: boolean, apiKey: string): Promise<string> => {
+    getEndpoint: async (provider: Provider, _model: string, _isStream: boolean, _apiKey: string): Promise<string> => {
       const baseUrl = provider.endpoint ?? 'https://api.anthropic.com';
       return `${baseUrl}/v1/messages`;
     },
@@ -32,7 +32,9 @@ export function createAnthropicProtocol(): ProtocolAdapter {
         if (sys) messages.push({ role: 'system', content: sys });
       }
       for (const msg of body.messages || []) {
-        const content = Array.isArray(msg.content) ? msg.content.map((b: any) => (b.type === 'text' ? b.text : '')).join('\n') : msg.content;
+        const content = Array.isArray(msg.content)
+          ? msg.content.map((b: any) => (b.type === 'text' ? b.text : '')).join('\n')
+          : msg.content;
         messages.push({ role: msg.role, content });
       }
       return {
@@ -128,14 +130,16 @@ export function createAnthropicProtocol(): ProtocolAdapter {
                 };
                 controller.enqueue(encoder.encode(`data: ${JSON.stringify(chunk)}\n\n`));
               }
-            } catch (e) {}
+            } catch {
+              return;
+            }
           });
         },
-        transform(chunk: Uint8Array, controller: TransformStreamDefaultController<any>) {
+        transform(chunk: Uint8Array, _controller: TransformStreamDefaultController<any>) {
           if (parser) parser.process(chunk);
         },
-        flush(controller) {
-          controller.enqueue(new TextEncoder().encode('data: [DONE]\n\n'));
+        flush(_controller) {
+          _controller.enqueue(new TextEncoder().encode('data: [DONE]\n\n'));
         },
       });
     },
@@ -190,10 +194,12 @@ export function createAnthropicProtocol(): ProtocolAdapter {
                   delta: { type: 'text_delta', text: choice.delta.content },
                 });
               }
-            } catch (e) {}
+            } catch {
+              return;
+            }
           });
         },
-        transform(chunk: Uint8Array, controller: TransformStreamDefaultController<any>) {
+        transform(chunk: Uint8Array, _controller: TransformStreamDefaultController<any>) {
           if (parser) parser.process(chunk);
         },
       });

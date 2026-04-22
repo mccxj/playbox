@@ -178,13 +178,13 @@ export async function POST(request: NextRequest) {
                       total_tokens: json.usage.total_tokens || 0,
                     };
                   }
-                } catch (e) {
+                } catch (_e) {
                   // Ignore parse errors
                 }
               }
             }
           }
-        } catch (e) {
+        } catch (_e) {
           // Ignore errors in usage extraction
         } finally {
           reader.releaseLock();

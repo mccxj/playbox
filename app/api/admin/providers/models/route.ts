@@ -24,12 +24,6 @@ interface ProviderModels {
   error?: string;
 }
 
-interface ModelsResponse {
-  openai: ProviderModels[];
-  anthropic: ProviderModels[];
-  gemini: ProviderModels[];
-}
-
 async function fetchOpenAIModels(baseUrl: string, apiKey: string): Promise<ModelInfo[]> {
   const url = `${baseUrl}/v1/models`;
   const response = await fetch(url, {
@@ -64,7 +58,7 @@ async function fetchGeminiModels(baseUrl: string, apiKey: string): Promise<Model
   }));
 }
 
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   try {
     const { env: rawEnv, ctx } = getCloudflareContext();
     const env = rawEnv as unknown as Env;

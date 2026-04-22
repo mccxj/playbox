@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import dynamic from 'next/dynamic';
-import { Select, Typography, Spin, Alert, Card, Row, Col } from 'antd';
+import { Select, Spin, Alert, Card, Row, Col } from 'antd';
 import { TableOutlined, DatabaseOutlined } from '@ant-design/icons';
 import type { TableSchema, TableRow, ColumnInfo } from './types';
 
@@ -12,8 +12,6 @@ const SearchBar = dynamic(() => import('./components/SearchBar'), { ssr: false }
 const CreateRowModal = dynamic(() => import('./components/CreateRowModal'), { ssr: false });
 const EditRowModal = dynamic(() => import('./components/EditRowModal'), { ssr: false });
 const ImportModal = dynamic(() => import('./components/ImportModal'), { ssr: false });
-
-const { Title, Text } = Typography;
 
 export default function AdminPage() {
   const [tables, setTables] = useState<TableSchema[]>([]);
