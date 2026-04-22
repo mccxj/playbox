@@ -31,6 +31,9 @@
         "LongCat-Flash-Lite": {
           "name": "LongCat-Flash-Lite"
         },
+        "LongCat-Pro-Preview": {
+          "name": "LongCat-Pro-Preview"
+        },
         "z-ai/glm4.7": {
           "name": "z-ai/glm4.7"
         },
