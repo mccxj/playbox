@@ -11,17 +11,8 @@ export function getConfig(env: Cloudflare.Env): Config {
   return env.API_CONFIG ? JSON.parse(env.API_CONFIG) : DEFAULT_CONFIG;
 }
 
-export function resolveModelAlias(config: Config, model: string): string {
-  for (const provider of Object.values(config.providers)) {
-    if (provider.modelAliases && provider.modelAliases[model]) {
-      return provider.modelAliases[model];
-    }
-  }
-  return model;
-}
-
 export function resolveProvider(config: Config, model: string, family?: ProtocolFamily): ResolvedProvider {
-  const realModel = resolveModelAlias(config, model);
+  const realModel = model;
   let fallbackProviderName: string | null = null;
 
   for (const [name, p] of Object.entries(config.providers)) {
@@ -40,5 +31,4 @@ export function resolveProvider(config: Config, model: string, family?: Protocol
 export const ConfigManager = {
   getConfig,
   resolveProvider,
-  resolveModelAlias,
 };

@@ -23,27 +23,6 @@ interface GeminiModelsResponse {
   nextPageToken?: string;
 }
 
-function buildAliasMap(providers: Record<string, any>): Map<string, string> {
-  const aliasToReal = new Map<string, string>();
-  for (const [, provider] of Object.entries(providers)) {
-    if (provider.modelAliases) {
-      for (const [alias, realModel] of Object.entries(provider.modelAliases)) {
-        aliasToReal.set(alias, realModel as string);
-      }
-    }
-  }
-  return aliasToReal;
-}
-
-function getDisplayId(modelId: string, aliasMap: Map<string, string>): string {
-  for (const [alias, realModel] of aliasMap) {
-    if (realModel === modelId) {
-      return alias;
-    }
-  }
-  return modelId;
-}
-
 export async function GET(request: NextRequest) {
   const { env: rawEnv } = getCloudflareContext();
   const env = rawEnv as unknown as Env;
@@ -56,7 +35,6 @@ export async function GET(request: NextRequest) {
     const config = getConfig(env);
     const providers = config.providers;
 
-    const aliasMap = buildAliasMap(providers);
     const modelsList: GeminiModel[] = [];
     const seenIds = new Set<string>();
 
@@ -67,15 +45,14 @@ export async function GET(request: NextRequest) {
 
       if (Array.isArray((providerData as any).models)) {
         (providerData as any).models.forEach((modelId: string) => {
-          const displayId = getDisplayId(modelId, aliasMap);
-          if (!seenIds.has(displayId)) {
-            seenIds.add(displayId);
+          if (!seenIds.has(modelId)) {
+            seenIds.add(modelId);
             modelsList.push({
-              name: `models/${displayId}`,
-              baseModelId: displayId.split('-').slice(0, -1).join('-') || displayId,
+              name: `models/${modelId}`,
+              baseModelId: modelId.split('-').slice(0, -1).join('-') || modelId,
               version: '1.0',
-              displayName: displayId,
-              description: `Gemini model: ${displayId}`,
+              displayName: modelId,
+              description: `Gemini model: ${modelId}`,
               inputTokenLimit: 1048576,
               outputTokenLimit: 8192,
               supportedGenerationMethods: ['generateContent'],
