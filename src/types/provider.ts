@@ -39,7 +39,6 @@ export interface ProviderConfig {
   key: string;
   models: string[];
   authType?: AuthType; // Optional: defaults to 'header' for Anthropic, 'bearer' for OpenAI
-  modelAliases?: Record<string, string>; // Optional: alias -> realModel mapping
 }
 
 export type Provider = Record<string, ProviderConfig>;
