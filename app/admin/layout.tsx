@@ -25,86 +25,149 @@ import ReferralBadge from './components/ReferralBadge';
 const { Header, Sider, Content } = Layout;
 const { Title } = Typography;
 
+const menuItems = [
+  {
+    key: 'tables',
+    icon: <DatabaseOutlined />,
+    label: <Link href="/admin">Tables (D1)</Link>,
+  },
+  {
+    key: 'llm-keys',
+    icon: <ApiOutlined />,
+    label: <Link href="/admin/llm-keys">API Keys</Link>,
+  },
+  {
+    key: 'kv',
+    icon: <CloudOutlined />,
+    label: <Link href="/admin/kv">KV Storage</Link>,
+  },
+  {
+    key: 'r2',
+    icon: <CloudServerOutlined />,
+    label: <Link href="/admin/r2">R2 Storage</Link>,
+  },
+  {
+    key: 'providers',
+    icon: <AppstoreOutlined />,
+    label: <Link href="/admin/providers">Providers</Link>,
+  },
+  {
+    key: 'download',
+    icon: <DownloadOutlined />,
+    label: <Link href="/admin/download">Download</Link>,
+  },
+  {
+    key: 'chat',
+    icon: <MessageOutlined />,
+    label: <Link href="/admin/chat">Chat Test</Link>,
+  },
+  {
+    key: 'api-test',
+    icon: <ApiOutlined />,
+    label: <Link href="/admin/api-test">API Test</Link>,
+  },
+  {
+    key: 'analytics',
+    icon: <BarChartOutlined />,
+    label: <Link href="/admin/analytics">Analytics</Link>,
+  },
+  {
+    key: 'email',
+    icon: <MailOutlined />,
+    label: <Link href="/admin/email">Email Test</Link>,
+  },
+  {
+    key: 'domains',
+    icon: <GlobalOutlined />,
+    label: <Link href="/admin/domains">Domains</Link>,
+  },
+  {
+    key: 'short-url',
+    icon: <LinkOutlined />,
+    label: <Link href="/admin/short-url">Short URL</Link>,
+  },
+];
+
+const PATH_KEY_MAP: Record<string, string> = {
+  'llm-keys': 'llm-keys',
+  'kv': 'kv',
+  'r2': 'r2',
+  'providers': 'providers',
+  'download': 'download',
+  'chat': 'chat',
+  'api-test': 'api-test',
+  'analytics': 'analytics',
+  'email': 'email',
+  'domains': 'domains',
+  'short-url': 'short-url',
+};
+
+const PAGE_TITLE_MAP: Record<string, string> = {
+  'tables': 'Database Management',
+  'llm-keys': 'API Key Management',
+  'kv': 'KV Storage Management',
+  'r2': 'R2 Storage Management',
+  'providers': 'Provider Models',
+  'download': 'File Download Proxy',
+  'chat': 'Chat Test',
+  'api-test': 'API Test',
+  'analytics': 'API Analytics',
+  'email': 'Email Test',
+  'domains': 'Domain Query',
+  'short-url': 'Short URL',
+};
+
+const SIDER_STYLE = {
+  transition: 'all 0.2s',
+} as const;
+
+const BRAND_STYLE = {
+  padding: '16px',
+  borderBottom: '1px solid #f0f0f0',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'flex-start',
+  position: 'relative',
+} as const;
+
+const TITLE_STYLE = {
+  margin: 0,
+  whiteSpace: 'nowrap',
+  overflow: 'hidden',
+} as const;
+
+const HEADER_STYLE = {
+  background: '#fff',
+  padding: '0 24px',
+  borderBottom: '1px solid #f0f0f0',
+  display: 'flex',
+  alignItems: 'center',
+} as const;
+
+const CONTENT_STYLE = {
+  margin: '24px',
+  padding: '24px',
+  background: '#fff',
+  borderRadius: '8px',
+  minHeight: '280px',
+} as const;
+
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
 
-  const menuItems = [
-    {
-      key: 'tables',
-      icon: <DatabaseOutlined />,
-      label: <Link href="/admin">Tables (D1)</Link>,
-    },
-    {
-      key: 'llm-keys',
-      icon: <ApiOutlined />,
-      label: <Link href="/admin/llm-keys">API Keys</Link>,
-    },
-    {
-      key: 'kv',
-      icon: <CloudOutlined />,
-      label: <Link href="/admin/kv">KV Storage</Link>,
-    },
-    {
-      key: 'r2',
-      icon: <CloudServerOutlined />,
-      label: <Link href="/admin/r2">R2 Storage</Link>,
-    },
-    {
-      key: 'providers',
-      icon: <AppstoreOutlined />,
-      label: <Link href="/admin/providers">Providers</Link>,
-    },
-    {
-      key: 'download',
-      icon: <DownloadOutlined />,
-      label: <Link href="/admin/download">Download</Link>,
-    },
-    {
-      key: 'chat',
-      icon: <MessageOutlined />,
-      label: <Link href="/admin/chat">Chat Test</Link>,
-    },
-    {
-      key: 'api-test',
-      icon: <ApiOutlined />,
-      label: <Link href="/admin/api-test">API Test</Link>,
-    },
-    {
-      key: 'analytics',
-      icon: <BarChartOutlined />,
-      label: <Link href="/admin/analytics">Analytics</Link>,
-    },
-    {
-      key: 'email',
-      icon: <MailOutlined />,
-      label: <Link href="/admin/email">Email Test</Link>,
-    },
-    {
-      key: 'domains',
-      icon: <GlobalOutlined />,
-      label: <Link href="/admin/domains">Domains</Link>,
-    },
-    {
-      key: 'short-url',
-      icon: <LinkOutlined />,
-      label: <Link href="/admin/short-url">Short URL</Link>,
-    },
-  ];
-
   const getSelectedKey = () => {
-    if (pathname?.includes('/admin/llm-keys')) return 'llm-keys';
-    if (pathname?.includes('/admin/kv')) return 'kv';
-    if (pathname?.includes('/admin/r2')) return 'r2';
-    if (pathname?.includes('/admin/providers')) return 'providers';
-    if (pathname?.includes('/admin/download')) return 'download';
-    if (pathname?.includes('/admin/chat')) return 'chat';
-    if (pathname?.includes('/admin/api-test')) return 'api-test';
-    if (pathname?.includes('/admin/analytics')) return 'analytics';
-    if (pathname?.includes('/admin/email')) return 'email';
-    if (pathname?.includes('/admin/domains')) return 'domains';
-    if (pathname?.includes('/admin/short-url')) return 'short-url';
+    for (const [path, key] of Object.entries(PATH_KEY_MAP)) {
+      if (pathname?.includes(`/admin/${path}`)) {
+        return key;
+      }
+    }
     return 'tables';
+  };
+
+  const getPageTitle = () => {
+    const key = getSelectedKey();
+    return PAGE_TITLE_MAP[key] || 'Database Management';
   };
 
   return (
@@ -118,28 +181,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       <VConsole />
       <AntApp>
         <Layout style={{ minHeight: '100vh' }}>
-          <Sider
-            width={220}
-            theme="light"
-            collapsible
-            collapsed={collapsed}
-            onCollapse={setCollapsed}
-            trigger={null}
-            style={{
-              transition: 'all 0.2s',
-            }}
-          >
-            <div
-              style={{
-                padding: '16px',
-                borderBottom: '1px solid #f0f0f0',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: collapsed ? 'center' : 'flex-start',
-                position: 'relative',
-              }}
-            >
-              <Title level={4} style={{ margin: 0, whiteSpace: 'nowrap', overflow: 'hidden' }}>
+          <Sider width={220} theme="light" collapsible collapsed={collapsed} onCollapse={setCollapsed} trigger={null} style={SIDER_STYLE}>
+            <div style={{ ...BRAND_STYLE, justifyContent: collapsed ? 'center' : 'flex-start' }}>
+              <Title level={4} style={TITLE_STYLE}>
                 <DatabaseOutlined style={{ marginRight: 8 }} />
                 {!collapsed && 'Admin'}
               </Title>
@@ -158,53 +202,13 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             <Menu mode="inline" selectedKeys={[getSelectedKey()]} items={menuItems} inlineCollapsed={collapsed} />
           </Sider>
           <Layout>
-            <Header
-              style={{
-                background: '#fff',
-                padding: '0 24px',
-                borderBottom: '1px solid #f0f0f0',
-                display: 'flex',
-                alignItems: 'center',
-              }}
-            >
+            <Header style={HEADER_STYLE}>
               <Title level={4} style={{ margin: 0 }}>
-                {pathname?.includes('/admin/llm-keys')
-                  ? 'API Key Management'
-                  : pathname?.includes('/admin/kv')
-                    ? 'KV Storage Management'
-                    : pathname?.includes('/admin/r2')
-                      ? 'R2 Storage Management'
-                      : pathname?.includes('/admin/providers')
-                        ? 'Provider Models'
-                        : pathname?.includes('/admin/download')
-                          ? 'File Download Proxy'
-                          : pathname?.includes('/admin/chat')
-                            ? 'Chat Test'
-                            : pathname?.includes('/admin/api-test')
-                              ? 'API Test'
-                              : pathname?.includes('/admin/analytics')
-                                ? 'API Analytics'
-                                : pathname?.includes('/admin/email')
-                                  ? 'Email Test'
-                                  : pathname?.includes('/admin/domains')
-                                    ? 'Domain Query'
-                                    : pathname?.includes('/admin/short-url')
-                                      ? 'Short URL'
-                                      : 'Database Management'}
+                {getPageTitle()}
               </Title>
               <ReferralBadge />
             </Header>
-            <Content
-              style={{
-                margin: '24px',
-                padding: '24px',
-                background: '#fff',
-                borderRadius: '8px',
-                minHeight: '280px',
-              }}
-            >
-              {children}
-            </Content>
+            <Content style={CONTENT_STYLE}>{children}</Content>
           </Layout>
         </Layout>
       </AntApp>
