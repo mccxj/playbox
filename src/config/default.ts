@@ -16,7 +16,7 @@ export const DEFAULT_CONFIG: Config = {
       family: 'openai',
       endpoint: 'https://ollama.com',
       key: 'Ollama',
-      models: ['glm-5.1', 'glm-4.7', 'kimi-k2.6', 'minimax-m2.7', 'glm-5', 'qwen3-vl:235b', 'qwen3.5:397b', 'qwen3-coder:480b'],
+      models: ['glm-5.1', 'glm-4.7', 'kimi-k2.6', 'minimax-m2.7', 'glm-5', 'qwen3-vl:235b', 'qwen3.5:397b', 'qwen3-coder:480b', 'gemini-3-flash-preview'],
     },
     longcat: {
       type: 'openai',
