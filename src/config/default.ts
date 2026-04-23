@@ -39,9 +39,6 @@ export const DEFAULT_CONFIG: Config = {
     //   endpoint: 'https://api.cerebras.ai',
     //   key: 'Cerebras',
     //   models: ['qwen-3-235b-a22b-instruct-2507'],
-    //   modelAliases: {
-    //     qwen3: 'qwen-3-235b-a22b-instruct-2507',
-    //   },
     // },
     // gemini: {
     //   type: 'google',
