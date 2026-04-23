@@ -16,6 +16,7 @@ import {
   MailOutlined,
   GlobalOutlined,
   LinkOutlined,
+  ExperimentOutlined,
 } from '@ant-design/icons';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -82,6 +83,11 @@ const menuItems = [
     label: <Link href="/admin/domains">Domains</Link>,
   },
   {
+    key: 'langextract',
+    icon: <ExperimentOutlined />,
+    label: <Link href="/admin/langextract">LangExtract</Link>,
+  },
+  {
     key: 'short-url',
     icon: <LinkOutlined />,
     label: <Link href="/admin/short-url">Short URL</Link>,
@@ -99,6 +105,7 @@ const PATH_KEY_MAP: Record<string, string> = {
   'analytics': 'analytics',
   'email': 'email',
   'domains': 'domains',
+  'langextract': 'langextract',
   'short-url': 'short-url',
 };
 
@@ -114,6 +121,7 @@ const PAGE_TITLE_MAP: Record<string, string> = {
   'analytics': 'API Analytics',
   'email': 'Email Test',
   'domains': 'Domain Query',
+  'langextract': 'LangExtract',
   'short-url': 'Short URL',
 };
 
