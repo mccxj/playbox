@@ -55,7 +55,7 @@ export async function POST(request: NextRequest) {
       examples = [],
       modelType,
       modelId,
-      providedKey,
+      apiKey: providedKey,
       temperature = 0.3,
       extractionPasses = 1,
       maxCharBuffer = 1000,

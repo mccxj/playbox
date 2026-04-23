@@ -35,11 +35,11 @@ interface ExtractionItem {
 
 interface ExampleForm {
   text: string;
-  extractions: Array<{
+  extractions: {
     extractionClass: string;
     extractionText: string;
     attributes: string;
-  }>;
+  }[];
 }
 
 interface ProviderInfo {
@@ -51,7 +51,7 @@ interface ProviderInfo {
 
 export default function LangExtractPage() {
   const [form] = Form.useForm();
-  const [examplesForm] = Form.useForm();
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<{
@@ -68,11 +68,16 @@ export default function LangExtractPage() {
     setProvidersLoading(true);
     try {
       const res = await fetch('/api/admin/langextract');
-      const data = await res.json();
-      if (data.success) {
+      const data = (await res.json()) as {
+        success: boolean;
+        data?: { supportedProviders: ProviderInfo[] };
+        error?: string;
+      };
+      if (data.success && data.data) {
         setProviders(data.data.supportedProviders);
       }
     } catch {
+      // Provider fetch failed silently
     } finally {
       setProvidersLoading(false);
     }
@@ -105,7 +110,9 @@ export default function LangExtractPage() {
             if (e.attributes) {
               try {
                 attrs = JSON.parse(e.attributes);
-              } catch {}
+              } catch {
+                // Invalid JSON in attributes field, ignore
+              }
             }
             return {
               extractionClass: e.extractionClass,
@@ -134,9 +141,16 @@ export default function LangExtractPage() {
         }),
       });
 
-      const data = await res.json();
+      const data = (await res.json()) as {
+        success: boolean;
+        data?: {
+          extractions: ExtractionItem[];
+          text?: string;
+        };
+        error?: string;
+      };
 
-      if (data.success) {
+      if (data.success && data.data) {
         setResult(data.data);
         message.success(`Found ${data.data.extractions.length} extractions`);
       } else {
@@ -235,8 +249,7 @@ export default function LangExtractPage() {
     );
   };
 
-  const selectedModelType = Form.useWatch('modelType', form);
-  const selectedProvider = providers.find((p) => p.type === selectedModelType);
+  const _selectedModelType = Form.useWatch('modelType', form);
 
   return (
     <Space direction="vertical" style={{ width: '100%' }} size="middle">
@@ -369,7 +382,7 @@ export default function LangExtractPage() {
                 />
               </Form.Item>
 
-              <Title level={6}>Expected Extractions</Title>
+              <Text strong>Expected Extractions</Text>
               {example.extractions.map((ext, extIdx) => (
                 <Space key={extIdx} style={{ display: 'flex', marginBottom: 8 }} align="start">
                   <Input
