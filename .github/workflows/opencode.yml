@@ -7,6 +7,11 @@ on:
 
 jobs:
   opencode:
+    concurrency:
+      # Concurrency control: Ensures only one instance of OpenCode runs per PR/Issue.
+      # If a new command is triggered (e.g., another "/oc" comment), the previous pending run is canceled.
+      group: ${{ github.workflow }}-${{ github.event.issue.number || github.run_id }}
+      cancel-in-progress: true
     if: |
       contains(github.event.comment.body, ' /oc') ||
       startsWith(github.event.comment.body, '/oc') ||
@@ -15,19 +20,14 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       id-token: write
-      contents: read
-      pull-requests: read
-      issues: read
+      contents: write
+      pull-requests: write
+      issues: write
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
         with:
           persist-credentials: false
-      - name: Setup Node.js
-        uses: actions/setup-node@v5
-        with:
-          node-version: "22"
-          cache: "npm"
       - name: Install dependencies
         run: npm ci
       - name: Set up Python
@@ -40,6 +40,11 @@ jobs:
           code-review-graph install --platform opencode
       - name: Build code-review-graph
         run: code-review-graph build
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: "22"
+          cache: "npm"
       - name: Write global AGENTS.md
         run: |
           mkdir -p ~/.config/opencode
@@ -71,3 +76,4 @@ jobs:
           CONTEXT7_API_KEY: ${{ secrets.CONTEXT7_API_KEY }}
         with:
           model: x-openai/LongCat-Pro-Preview
+        timeout-minutes: 60
