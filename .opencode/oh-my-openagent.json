@@ -2,7 +2,7 @@
   "$schema": "https://raw.githubusercontent.com/code-yeongyu/oh-my-opencode/dev/assets/oh-my-opencode.schema.json",
   "agents": {
     "hephaestus": {
-      "model": "x-openai/qwen/qwen3-coder-480b-a35b-instruct",
+      "model": "x-openai/qwen3-coder:480b",
       "temperature": 0.1
     },
     "oracle": {
@@ -34,7 +34,7 @@
       "temperature": 0.1
     },
     "atlas": {
-      "model": "x-openai/LongCat-Pro-Preview",
+      "model": "x-openai/qwen3.5:397b",
       "temperature": 0.1
     },
     "sisyphus-junior": {
@@ -42,7 +42,7 @@
       "temperature": 0.1
     },
     "sisyphus": {
-      "model": "x-openai/LongCat-Pro-Preview",
+      "model": "x-openai/LongCat-Flash-Thinking",
       "temperature": 0.1
     }
   },
@@ -56,7 +56,7 @@
       "temperature": 0.1
     },
     "deep": {
-      "model": "x-openai/LongCat-Pro-Preview",
+      "model": "x-openai/LongCat-Flash-Thinking",
       "temperature": 0.1
     },
     "artistry": {
@@ -72,11 +72,11 @@
       "temperature": 0.1
     },
     "unspecified-high": {
-      "model": "x-openai/qwen/qwen3.5-397b-a17b",
+      "model": "x-openai/qwen3.5:397b",
       "temperature": 0.1
     },
     "writing": {
-      "model": "x-openai/qwen/qwen3.5-397b-a17b",
+      "model": "x-openai/qwen3.5:397b",
       "temperature": 0.1
     }
   }

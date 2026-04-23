@@ -75,5 +75,5 @@ jobs:
           TAVILY_API_KEY: ${{ secrets.TAVILY_API_KEY }}
           CONTEXT7_API_KEY: ${{ secrets.CONTEXT7_API_KEY }}
         with:
-          model: x-openai/LongCat-Pro-Preview
+          model: x-openai/LongCat-Flash-Thinking
         timeout-minutes: 60
