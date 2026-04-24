@@ -1,12 +1,13 @@
 import { NextRequest } from 'next/server';
 import { getCloudflareContext } from '@opennextjs/cloudflare';
-import { authenticate } from '@/lib/auth';
+import { authenticate, extractApiKey } from '@/lib/auth';
 import { createUnauthorizedResponse } from '@/lib/response-helpers';
 import { getConfig, resolveProvider } from '@/config';
 import { ProtocolFactory } from '@/protocols';
 import type { Env } from '@/types';
 import { CORS_HEADERS } from '@/utils/constants';
 import { createLogger } from '@/utils/logger';
+import { maskApiKey } from '@/utils/mask-api-key';
 
 interface AnalyticsEngineDataset {
   writeDataPoint(event?: { blobs?: (string | ArrayBuffer | null)[]; doubles?: number[]; indexes?: (string | ArrayBuffer | null)[] }): void;
@@ -119,10 +120,10 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 
     logger.info('Gemini request routed', { model: requestedModel, realModel, isStream, providerName, providerType: provider.type, action });
 
-    const apiKey = request.headers.get('x-api-key') || request.headers.get('Authorization')?.replace('Bearer ', '') || 'anonymous';
+    const apiKey = extractApiKey(request) || 'anonymous';
     (env as unknown as { PLAYBOX_EVENTS?: AnalyticsEngineDataset }).PLAYBOX_EVENTS?.writeDataPoint({
       blobs: ['llm_api', `/v1beta/models/${requestedModel}:${action}`, requestedModel, isStream ? 'stream' : 'non-stream', providerName],
-      indexes: [apiKey],
+      indexes: [maskApiKey(apiKey)],
     });
 
     const protocol = ProtocolFactory.get(provider.type);
@@ -225,7 +226,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
             (env as unknown as { PLAYBOX_EVENTS?: AnalyticsEngineDataset }).PLAYBOX_EVENTS?.writeDataPoint({
               blobs: ['llm_api_tokens', requestedModel, providerName, 'stream'],
               doubles: [tokenUsage.prompt_tokens, tokenUsage.completion_tokens, tokenUsage.total_tokens],
-              indexes: [apiKey],
+              indexes: [maskApiKey(apiKey)],
             });
           }
         },
@@ -285,7 +286,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
         (env as unknown as { PLAYBOX_EVENTS?: AnalyticsEngineDataset }).PLAYBOX_EVENTS?.writeDataPoint({
           blobs: ['llm_api_tokens', requestedModel, providerName, 'non-stream'],
           doubles: [usageMetadata.promptTokenCount || 0, usageMetadata.candidatesTokenCount || 0, usageMetadata.totalTokenCount || 0],
-          indexes: [apiKey],
+          indexes: [maskApiKey(apiKey)],
         });
       }
 
