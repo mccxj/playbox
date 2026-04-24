@@ -95,32 +95,37 @@ export default function LangExtractPage() {
     maxTokens: number;
     useSchemaConstraints: boolean;
   }) => {
+    const validExamples = examples.filter((ex) => ex.text.trim() && ex.extractions.some((e) => e.extractionClass && e.extractionText));
+
+    if (validExamples.length === 0) {
+      message.warning('Please provide at least one example with source text, an extraction class, and extraction text.');
+      return;
+    }
+
     setLoading(true);
     setError(null);
     setResult(null);
 
-    const sdkExamples = examples
-      .filter((ex) => ex.text.trim() && ex.extractions.some((e) => e.extractionClass && e.extractionText))
-      .map((ex) => ({
-        text: ex.text,
-        extractions: ex.extractions
-          .filter((e) => e.extractionClass && e.extractionText)
-          .map((e) => {
-            let attrs: Record<string, string> = {};
-            if (e.attributes) {
-              try {
-                attrs = JSON.parse(e.attributes);
-              } catch {
-                // Invalid JSON in attributes field, ignore
-              }
+    const sdkExamples = validExamples.map((ex) => ({
+      text: ex.text,
+      extractions: ex.extractions
+        .filter((e) => e.extractionClass && e.extractionText)
+        .map((e) => {
+          let attrs: Record<string, string> = {};
+          if (e.attributes) {
+            try {
+              attrs = JSON.parse(e.attributes);
+            } catch {
+              // Invalid JSON in attributes field, ignore
             }
-            return {
-              extractionClass: e.extractionClass,
-              extractionText: e.extractionText,
-              attributes: Object.keys(attrs).length > 0 ? attrs : undefined,
-            };
-          }),
-      }));
+          }
+          return {
+            extractionClass: e.extractionClass,
+            extractionText: e.extractionText,
+            attributes: Object.keys(attrs).length > 0 ? attrs : undefined,
+          };
+        }),
+    }));
 
     try {
       const res = await fetch('/api/admin/langextract', {
@@ -350,10 +355,19 @@ export default function LangExtractPage() {
 
           <Divider />
 
-          <Title level={5}>Few-Shot Examples (Optional)</Title>
+          <Title level={5}>
+            Few-Shot Examples <Tag color="red">Required</Tag>
+          </Title>
           <Paragraph type="secondary">
             Provide examples to guide the extraction. Each example should have source text and expected extractions.
           </Paragraph>
+          <Alert
+            message="At least one example is required"
+            description="Provide at least one example with source text, an extraction class, and extraction text. Examples significantly improve extraction accuracy."
+            type="warning"
+            showIcon
+            style={{ marginBottom: 16 }}
+          />
 
           {examples.map((example, exIdx) => (
             <Card
@@ -500,8 +514,8 @@ export default function LangExtractPage() {
           <Text code>OPENAI_API_KEY</Text>) or provide it in the form. API keys are also read from the LLM keys table in the database.
         </Paragraph>
         <Paragraph>
-          <Text strong>Tip:</Text> Providing high-quality few-shot examples significantly improves extraction accuracy. Include diverse
-          examples that cover edge cases you expect to encounter.
+          <Text strong>Tip:</Text> At least one few-shot example is required for extraction. Provide high-quality examples that include
+          source text, extraction classes, and extraction text. Include diverse examples that cover edge cases you expect to encounter.
         </Paragraph>
       </Card>
     </Space>
