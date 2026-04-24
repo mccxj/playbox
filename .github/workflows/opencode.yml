@@ -48,9 +48,9 @@ jobs:
       - name: Setup configuration
         run: |
           mkdir -p ~/.config/opencode
-          curl -sL https://gist.githubusercontent.com/mccxj/c23c72d3b4e891dd36866c2b32eda3d8/raw/7d473b49521ff9b0ed2bfb85af9784cacbbbd132/AGENTS.md -o ~/.config/opencode/AGENTS.md
-          curl -sL https://gist.githubusercontent.com/mccxj/1d5e8c7f107af7db59a2c2ace6bd949c/raw/e50a6784642d0f33143a28935be98539b853c3a7/opencode.jsonc -o ~/.config/opencode/opencode.jsonc
-          curl -sL https://gist.githubusercontent.com/mccxj/6698d7e99d2eda81602fd276e03a200d/raw/2c860c023810c846251f98e90e2bc04233b17815/oh-my-openagent.json -o ~/.config/opencode/oh-my-openagent.json
+          curl -sL https://gist.githubusercontent.com/mccxj/c23c72d3b4e891dd36866c2b32eda3d8/raw/AGENTS.md -o ~/.config/opencode/AGENTS.md
+          curl -sL https://gist.githubusercontent.com/mccxj/1d5e8c7f107af7db59a2c2ace6bd949c/raw/opencode.jsonc -o ~/.config/opencode/opencode.jsonc
+          curl -sL https://gist.githubusercontent.com/mccxj/6698d7e99d2eda81602fd276e03a200d/raw/oh-my-openagent.json -o ~/.config/opencode/oh-my-openagent.json
       - name: Run opencode
         uses: anomalyco/opencode/github@latest
         env:
@@ -58,5 +58,5 @@ jobs:
           TAVILY_API_KEY: ${{ secrets.TAVILY_API_KEY }}
           CONTEXT7_API_KEY: ${{ secrets.CONTEXT7_API_KEY }}
         with:
-          model: x-openai/LongCat-Flash-Thinking
+          model: x-openai/Sphynx
         timeout-minutes: 60
