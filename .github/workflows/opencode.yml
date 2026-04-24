@@ -45,29 +45,12 @@ jobs:
           cache: "npm"
       - name: Install dependencies
         run: npm ci
-      - name: Write global AGENTS.md
+      - name: Setup configuration
         run: |
           mkdir -p ~/.config/opencode
-          cat > ~/.config/opencode/AGENTS.md << 'EOF'
-          ## Output Protocol (CRITICAL)
-          - **NEVER** use `<longcat_tool_call>`, `<longcat_arg_key>`, or `<longcat_arg_value>` tags.
-          - Use the standard tool calling interface provided by the environment. 
-          - Tool calls must be formatted as raw functional calls (JSON), not wrapped in any custom XML tags.
-          - If you use XML tags for tool calling, the system will crash and your task will fail.
-
-          ## Approach
-          - Think before acting. Read existing files before writing code.
-          - Be concise in output but thorough in reasoning.
-          - Prefer editing over rewriting whole files.
-          - Do not re-read files you have already read unless the file may have changed.
-          - Skip files over 100KB unless explicitly required.
-          - Suggest running /cost when a session is running long to monitor cache ratio.
-          - Recommend starting a new session when switching to an unrelated task.
-          - Test your code before declaring done.
-          - No sycophantic openers or closing fluff.
-          - Keep solutions simple and direct.
-          - User instructions always override this file.
-          EOF
+          curl -sL https://gist.githubusercontent.com/mccxj/c23c72d3b4e891dd36866c2b32eda3d8/raw/7d473b49521ff9b0ed2bfb85af9784cacbbbd132/AGENTS.md -o ~/.config/opencode/AGENTS.md
+          curl -sL https://gist.githubusercontent.com/mccxj/1d5e8c7f107af7db59a2c2ace6bd949c/raw/e50a6784642d0f33143a28935be98539b853c3a7/opencode.jsonc -o ~/.config/opencode/opencode.jsonc
+          curl -sL https://gist.githubusercontent.com/mccxj/6698d7e99d2eda81602fd276e03a200d/raw/2c860c023810c846251f98e90e2bc04233b17815/oh-my-openagent.json -o ~/.config/opencode/oh-my-openagent.json
       - name: Run opencode
         uses: anomalyco/opencode/github@latest
         env:
