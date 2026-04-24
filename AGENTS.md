@@ -7,7 +7,7 @@
 
 AI API Gateway & Protocol Converter — converts between AI provider protocols (OpenAI, Anthropic, Google, Gemini CLI) on
 Next.js with Cloudflare Workers deployment. Multi-protocol support with OAuth token management, D1 key storage, KV
-caching, R2 object storage, GitHub proxy, download proxy with SSRF protection, and Cloudflare Analytics Engine
+caching, R2 object storage, download proxy with SSRF protection, and Cloudflare Analytics Engine
 integration.
 
 ## STRUCTURE
@@ -94,8 +94,6 @@ integration.
 | Test factories                | `test/factories/`                 | Mock env, requests, providers                                                                  |
 | SSRF protection               | `src/utils/ssrf-protection.ts`    | `validateSafeUrl()` function                                                                   |
 | Download proxy                | `app/api/download/route.ts`       | File download with SSRF protection                                                             |
-| GitHub proxy                  | `app/api/gh/[...path]/route.ts`   | GitHub file proxy with jsDelivr CDN support                                                    |
-| GitHub proxy utils            | `src/utils/gh-proxy.ts`           | URL matching and rewriting                                                                     |
 | LLM key management            | `app/api/admin/llm-keys/`         | CRUD for LLM API keys                                                                          |
 | LLM key UI                    | `app/admin/llm-keys/`             | Key management interface                                                                       |
 | Short URL API                 | `app/api/admin/short-url/`        | Short URL CRUD + redirect                                                                      |
@@ -156,7 +154,6 @@ integration.
 - **Ant Design**: Admin UI uses Ant Design components
 - **Recharts**: Analytics dashboard uses Recharts for visualizations
 - **Analytics Engine**: Cloudflare Analytics Engine for API usage tracking
-- **GitHub proxy**: Proxies GitHub file downloads with optional jsDelivr CDN rewriting
 
 ## COMMANDS
 
@@ -182,7 +179,6 @@ npm test # Run Vitest tests
 - **D1 schema**: Managed via prisma/migrations/
 - **Cloudflare context**: Use `getCloudflareContext()` from `@opennextjs/cloudflare`
 - **Analytics**: Requires `ANALYTICS_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` secrets
-- **GitHub proxy**: Configured via `GH_PROXY_JSD_ENABLE` env var (0=disabled, 1=jsDelivr CDN) — **NOTE: Route not
   implemented**
 - **ESLint**: Uses `eslint.config.mjs` with TypeScript-ESLint, React, Prettier (not enforced in CI)
 - **Build entry**: `.open-next/worker.js` (OpenNext output), not `src/index.ts`
