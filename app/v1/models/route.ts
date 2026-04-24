@@ -45,10 +45,12 @@ export async function GET(request: NextRequest) {
 
       if (Array.isArray(provider.models)) {
         provider.models.forEach((modelId: string) => {
-          if (!seenIds.has(modelId)) {
-            seenIds.add(modelId);
+          // Return format: providerName/modelId (e.g., doubao/ark-code-latest)
+          const prefixedModelId = `${providerName}/${modelId}`;
+          if (!seenIds.has(prefixedModelId)) {
+            seenIds.add(prefixedModelId);
             modelsList.push({
-              id: modelId,
+              id: prefixedModelId,
               object: 'model',
               created: 1739116800,
               owned_by: providerName,
