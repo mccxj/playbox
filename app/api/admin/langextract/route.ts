@@ -2,6 +2,7 @@ import { NextRequest } from 'next/server';
 import { getCloudflareContext } from '@opennextjs/cloudflare';
 import { createJsonResponse, createInternalErrorResponse } from '@/lib/response-helpers';
 import { extract, ExampleData } from 'langextract';
+import { DEFAULT_CONFIG } from '@/config/default';
 
 export const dynamic = 'force-dynamic';
 
@@ -10,6 +11,7 @@ interface ExtractBody {
   promptDescription: string;
   examples?: ExampleData[];
   modelType: 'gemini' | 'openai' | 'ollama';
+  provider?: string;
   modelId?: string;
   apiKey?: string;
   temperature?: number;
@@ -19,22 +21,30 @@ interface ExtractBody {
   useSchemaConstraints?: boolean;
 }
 
-async function resolveApiKey(db: any, modelType: string, providedKey?: string): Promise<string | undefined> {
+/**
+ * Maps model types to their corresponding provider key names used in D1 security_keys table.
+ * These key names match the `key` field in default.ts provider configs.
+ */
+const MODEL_TYPE_TO_PROVIDER_KEY: Record<string, string | undefined> = {
+  gemini: 'Gemini',
+  openai: 'LongCat',
+  ollama: undefined, // Ollama typically uses local mode without API key
+};
+
+async function resolveApiKey(db: any, provider: string | undefined, providedKey?: string): Promise<string | undefined> {
   if (providedKey) return providedKey;
 
-  const envKey =
-    modelType === 'gemini'
-      ? process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY || process.env.LANGEXTRACT_API_KEY
-      : modelType === 'openai'
-        ? process.env.OPENAI_API_KEY
-        : undefined;
-  if (envKey) return envKey;
+  // provider is the provider key name (e.g., 'LongCat', 'Gemini')
+  if (provider) {
+    const envKey = process.env[`${provider.toUpperCase()}_API_KEY`];
+    if (envKey) return envKey;
+  }
 
-  if (db) {
+  if (db && provider) {
     try {
       const stored = await db
         .prepare(`SELECT content FROM security_keys WHERE type = 'API_KEY' AND provider = ? LIMIT 1`)
-        .bind(modelType)
+        .bind(provider)
         .first();
       if (stored?.content) return stored.content;
     } catch {}
@@ -54,6 +64,7 @@ export async function POST(request: NextRequest) {
       promptDescription,
       examples = [],
       modelType,
+      provider,
       modelId,
       apiKey: providedKey,
       temperature = 0.3,
@@ -71,7 +82,8 @@ export async function POST(request: NextRequest) {
       return createJsonResponse({ success: false, error: 'modelType is required (gemini, openai, or ollama)' }, 400);
     }
 
-    const apiKey = await resolveApiKey(db, modelType, providedKey);
+    const providerKey = provider || MODEL_TYPE_TO_PROVIDER_KEY[modelType];
+    const apiKey = await resolveApiKey(db, providerKey, providedKey);
 
     const extractOptions: Record<string, unknown> = {
       promptDescription,
@@ -114,24 +126,28 @@ export async function POST(request: NextRequest) {
 
 export async function GET() {
   try {
+    const openaiProviders = Object.entries(DEFAULT_CONFIG.providers)
+      .filter(([, p]) => p.type === 'openai')
+      .map(([name, p]) => ({
+        type: 'openai',
+        label: name,
+        defaultModel: p.models?.[0] || 'minimax-m2.7',
+        key: p.key,
+      }));
+
     const supportedProviders = [
+      ...openaiProviders,
       {
         type: 'gemini',
         label: 'Google Gemini',
         defaultModel: 'gemini-2.5-flash',
-        envVar: 'GEMINI_API_KEY',
-      },
-      {
-        type: 'openai',
-        label: 'OpenAI',
-        defaultModel: 'gpt-4o-mini',
-        envVar: 'OPENAI_API_KEY',
+        key: 'Gemini',
       },
       {
         type: 'ollama',
         label: 'Ollama (Local)',
         defaultModel: 'llama3.2',
-        envVar: null,
+        key: null,
       },
     ];
 

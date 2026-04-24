@@ -46,7 +46,7 @@ interface ProviderInfo {
   type: string;
   label: string;
   defaultModel: string;
-  envVar: string | null;
+  key: string | null;
 }
 
 export default function LangExtractPage() {
@@ -63,6 +63,7 @@ export default function LangExtractPage() {
   ]);
   const [providers, setProviders] = useState<ProviderInfo[]>([]);
   const [providersLoading, setProvidersLoading] = useState(false);
+  const [selectedProviderKey, setSelectedProviderKey] = useState<string | null>(null);
 
   const fetchProviders = async () => {
     setProvidersLoading(true);
@@ -75,6 +76,8 @@ export default function LangExtractPage() {
       };
       if (data.success && data.data) {
         setProviders(data.data.supportedProviders);
+        const defaultProv = data.data.supportedProviders.find((p) => p.type === 'openai');
+        if (defaultProv) setSelectedProviderKey(defaultProv.key);
       }
     } catch {
       // Provider fetch failed silently
@@ -135,6 +138,7 @@ export default function LangExtractPage() {
           text: values.text,
           promptDescription: values.promptDescription,
           modelType: values.modelType,
+          provider: selectedProviderKey || undefined,
           modelId: values.modelId,
           apiKey: values.apiKey || undefined,
           temperature: values.temperature,
@@ -279,9 +283,9 @@ export default function LangExtractPage() {
                 {providers.map((p) => (
                   <Tag key={p.type} color="blue">
                     {p.label} ({p.defaultModel})
-                    {p.envVar && (
+                    {p.key && (
                       <Text code style={{ marginLeft: 4 }}>
-                        {p.envVar}
+                        {p.key}
                       </Text>
                     )}
                   </Tag>
@@ -301,8 +305,8 @@ export default function LangExtractPage() {
           layout="vertical"
           onFinish={handleExtract}
           initialValues={{
-            modelType: 'gemini',
-            modelId: 'gemini-2.5-flash',
+            modelType: 'openai',
+            modelId: 'minimax-m2.7',
             temperature: 0.3,
             extractionPasses: 1,
             maxCharBuffer: 1000,
@@ -312,18 +316,16 @@ export default function LangExtractPage() {
         >
           <Form.Item name="modelType" label="LLM Provider" rules={[{ required: true, message: 'Please select a provider' }]}>
             <Select
-              options={[
-                { label: 'Google Gemini', value: 'gemini' },
-                { label: 'OpenAI', value: 'openai' },
-                { label: 'Ollama (Local)', value: 'ollama' },
-              ]}
+              options={providers.map((p) => ({ label: p.label, value: p.type }))}
               onSelect={(val) => {
+                const prov = providers.find((p) => p.type === val);
                 const defaultModels: Record<string, string> = {
                   gemini: 'gemini-2.5-flash',
-                  openai: 'gpt-4o-mini',
+                  openai: prov?.defaultModel || 'minimax-m2.7',
                   ollama: 'llama3.2',
                 };
                 form.setFieldValue('modelId', defaultModels[val] || '');
+                setSelectedProviderKey(prov?.key || null);
               }}
             />
           </Form.Item>
