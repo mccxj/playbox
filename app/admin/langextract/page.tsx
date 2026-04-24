@@ -64,6 +64,8 @@ export default function LangExtractPage() {
   const [providers, setProviders] = useState<ProviderInfo[]>([]);
   const [providersLoading, setProvidersLoading] = useState(false);
   const [selectedProviderKey, setSelectedProviderKey] = useState<string | null>(null);
+  const [selectedModelType, setSelectedModelType] = useState<string>('openai');
+  const [warning, setWarning] = useState<string | null>(null);
 
   const fetchProviders = async () => {
     setProvidersLoading(true);
@@ -77,7 +79,10 @@ export default function LangExtractPage() {
       if (data.success && data.data) {
         setProviders(data.data.supportedProviders);
         const defaultProv = data.data.supportedProviders.find((p) => p.type === 'openai');
-        if (defaultProv) setSelectedProviderKey(defaultProv.key);
+        if (defaultProv) {
+          setSelectedProviderKey(defaultProv.key);
+          setSelectedModelType(defaultProv.type);
+        }
       }
     } catch {
       // Provider fetch failed silently
@@ -89,7 +94,7 @@ export default function LangExtractPage() {
   const handleExtract = async (values: {
     text: string;
     promptDescription: string;
-    modelType: string;
+    providerSelect: string;
     modelId?: string;
     apiKey?: string;
     temperature: number;
@@ -108,6 +113,7 @@ export default function LangExtractPage() {
     setLoading(true);
     setError(null);
     setResult(null);
+    setWarning(null);
 
     const sdkExamples = validExamples.map((ex) => ({
       text: ex.text,
@@ -137,7 +143,7 @@ export default function LangExtractPage() {
         body: JSON.stringify({
           text: values.text,
           promptDescription: values.promptDescription,
-          modelType: values.modelType,
+          modelType: selectedModelType,
           provider: selectedProviderKey || undefined,
           modelId: values.modelId,
           apiKey: values.apiKey || undefined,
@@ -156,12 +162,18 @@ export default function LangExtractPage() {
           extractions: ExtractionItem[];
           text?: string;
         };
+        warning?: string;
         error?: string;
       };
 
       if (data.success && data.data) {
         setResult(data.data);
-        message.success(`Found ${data.data.extractions.length} extractions`);
+        if (data.warning) {
+          setWarning(data.warning);
+          message.warning('No extractions found — check provider settings');
+        } else {
+          message.success(`Found ${data.data.extractions.length} extractions`);
+        }
       } else {
         setError(data.error || 'Extraction failed');
         message.error(data.error || 'Extraction failed');
@@ -258,8 +270,6 @@ export default function LangExtractPage() {
     );
   };
 
-  const _selectedModelType = Form.useWatch('modelType', form);
-
   return (
     <Space direction="vertical" style={{ width: '100%' }} size="middle">
       <Card
@@ -305,7 +315,7 @@ export default function LangExtractPage() {
           layout="vertical"
           onFinish={handleExtract}
           initialValues={{
-            modelType: 'openai',
+            providerSelect: '',
             modelId: 'minimax-m2.7',
             temperature: 0.3,
             extractionPasses: 1,
@@ -314,18 +324,17 @@ export default function LangExtractPage() {
             useSchemaConstraints: false,
           }}
         >
-          <Form.Item name="modelType" label="LLM Provider" rules={[{ required: true, message: 'Please select a provider' }]}>
+          <Form.Item name="providerSelect" label="Provider" rules={[{ required: true, message: 'Please select a provider' }]}>
             <Select
-              options={providers.map((p) => ({ label: p.label, value: p.type }))}
-              onSelect={(val) => {
-                const prov = providers.find((p) => p.type === val);
-                const defaultModels: Record<string, string> = {
-                  gemini: 'gemini-2.5-flash',
-                  openai: prov?.defaultModel || 'minimax-m2.7',
-                  ollama: 'llama3.2',
-                };
-                form.setFieldValue('modelId', defaultModels[val] || '');
-                setSelectedProviderKey(prov?.key || null);
+              placeholder="Select a provider..."
+              options={providers.map((p) => ({ label: `${p.label} (${p.type})`, value: p.key || p.type }))}
+              onSelect={(val: string) => {
+                const prov = providers.find((p) => (p.key || p.type) === val);
+                if (prov) {
+                  setSelectedProviderKey(prov.key);
+                  setSelectedModelType(prov.type);
+                  form.setFieldValue('modelId', prov.defaultModel);
+                }
               }}
             />
           </Form.Item>
@@ -492,6 +501,10 @@ export default function LangExtractPage() {
       </Card>
 
       {error && <Alert message="Extraction Error" description={error} type="error" showIcon closable onClose={() => setError(null)} />}
+
+      {warning && (
+        <Alert message="No Extractions Found" description={warning} type="warning" showIcon closable onClose={() => setWarning(null)} />
+      )}
 
       {result && (
         <Card

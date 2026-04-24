@@ -94,21 +94,51 @@ export async function POST(request: NextRequest) {
       maxCharBuffer,
       maxTokens,
       useSchemaConstraints,
+      debug: true, // Enable debug logging for better error visibility
     };
 
     if (apiKey) extractOptions.apiKey = apiKey;
     if (modelId) extractOptions.modelId = modelId;
 
-    if (modelType === 'ollama' && process.env.OLLAMA_BASE_URL) {
+    // Set baseURL/modelUrl from provider endpoint in DEFAULT_CONFIG
+    if (providerKey) {
+      const providerEntry = Object.entries(DEFAULT_CONFIG.providers).find(([, p]) => p.key === providerKey);
+      const providerEndpoint = providerEntry?.[1]?.endpoint;
+
+      if (modelType === 'openai' && providerEndpoint) {
+        extractOptions.baseURL = providerEndpoint;
+      }
+      if (modelType === 'ollama' && providerEndpoint) {
+        extractOptions.modelUrl = providerEndpoint;
+      }
+    }
+
+    // Fallback to environment variables if not set from config
+    if (modelType === 'ollama' && !extractOptions.modelUrl && process.env.OLLAMA_BASE_URL) {
       extractOptions.modelUrl = process.env.OLLAMA_BASE_URL;
     }
-    if (modelType === 'openai' && process.env.OPENAI_BASE_URL) {
+    if (modelType === 'openai' && !extractOptions.baseURL && process.env.OPENAI_BASE_URL) {
       extractOptions.baseURL = process.env.OPENAI_BASE_URL;
     }
 
     const result = await extract(text, extractOptions);
 
     const annotated = Array.isArray(result) ? result[0] : result;
+
+    // Check for empty extractions - likely caused by LLM call failure or alignment mismatch
+    const extractions = annotated.extractions || [];
+    if (extractions.length === 0) {
+      return createJsonResponse({
+        success: true,
+        data: {
+          extractions: [],
+          text: annotated.text,
+          documentId: annotated.documentId,
+        },
+        warning:
+          'No extractions found. This may be caused by: (1) LLM API call failed (wrong endpoint/key/model), (2) extracted text does not match source text exactly, or (3) the model returned malformed output. Check your provider endpoint, API key, and model ID.',
+      });
+    }
 
     return createJsonResponse({
       success: true,
