@@ -32,7 +32,6 @@ Playbox is a Next.js-based API gateway that translates between different AI prov
 │   │   │   ├── download/history/  # Download history
 │   │   │   └── analytics/  # Cloudflare Analytics Engine API
 │   │   ├── download/       # Download proxy endpoint
-│   │   └── gh/             # GitHub file proxy endpoint
 │   ├── admin/              # Admin UI (React + Ant Design)
 │   │   ├── kv/             # KV management UI
 │   │   ├── download/       # Download proxy management
@@ -69,7 +68,6 @@ Playbox is a Next.js-based API gateway that translates between different AI prov
 - **Admin Dashboard**: React + Ant Design UI for management
 - **Analytics**: Cloudflare Analytics Engine integration with Recharts visualizations
 - **Download Proxy**: Secure file downloads with SSRF protection
-- **GitHub Proxy**: GitHub file proxy with optional jsDelivr CDN rewriting
 
 ## Getting Started
 
