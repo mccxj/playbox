@@ -55,6 +55,9 @@ coverage/
 *.lcov
 lib-cov
 
+# Generated config (built from providers.jsonc)
+src/config/providers.json
+
 # Compiled files
 *.tgz
 *.tsbuildinfo
