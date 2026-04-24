@@ -1,12 +1,13 @@
 # PROJECT KNOWLEDGE BASE
 
-**Stack:** Next.js 15 + TypeScript + Vitest + Wrangler + Ant Design + Recharts
+**Stack:** Next.js 15 + TypeScript + Vitest + Wrangler + Ant Design + Recharts **Generated:** 2026-04-24 | **Commit:**
+2225e5c (main)
 
 ## OVERVIEW
 
 AI API Gateway & Protocol Converter — converts between AI provider protocols (OpenAI, Anthropic, Google, Gemini CLI) on
 Next.js with Cloudflare Workers deployment. Multi-protocol support with OAuth token management, D1 key storage, KV
-caching, R2 object storage, GitHub proxy, download proxy with SSRF protection, and Cloudflare Analytics Engine
+caching, R2 object storage, download proxy with SSRF protection, and Cloudflare Analytics Engine
 integration.
 
 ## STRUCTURE
@@ -93,8 +94,6 @@ integration.
 | Test factories                | `test/factories/`                 | Mock env, requests, providers                                                                  |
 | SSRF protection               | `src/utils/ssrf-protection.ts`    | `validateSafeUrl()` function                                                                   |
 | Download proxy                | `app/api/download/route.ts`       | File download with SSRF protection                                                             |
-| GitHub proxy                  | `app/api/gh/[...path]/route.ts`   | GitHub file proxy with jsDelivr CDN support                                                    |
-| GitHub proxy utils            | `src/utils/gh-proxy.ts`           | URL matching and rewriting                                                                     |
 | LLM key management            | `app/api/admin/llm-keys/`         | CRUD for LLM API keys                                                                          |
 | LLM key UI                    | `app/admin/llm-keys/`             | Key management interface                                                                       |
 | Short URL API                 | `app/api/admin/short-url/`        | Short URL CRUD + redirect                                                                      |
@@ -126,6 +125,8 @@ integration.
 - **Type-first**: All types in `src/types/`, imported via barrel exports
 - **Response helpers**: Use `createXResponse()` functions from `lib/response-helpers.ts`
 - **Middleware pattern**: Higher-order functions for auth, CORS, error handling
+- **Prettier**: `.prettierrc` — 140 char width, single quotes, 2-space tabs, LF endings
+- **EditorConfig**: `.editorconfig` — tab for all except YAML (space), trim trailing whitespace
 
 ## ANTI-PATTERNS (THIS PROJECT)
 
@@ -153,7 +154,6 @@ integration.
 - **Ant Design**: Admin UI uses Ant Design components
 - **Recharts**: Analytics dashboard uses Recharts for visualizations
 - **Analytics Engine**: Cloudflare Analytics Engine for API usage tracking
-- **GitHub proxy**: Proxies GitHub file downloads with optional jsDelivr CDN rewriting
 
 ## COMMANDS
 
@@ -174,15 +174,13 @@ npm test # Run Vitest tests
 - **Non-standard API paths**: Public API at `app/v1/` (not `app/api/v1/`)
 - **Gemini standard paths**: `/v1beta/models/{model}:generateContent` and `/v1beta/models/{model}:streamGenerateContent`
 - **Admin routes**: Admin API at `app/api/admin/`, UI at `app/admin/`
-- **Prettier config**: 140 char width, single quotes, 2-space tabs (not actual tabs), LF endings
 - **Test coverage**: 70% branches, 85% functions, 80% lines (enforced)
 - **SSRF protection**: Blocks private IPs, link-local, multicast, and blocked TLDs (.local, .internal, .localhost)
 - **D1 schema**: Managed via prisma/migrations/
 - **Cloudflare context**: Use `getCloudflareContext()` from `@opennextjs/cloudflare`
 - **Analytics**: Requires `ANALYTICS_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` secrets
-- **GitHub proxy**: Configured via `GH_PROXY_JSD_ENABLE` env var (0=disabled, 1=jsDelivr CDN) — **NOTE: Route not
   implemented**
-- **No ESLint**: Project uses Prettier only, no ESLint configured
+- **ESLint**: Uses `eslint.config.mjs` with TypeScript-ESLint, React, Prettier (not enforced in CI)
 - **Build entry**: `.open-next/worker.js` (OpenNext output), not `src/index.ts`
 - **Analytics Engine**: `PLAYBOX_EVENTS` binding for Cloudflare Analytics Engine
 - **D1 tables**: 6 tables — llm_api_keys, security_keys, download_history, api_test_history, short_urls, domains

@@ -2,7 +2,7 @@
 
 ## OVERVIEW
 
-Admin API endpoints for KV, D1 tables, analytics, downloads, and API testing with full CRUD and batch operations.
+Admin API endpoints for KV, D1 tables, analytics, downloads, API testing, and more with full CRUD and batch operations.
 
 ## STRUCTURE
 
@@ -33,6 +33,7 @@ api/admin/
 ├── short-url/route.ts              # Short URL CRUD (GET, POST, PUT, DELETE)
 ├── domains/route.ts                # Domain CRUD (GET, POST, PUT, DELETE)
 ├── email/route.ts                  # Email configuration (GET, PUT)
+├── langextract/route.ts            # Language extraction (GET, POST)
 ├── providers/route.ts              # Provider config (GET, POST, PUT, DELETE)
 ├── providers/speed-test/route.ts   # Provider speed test (POST)
 └── providers/models/route.ts       # Provider models (GET)
@@ -52,6 +53,7 @@ api/admin/
 | Short URL CRUD     | `short-url/`         | Create/resolve short URLs                                         |
 | Domain management  | `domains/`           | Domain CRUD                                                       |
 | Email config       | `email/`             | Email configuration (GET/PUT)                                     |
+| LangExtract        | `langextract/`       | Language extraction (GET/POST)                                    |
 | Provider config    | `providers/`         | Provider CRUD + speed test + models                               |
 | API test history   | `api-test/history/`  | Test execution history                                            |
 

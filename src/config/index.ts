@@ -13,6 +13,27 @@ export function getConfig(env: Cloudflare.Env): Config {
 
 export function resolveProvider(config: Config, model: string, family?: ProtocolFamily): ResolvedProvider {
   const realModel = model;
+
+  // New mode: prefixed model format (e.g., "doubao/ark-code-latest")
+  if (model.includes('/')) {
+    const colonIndex = model.indexOf('/');
+    const providerNameFromModel = model.substring(0, colonIndex);
+    const actualModelName = model.substring(colonIndex + 1);
+
+    // Check if this provider exists in config
+    if (config.providers[providerNameFromModel]) {
+      const provider = config.providers[providerNameFromModel];
+      // Validate model exists in provider's model list
+      if (provider.models && provider.models.includes(actualModelName)) {
+        // Valid new mode - use the prefixed provider and model
+        return { name: providerNameFromModel, provider, realModel: actualModelName };
+      }
+      // Model not in provider's list - treat as legacy mode (fall through)
+    }
+    // Provider doesn't exist or model not in list - fall through to legacy mode
+  }
+
+  // Legacy mode: search for model in all providers
   let fallbackProviderName: string | null = null;
 
   for (const [name, p] of Object.entries(config.providers)) {

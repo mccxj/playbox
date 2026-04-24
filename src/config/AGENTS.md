@@ -11,18 +11,20 @@ mapping.
 
 ```
 config/
-├── index.ts     # ConfigManager + resolveProvider()
-└── default.ts   # DEFAULT_CONFIG with provider definitions
+├── index.ts          # ConfigManager + resolveProvider()
+├── default.ts        # DEFAULT_CONFIG — loads from providers.json
+├── providers.jsonc   # Human-editable config with comments (source of truth)
+└── providers.json    # Generated from jsonc — do not edit directly
 ```
 
 ## WHERE TO LOOK
 
-| Task                    | Location        | Notes                        |
-| ----------------------- | --------------- | ---------------------------- |
-| Add new provider        | `default.ts`    | Add to `providers` object    |
-| Change default provider | `default.ts:83` | `default_provider` field     |
-| Modify resolution logic | `index.ts:12`   | `resolveProvider()` function |
-| Config interface        | `default.ts:7`  | `Config` type definition     |
+| Task                    | Location          | Notes                                    |
+| ----------------------- | ----------------- | ---------------------------------------- |
+| Add new provider        | `providers.jsonc` | Edit jsonc, run build to regenerate json |
+| Change default provider | `providers.jsonc` | Edit `default_provider` field            |
+| Modify resolution logic | `index.ts`        | `resolveProvider()` function             |
+| Config interface        | `default.ts`      | `Config` type definition                 |
 
 ## CONVENTIONS
 

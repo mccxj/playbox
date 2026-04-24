@@ -30,6 +30,5 @@
     }
   ],
   "vars": {
-    "GH_PROXY_JSD_ENABLE": "0"
   }
 }
