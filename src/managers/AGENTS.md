@@ -4,29 +4,30 @@
 
 ## OVERVIEW
 
-Core business logic for authentication and API key management. Handles token refresh, key rotation, and D1/KV caching.
+Core business logic for authentication and API key management. Handles request verification, token refresh, key
+rotation, and D1/KV caching.
 
 ## STRUCTURE
 
 ```
 managers/
-├── index.ts # Barrel exports
-├── auth.ts # API key verification
-└── key.ts # KeyManager: token refresh, D1/KV operations
+├── auth.ts # AuthManager: request verification (Bearer, x-api-key, x-goog-api-key)
+└── key.ts  # KeyManager: token refresh, D1/KV operations
 ```
 
 ## WHERE TO LOOK
 
-| Task             | Location | Notes                               |
-| ---------------- | -------- | ----------------------------------- |
-| Token refresh    | `key.ts` | `KeyManager.getValidAccessToken()`  |
-| API key rotation | `key.ts` | `KeyManager.getRandomApiKey()`      |
-| D1 key queries   | `key.ts` | `security_keys` table               |
-| KV caching       | `key.ts` | 300s TTL for keys, 3500s for tokens |
+| Task             | Location  | Notes                               |
+| ---------------- | --------- | ----------------------------------- |
+| Request auth     | `auth.ts` | `AuthManager.verify(request, env)`  |
+| Token refresh    | `key.ts`  | `KeyManager.getValidAccessToken()`  |
+| API key rotation | `key.ts`  | `KeyManager.getRandomApiKey()`      |
+| D1 key queries   | `key.ts`  | `security_keys` table               |
+| KV caching       | `key.ts`  | 300s TTL for keys, 3500s for tokens |
 
 ## CONVENTIONS
 
-- **Exported object**: `KeyManager` object with async methods
+- **Exported objects**: `KeyManager` and `AuthManager` objects with async methods
 - **KV caching**: Tokens cached in `PLAYBOX_KV` with TTL
 - **D1 storage**: API keys stored in D1 `security_keys` table
 - **Gemini OAuth**: Automatic token refresh with 3500s cache TTL

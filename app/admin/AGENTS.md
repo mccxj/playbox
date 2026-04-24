@@ -37,6 +37,8 @@ admin/
 │   └── page.tsx # Domain management page
 ├── email/ # Email configuration
 │   └── page.tsx # Email settings page
+├── langextract/ # Language extraction
+│   └── page.tsx # Language extraction UI
 └── types.ts # Shared admin types
 ```
 
@@ -59,6 +61,7 @@ admin/
 | Email settings       | `email/page.tsx`                 | Email configuration                                  |
 | R2 management        | `r2/page.tsx`                    | Object browser with prefix navigation                |
 | KV management        | `kv/page.tsx`                    | KV namespace management                              |
+| LangExtract          | `langextract/page.tsx`           | Language extraction UI                               |
 
 ## CONVENTIONS
 

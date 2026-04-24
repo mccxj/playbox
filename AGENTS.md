@@ -1,6 +1,7 @@
 # PROJECT KNOWLEDGE BASE
 
-**Stack:** Next.js 15 + TypeScript + Vitest + Wrangler + Ant Design + Recharts
+**Stack:** Next.js 15 + TypeScript + Vitest + Wrangler + Ant Design + Recharts **Generated:** 2026-04-24 | **Commit:**
+2225e5c (main)
 
 ## OVERVIEW
 
@@ -126,6 +127,8 @@ integration.
 - **Type-first**: All types in `src/types/`, imported via barrel exports
 - **Response helpers**: Use `createXResponse()` functions from `lib/response-helpers.ts`
 - **Middleware pattern**: Higher-order functions for auth, CORS, error handling
+- **Prettier**: `.prettierrc` — 140 char width, single quotes, 2-space tabs, LF endings
+- **EditorConfig**: `.editorconfig` — tab for all except YAML (space), trim trailing whitespace
 
 ## ANTI-PATTERNS (THIS PROJECT)
 
@@ -174,7 +177,6 @@ npm test # Run Vitest tests
 - **Non-standard API paths**: Public API at `app/v1/` (not `app/api/v1/`)
 - **Gemini standard paths**: `/v1beta/models/{model}:generateContent` and `/v1beta/models/{model}:streamGenerateContent`
 - **Admin routes**: Admin API at `app/api/admin/`, UI at `app/admin/`
-- **Prettier config**: 140 char width, single quotes, 2-space tabs (not actual tabs), LF endings
 - **Test coverage**: 70% branches, 85% functions, 80% lines (enforced)
 - **SSRF protection**: Blocks private IPs, link-local, multicast, and blocked TLDs (.local, .internal, .localhost)
 - **D1 schema**: Managed via prisma/migrations/
@@ -182,7 +184,7 @@ npm test # Run Vitest tests
 - **Analytics**: Requires `ANALYTICS_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` secrets
 - **GitHub proxy**: Configured via `GH_PROXY_JSD_ENABLE` env var (0=disabled, 1=jsDelivr CDN) — **NOTE: Route not
   implemented**
-- **No ESLint**: Project uses Prettier only, no ESLint configured
+- **ESLint**: Uses `eslint.config.mjs` with TypeScript-ESLint, React, Prettier (not enforced in CI)
 - **Build entry**: `.open-next/worker.js` (OpenNext output), not `src/index.ts`
 - **Analytics Engine**: `PLAYBOX_EVENTS` binding for Cloudflare Analytics Engine
 - **D1 tables**: 6 tables — llm_api_keys, security_keys, download_history, api_test_history, short_urls, domains
