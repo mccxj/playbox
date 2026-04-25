@@ -11,9 +11,10 @@
       "endpoint": "https://ollama.com",
       "key": "Ollama",
       "models": [
-        "glm-5.1",
+          "glm-5.1",
         "glm-4.7",
         "kimi-k2.6",
+        "minimax-m2.5",
         "minimax-m2.7",
         "glm-5",
         "qwen3-vl:235b",
@@ -42,22 +43,22 @@
     },
 
     // LongCat (Anthropic protocol)
-    "longcat_claude": {
-      "type": "anthropic",
-      "family": "anthropic",
-      "endpoint": "https://api.longcat.chat/anthropic",
-      "key": "LongCat",
-      "models": [
-        "LongCat-Flash-Chat",
-        "LongCat-Flash-Lite",
-        "LongCat-Flash-Thinking",
-        "LongCat-Pro-Preview",
-        "LongCat-Flash-Chat-2602-Exp",
-        "LongCat-2.0-Preview",
-        "Sphynx"
-      ],
-      "authType": "bearer"
-    },
+    // "longcat_claude": {
+    //   "type": "anthropic",
+    //   "family": "anthropic",
+    //   "endpoint": "https://api.longcat.chat/anthropic",
+    //   "key": "LongCat",
+    //   "models": [
+    //     "LongCat-Flash-Chat",
+    //     "LongCat-Flash-Lite",
+    //     "LongCat-Flash-Thinking",
+    //     "LongCat-Pro-Preview",
+    //     "LongCat-Flash-Chat-2602-Exp",
+    //     "LongCat-2.0-Preview",
+    //     "Sphynx"
+    //   ],
+    //   "authType": "bearer"
+    // },
 
     // Cerebras — high-speed inference
     // "cerebras": {
