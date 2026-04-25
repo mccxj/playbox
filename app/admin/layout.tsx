@@ -17,6 +17,7 @@ import {
   GlobalOutlined,
   LinkOutlined,
   ExperimentOutlined,
+  GithubOutlined,
 } from '@ant-design/icons';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -92,6 +93,11 @@ const menuItems = [
     icon: <LinkOutlined />,
     label: <Link href="/admin/short-url">Short URL</Link>,
   },
+  {
+    key: 'github-gists',
+    icon: <GithubOutlined />,
+    label: <Link href="/admin/github-gists">GitHub Gists</Link>,
+  },
 ];
 
 const PATH_KEY_MAP: Record<string, string> = {
@@ -107,6 +113,7 @@ const PATH_KEY_MAP: Record<string, string> = {
   'domains': 'domains',
   'langextract': 'langextract',
   'short-url': 'short-url',
+  'github-gists': 'github-gists',
 };
 
 const PAGE_TITLE_MAP: Record<string, string> = {
@@ -123,6 +130,7 @@ const PAGE_TITLE_MAP: Record<string, string> = {
   'domains': 'Domain Query',
   'langextract': 'LangExtract',
   'short-url': 'Short URL',
+  'github-gists': 'GitHub Gists',
 };
 
 const SIDER_STYLE = {
