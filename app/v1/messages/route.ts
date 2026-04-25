@@ -109,43 +109,20 @@ export async function POST(request: NextRequest) {
         throw new Error('Response body is null');
       }
 
-      // Wrapper stream to capture token usage at stream end
+      // Parse usage inline instead of tee()+background reader (race condition:
+      // flush() fired before background reader finished, losing analytics).
       let tokenUsage: TokenUsage | null = null;
+      const decoder = new TextDecoder();
       const tokenCaptureStream = new TransformStream({
         transform(chunk, controller) {
-          controller.enqueue(chunk);
-        },
-        flush() {
-          if (tokenUsage) {
-            (env as unknown as { PLAYBOX_EVENTS?: AnalyticsEngineDataset }).PLAYBOX_EVENTS?.writeDataPoint({
-              blobs: ['llm_api_tokens', requestedModel, providerName, 'stream'],
-              doubles: [tokenUsage.prompt_tokens, tokenUsage.completion_tokens, tokenUsage.total_tokens],
-              indexes: [apiKey],
-            });
-          }
-        },
-      });
-
-      // Create a tee stream: one for parsing usage, one for the response
-      const [streamForUsage, streamForResponse] = stream.tee();
-
-      // Parse usage data from the stream in background
-      (async () => {
-        const reader = streamForUsage.getReader();
-        const decoder = new TextDecoder();
-        let buffer = '';
-        try {
-          while (true) {
-            const { done, value } = await reader.read();
-            if (done) break;
-            buffer += decoder.decode(value, { stream: true });
-            const lines = buffer.split('\n');
+          // Anthropic streaming: message_delta event contains json.usage
+          try {
+            const text = decoder.decode(chunk, { stream: true });
+            const lines = text.split('\n');
             for (const line of lines) {
               if (line.startsWith('data: ') && line !== 'data: [DONE]') {
                 try {
-                  const jsonStr = line.slice(6);
-                  const json = JSON.parse(jsonStr);
-                  // Anthropic streaming format: message_delta event contains usage
+                  const json = JSON.parse(line.slice(6));
                   if (json.type === 'message_delta' && json.usage) {
                     tokenUsage = {
                       prompt_tokens: json.usage.input_tokens || 0,
@@ -158,15 +135,24 @@ export async function POST(request: NextRequest) {
                 }
               }
             }
+          } catch (_e) {
+            // Ignore decode errors
           }
-        } catch (_e) {
-          // Ignore errors in usage extraction
-        } finally {
-          reader.releaseLock();
-        }
-      })();
+          controller.enqueue(chunk);
+        },
+        flush() {
+          // transform() processes all chunks before flush(), so tokenUsage is set
+          if (tokenUsage) {
+            (env as unknown as { PLAYBOX_EVENTS?: AnalyticsEngineDataset }).PLAYBOX_EVENTS?.writeDataPoint({
+              blobs: ['llm_api_tokens', requestedModel, providerName, 'stream'],
+              doubles: [tokenUsage.prompt_tokens, tokenUsage.completion_tokens, tokenUsage.total_tokens],
+              indexes: [apiKey],
+            });
+          }
+        },
+      });
 
-      stream = streamForResponse.pipeThrough(upstreamProtocol.createToStandardStream(realModel));
+      stream = stream.pipeThrough(upstreamProtocol.createToStandardStream(realModel));
       stream = stream.pipeThrough(clientProtocol.createFromStandardStream());
       stream = stream.pipeThrough(tokenCaptureStream);
 
