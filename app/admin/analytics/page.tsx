@@ -171,7 +171,7 @@ export default function AnalyticsPage() {
     setDateRange([dayjs().subtract(days, 'day'), dayjs()]);
   };
 
-  const columns: ColumnsType<AnalyticsRow> = [
+  const _columns: ColumnsType<AnalyticsRow> = [
     {
       title: 'Model',
       dataIndex: 'model',
