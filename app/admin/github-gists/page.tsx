@@ -7,7 +7,6 @@ import {
   Table,
   Button,
   Space,
-  Spin,
   Alert,
   Popconfirm,
   message,
@@ -36,7 +35,7 @@ import {
 import type { ColumnsType } from 'antd/es/table';
 import dayjs from 'dayjs';
 
-const { Title, Text, Paragraph } = Typography;
+const { Title, Text } = Typography;
 const { TextArea } = Input;
 
 interface GistFile {
@@ -76,9 +75,9 @@ interface GistDetailResponse {
   error?: string;
 }
 
-interface GistContentResponse {
+interface GistDetailResponse {
   success: boolean;
-  content?: string;
+  gist?: Gist;
   error?: string;
 }
 
@@ -294,7 +293,7 @@ const CreateGistModal = dynamic(
       }) => {
         const [form] = Form.useForm();
         const [loading, setLoading] = useState(false);
-        const [files, setFiles] = useState<Array<{ filename: string; language: string; content: string }>>([
+        const [files, setFiles] = useState<{ filename: string; language: string; content: string }[]>([
           { filename: '', language: 'Text', content: '' },
         ]);
 
