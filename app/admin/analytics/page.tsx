@@ -62,6 +62,14 @@ interface ApiKeyTokenRow {
   total_tokens: number;
 }
 
+interface ApiKeyMergedRow {
+  api_key: string;
+  count: number;
+  prompt_tokens: number;
+  completion_tokens: number;
+  total_tokens: number;
+}
+
 const COLORS = ['#1890ff', '#52c41a', '#faad14', '#f5222d', '#722ed1', '#13c2c2', '#eb2f96', '#fa8c16'];
 
 const PIE_COLORS = ['#1890ff', '#52c41a', '#faad14', '#f5222d', '#722ed1', '#13c2c2'];
@@ -221,7 +229,7 @@ export default function AnalyticsPage() {
     },
   ];
 
-  const apiKeyColumns: ColumnsType<ApiKeyRow> = [
+  const apiKeyMergedColumns: ColumnsType<ApiKeyMergedRow> = [
     {
       title: 'API Key',
       dataIndex: 'api_key',
@@ -234,16 +242,6 @@ export default function AnalyticsPage() {
       key: 'count',
       render: (count: number) => count.toLocaleString(),
       sorter: (a, b) => a.count - b.count,
-      defaultSortOrder: 'descend',
-    },
-  ];
-
-  const apiKeyTokenColumns: ColumnsType<ApiKeyTokenRow> = [
-    {
-      title: 'API Key',
-      dataIndex: 'api_key',
-      key: 'api_key',
-      sorter: (a, b) => a.api_key.localeCompare(b.api_key),
     },
     {
       title: 'Prompt Tokens',
@@ -268,6 +266,19 @@ export default function AnalyticsPage() {
       defaultSortOrder: 'descend',
     },
   ];
+
+  const apiKeyMergedData = (() => {
+    const tokenMap = new Map(apiKeyTokenStats.map((r) => [r.api_key, r]));
+    const statsMap = new Map(apiKeyStats.map((r) => [r.api_key, r]));
+    const allKeys = new Set([...statsMap.keys(), ...tokenMap.keys()]);
+    return [...allKeys].map((key) => ({
+      api_key: key,
+      count: statsMap.get(key)?.count ?? 0,
+      prompt_tokens: tokenMap.get(key)?.prompt_tokens ?? 0,
+      completion_tokens: tokenMap.get(key)?.completion_tokens ?? 0,
+      total_tokens: tokenMap.get(key)?.total_tokens ?? 0,
+    }));
+  })();
 
   const modelPieData = aggregated
     .reduce(
@@ -568,18 +579,8 @@ export default function AnalyticsPage() {
 
           <Card title="API Key Statistics" bordered={false} style={{ marginBottom: 16 }}>
             <Table
-              columns={apiKeyColumns}
-              dataSource={apiKeyStats}
-              rowKey="api_key"
-              pagination={{ pageSize: 20, showSizeChanger: true, showTotal: (total) => `Total ${total} items` }}
-              scroll={{ x: 400 }}
-            />
-          </Card>
-
-          <Card title="API Key Token Statistics" bordered={false} style={{ marginBottom: 16 }}>
-            <Table
-              columns={apiKeyTokenColumns}
-              dataSource={apiKeyTokenStats}
+              columns={apiKeyMergedColumns}
+              dataSource={apiKeyMergedData}
               rowKey="api_key"
               pagination={{ pageSize: 20, showSizeChanger: true, showTotal: (total) => `Total ${total} items` }}
               scroll={{ x: 800 }}
