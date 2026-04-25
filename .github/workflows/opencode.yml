@@ -58,5 +58,5 @@ jobs:
           TAVILY_API_KEY: ${{ secrets.TAVILY_API_KEY }}
           CONTEXT7_API_KEY: ${{ secrets.CONTEXT7_API_KEY }}
         with:
-          model: x-openai/ark-code-latest
+          model: ${{ secrets.DEFAULT_MODEL || 'x-openai/ark-code-latest' }}
         timeout-minutes: 60

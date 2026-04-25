@@ -41,15 +41,23 @@
       ]
     },
 
-    // LongCat (Anthropic protocol) — disabled
-    // "longcat_claude": {
-    //   "type": "anthropic",
-    //   "family": "anthropic",
-    //   "endpoint": "https://api.longcat.chat/anthropic",
-    //   "key": "LongCat",
-    //   "models": ["LongCat-Flash-Chat", "LongCat-Flash-Lite", "LongCat-Flash-Thinking", "LongCat-Pro-Preview", "LongCat-Flash-Chat-2602-Exp", "Sphynx"],
-    //   "authType": "bearer"
-    // },
+    // LongCat (Anthropic protocol)
+    "longcat_claude": {
+      "type": "anthropic",
+      "family": "anthropic",
+      "endpoint": "https://api.longcat.chat/anthropic",
+      "key": "LongCat",
+      "models": [
+        "LongCat-Flash-Chat",
+        "LongCat-Flash-Lite",
+        "LongCat-Flash-Thinking",
+        "LongCat-Pro-Preview",
+        "LongCat-Flash-Chat-2602-Exp",
+        "LongCat-2.0-Preview",
+        "Sphynx"
+      ],
+      "authType": "bearer"
+    },
 
     // Cerebras — high-speed inference
     // "cerebras": {
