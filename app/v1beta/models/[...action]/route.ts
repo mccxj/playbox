@@ -7,7 +7,6 @@ import { ProtocolFactory } from '@/protocols';
 import type { Env } from '@/types';
 import { CORS_HEADERS } from '@/utils/constants';
 import { createLogger } from '@/utils/logger';
-import { maskApiKey } from '@/utils/mask-api-key';
 
 interface AnalyticsEngineDataset {
   writeDataPoint(event?: { blobs?: (string | ArrayBuffer | null)[]; doubles?: number[]; indexes?: (string | ArrayBuffer | null)[] }): void;
@@ -123,7 +122,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     const apiKey = extractApiKey(request) || 'anonymous';
     (env as unknown as { PLAYBOX_EVENTS?: AnalyticsEngineDataset }).PLAYBOX_EVENTS?.writeDataPoint({
       blobs: ['llm_api', `/v1beta/models/${requestedModel}:${action}`, requestedModel, isStream ? 'stream' : 'non-stream', providerName],
-      indexes: [maskApiKey(apiKey)],
+      indexes: [apiKey],
     });
 
     const protocol = ProtocolFactory.get(provider.type);
@@ -226,7 +225,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
             (env as unknown as { PLAYBOX_EVENTS?: AnalyticsEngineDataset }).PLAYBOX_EVENTS?.writeDataPoint({
               blobs: ['llm_api_tokens', requestedModel, providerName, 'stream'],
               doubles: [tokenUsage.prompt_tokens, tokenUsage.completion_tokens, tokenUsage.total_tokens],
-              indexes: [maskApiKey(apiKey)],
+              indexes: [apiKey],
             });
           }
         },
@@ -286,7 +285,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
         (env as unknown as { PLAYBOX_EVENTS?: AnalyticsEngineDataset }).PLAYBOX_EVENTS?.writeDataPoint({
           blobs: ['llm_api_tokens', requestedModel, providerName, 'non-stream'],
           doubles: [usageMetadata.promptTokenCount || 0, usageMetadata.candidatesTokenCount || 0, usageMetadata.totalTokenCount || 0],
-          indexes: [maskApiKey(apiKey)],
+          indexes: [apiKey],
         });
       }
 

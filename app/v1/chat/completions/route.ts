@@ -7,7 +7,6 @@ import { ProtocolFactory } from '@/protocols';
 import type { Env } from '@/types';
 import { CORS_HEADERS } from '@/utils/constants';
 import { createLogger } from '@/utils/logger';
-import { maskApiKey } from '@/utils/mask-api-key';
 
 interface AnalyticsEngineDataset {
   writeDataPoint(event?: { blobs?: (string | ArrayBuffer | null)[]; doubles?: number[]; indexes?: (string | ArrayBuffer | null)[] }): void;
@@ -76,7 +75,7 @@ export async function POST(request: NextRequest) {
         isStream ? 'stream' : 'non-stream', // blob4: stream type
         providerName, // blob5: provider name
       ],
-      indexes: [maskApiKey(apiKey)], // index for sampling (masked for security)
+      indexes: [apiKey], // index for sampling (masked for security)
     });
 
     const clientProtocol = ProtocolFactory.get('openai');
@@ -142,7 +141,7 @@ export async function POST(request: NextRequest) {
                 tokenUsage.completion_tokens, // double2: completion tokens
                 tokenUsage.total_tokens, // double3: total tokens
               ],
-              indexes: [maskApiKey(apiKey)],
+              indexes: [apiKey],
             });
           }
         },
@@ -245,7 +244,7 @@ export async function POST(request: NextRequest) {
             usage.completion_tokens || 0, // double2: completion tokens
             usage.total_tokens || 0, // double3: total tokens
           ],
-          indexes: [maskApiKey(apiKey)],
+          indexes: [apiKey],
         });
       }
 

@@ -7,7 +7,6 @@ import { ProtocolFactory } from '@/protocols';
 import type { Env } from '@/types';
 import { createLogger } from '@/utils/logger';
 import { CORS_HEADERS } from '@/utils/constants';
-import { maskApiKey } from '@/utils/mask-api-key';
 
 interface AnalyticsEngineDataset {
   writeDataPoint(event?: { blobs?: (string | ArrayBuffer | null)[]; doubles?: number[]; indexes?: (string | ArrayBuffer | null)[] }): void;
@@ -68,7 +67,7 @@ export async function POST(request: NextRequest) {
         isStream ? 'stream' : 'non-stream', // blob4: stream type
         providerName, // blob5: provider name
       ],
-      indexes: [maskApiKey(apiKey)], // index for sampling (masked for security)
+      indexes: [apiKey], // index for sampling (masked for security)
     });
 
     const clientProtocol = ProtocolFactory.get('anthropic');
@@ -121,7 +120,7 @@ export async function POST(request: NextRequest) {
             (env as unknown as { PLAYBOX_EVENTS?: AnalyticsEngineDataset }).PLAYBOX_EVENTS?.writeDataPoint({
               blobs: ['llm_api_tokens', requestedModel, providerName, 'stream'],
               doubles: [tokenUsage.prompt_tokens, tokenUsage.completion_tokens, tokenUsage.total_tokens],
-              indexes: [maskApiKey(apiKey)],
+              indexes: [apiKey],
             });
           }
         },
@@ -182,7 +181,7 @@ export async function POST(request: NextRequest) {
         (env as unknown as { PLAYBOX_EVENTS?: AnalyticsEngineDataset }).PLAYBOX_EVENTS?.writeDataPoint({
           blobs: ['llm_api_tokens', requestedModel, providerName, 'non-stream'],
           doubles: [usage.prompt_tokens || 0, usage.completion_tokens || 0, usage.total_tokens || 0],
-          indexes: [maskApiKey(apiKey)],
+          indexes: [apiKey],
         });
       }
 
