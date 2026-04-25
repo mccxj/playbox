@@ -50,6 +50,16 @@ interface TokenTimeSeriesRow {
   total_tokens: number;
 }
 
+interface ModelStatsRow {
+  model: string;
+  provider: string;
+  stream_types: string[];
+  count: number;
+  prompt_tokens: number;
+  completion_tokens: number;
+  total_tokens: number;
+}
+
 interface ApiKeyRow {
   api_key: string;
   count: number;
@@ -193,42 +203,6 @@ export default function AnalyticsPage() {
     },
   ];
 
-  const tokenColumns: ColumnsType<TokenRow> = [
-    {
-      title: 'Model',
-      dataIndex: 'model',
-      key: 'model',
-      sorter: (a, b) => a.model.localeCompare(b.model),
-    },
-    {
-      title: 'Provider',
-      dataIndex: 'provider',
-      key: 'provider',
-    },
-    {
-      title: 'Prompt Tokens',
-      dataIndex: 'prompt_tokens',
-      key: 'prompt_tokens',
-      render: (tokens: number) => formatNumber(tokens),
-      sorter: (a, b) => a.prompt_tokens - b.prompt_tokens,
-    },
-    {
-      title: 'Completion Tokens',
-      dataIndex: 'completion_tokens',
-      key: 'completion_tokens',
-      render: (tokens: number) => formatNumber(tokens),
-      sorter: (a, b) => a.completion_tokens - b.completion_tokens,
-    },
-    {
-      title: 'Total Tokens',
-      dataIndex: 'total_tokens',
-      key: 'total_tokens',
-      render: (tokens: number) => formatNumber(tokens),
-      sorter: (a, b) => a.total_tokens - b.total_tokens,
-      defaultSortOrder: 'descend',
-    },
-  ];
-
   const apiKeyMergedColumns: ColumnsType<ApiKeyMergedRow> = [
     {
       title: 'API Key',
@@ -266,6 +240,94 @@ export default function AnalyticsPage() {
       defaultSortOrder: 'descend',
     },
   ];
+
+  const modelStatsColumns: ColumnsType<ModelStatsRow> = [
+    {
+      title: 'Model',
+      dataIndex: 'model',
+      key: 'model',
+      sorter: (a, b) => a.model.localeCompare(b.model),
+    },
+    {
+      title: 'Provider',
+      dataIndex: 'provider',
+      key: 'provider',
+    },
+    {
+      title: 'Stream Types',
+      dataIndex: 'stream_types',
+      key: 'stream_types',
+      render: (types: string[]) => types.join(', '),
+    },
+    {
+      title: 'Requests',
+      dataIndex: 'count',
+      key: 'count',
+      render: (count: number) => count.toLocaleString(),
+      sorter: (a, b) => a.count - b.count,
+    },
+    {
+      title: 'Prompt Tokens',
+      dataIndex: 'prompt_tokens',
+      key: 'prompt_tokens',
+      render: (tokens: number) => formatNumber(tokens),
+      sorter: (a, b) => a.prompt_tokens - b.prompt_tokens,
+    },
+    {
+      title: 'Completion Tokens',
+      dataIndex: 'completion_tokens',
+      key: 'completion_tokens',
+      render: (tokens: number) => formatNumber(tokens),
+      sorter: (a, b) => a.completion_tokens - b.completion_tokens,
+    },
+    {
+      title: 'Total Tokens',
+      dataIndex: 'total_tokens',
+      key: 'total_tokens',
+      render: (tokens: number) => formatNumber(tokens),
+      sorter: (a, b) => a.total_tokens - b.total_tokens,
+      defaultSortOrder: 'descend',
+    },
+  ];
+
+  // Merge aggregated (Detailed Statistics) with tokenStats (Token Statistics)
+  const modelStatsData = (() => {
+    // Aggregate detailed stats by model+provider
+    const detailMap = new Map<string, { count: number; stream_types: string[] }>();
+    aggregated.forEach((row) => {
+      const key = `${row.model}|${row.provider}`;
+      const existing = detailMap.get(key);
+      if (existing) {
+        existing.count += row.count;
+        if (!existing.stream_types.includes(row.stream_type)) {
+          existing.stream_types.push(row.stream_type);
+        }
+      } else {
+        detailMap.set(key, { count: row.count, stream_types: [row.stream_type] });
+      }
+    });
+
+    // Merge with token stats
+    const tokenMap = new Map(tokenStats.map((r) => [`${r.model}|${r.provider}`, r]));
+    const allKeys = Array.from(new Set([...detailMap.keys(), ...tokenMap.keys()]));
+    return allKeys
+      .map((key): ModelStatsRow => {
+        const [model, provider] = key.split('|');
+        const detail = detailMap.get(key);
+        const token = tokenMap.get(key);
+        return {
+          model,
+          provider,
+          stream_types: detail?.stream_types ?? [],
+          count: detail?.count ?? 0,
+          prompt_tokens: token?.prompt_tokens ?? 0,
+          completion_tokens: token?.completion_tokens ?? 0,
+          total_tokens: token?.total_tokens ?? 0,
+        };
+      })
+      .filter((row) => row.count > 0 || row.total_tokens > 0)
+      .sort((a, b) => b.total_tokens - a.total_tokens);
+  })();
 
   const apiKeyMergedData = (() => {
     const tokenMap = new Map(apiKeyTokenStats.map((r) => [r.api_key, r]));
@@ -587,23 +649,13 @@ export default function AnalyticsPage() {
             />
           </Card>
 
-          <Card title="Token Statistics" bordered={false} style={{ marginBottom: 16 }}>
+          <Card title="Model Statistics" bordered={false}>
             <Table
-              columns={tokenColumns}
-              dataSource={tokenStats}
+              columns={modelStatsColumns}
+              dataSource={modelStatsData}
               rowKey={(record) => `${record.model}-${record.provider}`}
               pagination={{ pageSize: 20, showSizeChanger: true, showTotal: (total) => `Total ${total} items` }}
-              scroll={{ x: 800 }}
-            />
-          </Card>
-
-          <Card title="Detailed Statistics" bordered={false}>
-            <Table
-              columns={columns}
-              dataSource={aggregated}
-              rowKey={(record) => `${record.model}-${record.stream_type}-${record.provider}`}
-              pagination={{ pageSize: 20, showSizeChanger: true, showTotal: (total) => `Total ${total} items` }}
-              scroll={{ x: 600 }}
+              scroll={{ x: 900 }}
             />
           </Card>
         </>
