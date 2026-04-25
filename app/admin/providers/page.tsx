@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { Card, Collapse, Table, Tag, Space, Button, Spin, Alert, Tooltip, Input } from 'antd';
+import { Card, Collapse, Table, Tag, Space, Button, Spin, Alert, Tooltip, Modal, Input } from 'antd';
 import {
   ApiOutlined,
   CheckCircleOutlined,
@@ -9,6 +9,7 @@ import {
   ThunderboltOutlined,
   LoadingOutlined,
   SearchOutlined,
+  AppstoreOutlined,
 } from '@ant-design/icons';
 
 const { Panel } = Collapse;
@@ -36,6 +37,16 @@ interface ProvidersResponse {
     anthropic: ProviderModels[];
     gemini: ProviderModels[];
   };
+}
+
+interface AllModelsResponse {
+  success: boolean;
+  provider: string;
+  family: string;
+  endpoint: string;
+  configuredModels: string[];
+  models: ModelInfo[];
+  error?: string;
 }
 
 interface SpeedTestState {
@@ -74,6 +85,14 @@ export default function ProvidersPage() {
   const [batchTestingProvider, setBatchTestingProvider] = useState<string | null>(null);
   const [modelSearchTerms, setModelSearchTerms] = useState<ModelSearchState>({});
   const abortRef = useRef(false);
+
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalProvider, setModalProvider] = useState<ProviderModels | null>(null);
+  const [modalLoading, setModalLoading] = useState(false);
+  const [modalError, setModalError] = useState<string | null>(null);
+  const [modalModels, setModalModels] = useState<ModelInfo[]>([]);
+  const [modalConfiguredModels, setModalConfiguredModels] = useState<string[]>([]);
+  const [modalSearchTerm, setModalSearchTerm] = useState('');
 
   const fetchProviders = useCallback(async () => {
     setLoading(true);
@@ -170,6 +189,36 @@ export default function ProvidersPage() {
 
   const getProviderKey = (provider: string, family: string) => `${family}:${provider}`;
 
+  const openModal = useCallback(async (record: ProviderModels) => {
+    setModalProvider(record);
+    setModalOpen(true);
+    setModalLoading(true);
+    setModalError(null);
+    setModalModels([]);
+    setModalConfiguredModels([]);
+    setModalSearchTerm('');
+
+    try {
+      const response = await fetch(`/api/admin/providers/models/${encodeURIComponent(record.provider)}`);
+      const json = (await response.json()) as AllModelsResponse;
+      if (json.success) {
+        setModalModels(json.models || []);
+        setModalConfiguredModels(json.configuredModels || []);
+      } else {
+        setModalError(json.error || 'Failed to fetch models');
+      }
+    } catch (err) {
+      setModalError((err as Error).message);
+    } finally {
+      setModalLoading(false);
+    }
+  }, []);
+
+  const closeModal = useCallback(() => {
+    setModalOpen(false);
+    setModalProvider(null);
+  }, []);
+
   const renderSpeedTestResult = (provider: string, model: string) => {
     const key = speedTestKey(provider, model);
     const result = speedTestResults[key];
@@ -264,10 +313,14 @@ export default function ProvidersPage() {
         ),
     },
     {
-      title: 'Fetched Models',
-      dataIndex: 'fetched',
-      key: 'fetched',
-      render: (fetched?: ModelInfo[]) => <Tag color={fetched?.length ? 'cyan' : 'default'}>{fetched?.length || 0} models</Tag>,
+      title: '全部模型',
+      key: 'all-models',
+      width: 120,
+      render: (_: unknown, record: ProviderModels) => (
+        <Button size="small" icon={<AppstoreOutlined />} onClick={() => openModal(record)}>
+          全部模型
+        </Button>
+      ),
     },
     {
       title: '测速',
@@ -290,33 +343,18 @@ export default function ProvidersPage() {
     },
   ];
 
-  const modelColumns = (providerName: string, configuredModels: string[]) => [
+  const configuredModelColumns = (providerName: string) => [
     {
       title: 'Model ID',
       dataIndex: 'id',
       key: 'id',
-      render: (text: string) => (
-        <Space>
-          <code style={{ fontSize: '12px' }}>{text}</code>
-          {configuredModels.includes(text) && (
-            <Tag color="green" style={{ marginLeft: 4 }}>
-              Configured
-            </Tag>
-          )}
-        </Space>
-      ),
-    },
-    {
-      title: 'Owner',
-      dataIndex: 'owned_by',
-      key: 'owned_by',
-      render: (text?: string) => (text ? <Tag>{text}</Tag> : '-'),
+      render: (text: string) => <code style={{ fontSize: '12px' }}>{text}</code>,
     },
     {
       title: '测速',
       key: 'speed-test',
       width: 140,
-      render: (_: unknown, record: ModelInfo) => renderSpeedTestResult(providerName, record.id),
+      render: (_: unknown, record: { id: string }) => renderSpeedTestResult(providerName, record.id),
     },
   ];
 
@@ -340,23 +378,20 @@ export default function ProvidersPage() {
         expandable={{
           expandedRowRender: (record) => {
             const configuredModels = record.models || [];
-            const fetchedModels = record.fetched || [];
-            const fetchedIds = fetchedModels.map((m) => m.id);
-            const missingModels = configuredModels.filter((m) => !fetchedIds.includes(m));
             const providerKey = getProviderKey(record.provider, record.provider);
             const searchTerm = modelSearchTerms[providerKey] || '';
-            const filteredFetchedModels = filterModels(fetchedModels, searchTerm);
-            const filteredConfiguredModels = configuredModels.filter((m) => m.toLowerCase().includes(searchTerm.toLowerCase()));
-            const displayModels =
-              fetchedModels.length > 0 ? filteredFetchedModels : filteredConfiguredModels.map((m: string) => ({ id: m, object: 'model' }));
+            const filteredModels = searchTerm.trim()
+              ? configuredModels.filter((m) => m.toLowerCase().includes(searchTerm.toLowerCase()))
+              : configuredModels;
+            const displayModels = filteredModels.map((m) => ({ id: m }));
 
             return (
               <div style={{ margin: '8px 0' }}>
                 <div style={{ marginBottom: '8px', fontWeight: 500, display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <span>Models:</span>
+                  <span>已配置模型:</span>
                   <Input
                     prefix={<SearchOutlined style={{ color: '#bfbfbf' }} />}
-                    placeholder="Search model ID..."
+                    placeholder="搜索模型 ID..."
                     value={searchTerm}
                     onChange={(e) => handleModelSearch(providerKey, e.target.value)}
                     style={{ width: 200 }}
@@ -365,25 +400,13 @@ export default function ProvidersPage() {
                   />
                   {searchTerm && (
                     <span style={{ color: '#666', fontSize: '12px' }}>
-                      ({displayModels.length} of {fetchedModels.length > 0 ? fetchedModels.length : configuredModels.length})
+                      ({filteredModels.length} of {configuredModels.length})
                     </span>
                   )}
                 </div>
-                {missingModels.length > 0 && (
-                  <div
-                    style={{ marginBottom: '8px', padding: '8px', background: '#fff7e6', border: '1px solid #ffd591', borderRadius: '4px' }}
-                  >
-                    <span style={{ color: '#d46b08' }}>⚠️ Configured models not in API response: </span>
-                    {missingModels.map((m) => (
-                      <Tag key={m} color="orange">
-                        {m}
-                      </Tag>
-                    ))}
-                  </div>
-                )}
                 <Table
                   dataSource={displayModels}
-                  columns={modelColumns(record.provider, configuredModels)}
+                  columns={configuredModelColumns(record.provider)}
                   rowKey="id"
                   pagination={false}
                   size="small"
@@ -392,7 +415,7 @@ export default function ProvidersPage() {
               </div>
             );
           },
-          rowExpandable: (record) => (record.fetched?.length || record.models?.length || 0) > 0,
+          rowExpandable: (record) => (record.models?.length || 0) > 0,
         }}
       />
     </Panel>
@@ -412,6 +435,91 @@ export default function ProvidersPage() {
           {renderFamilyPanel('gemini', data.providers.gemini)}
         </Collapse>
       </Card>
+
+      <Modal
+        title={
+          modalProvider ? (
+            <Space>
+              <AppstoreOutlined />
+              <span>{modalProvider.provider} - 全部模型</span>
+              <Tag color={familyColors[modalProvider.family]}>{familyLabels[modalProvider.family]}</Tag>
+            </Space>
+          ) : (
+            '全部模型'
+          )
+        }
+        open={modalOpen}
+        onCancel={closeModal}
+        footer={null}
+        width={800}
+        destroyOnClose
+      >
+        {modalLoading ? (
+          <div style={{ display: 'flex', justifyContent: 'center', padding: '40px 0' }}>
+            <Spin size="large" tip="正在获取模型列表..." />
+          </div>
+        ) : modalError ? (
+          <Alert message="获取模型失败" description={modalError} type="error" showIcon />
+        ) : (
+          <div>
+            <div style={{ marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Input
+                prefix={<SearchOutlined style={{ color: '#bfbfbf' }} />}
+                placeholder="搜索模型 ID..."
+                value={modalSearchTerm}
+                onChange={(e) => setModalSearchTerm(e.target.value)}
+                style={{ width: 250 }}
+                allowClear
+                size="small"
+              />
+              {modalSearchTerm && (
+                <span style={{ color: '#666', fontSize: '12px' }}>
+                  ({filterModels(modalModels, modalSearchTerm).length} of {modalModels.length})
+                </span>
+              )}
+              <div style={{ flex: 1 }} />
+              <Tag color="blue">{modalConfiguredModels.length} configured</Tag>
+              <Tag color="cyan">{modalModels.length} total</Tag>
+            </div>
+            <Table
+              dataSource={filterModels(modalModels, modalSearchTerm)}
+              columns={[
+                {
+                  title: 'Model ID',
+                  dataIndex: 'id',
+                  key: 'id',
+                  render: (text: string) => (
+                    <Space>
+                      <code style={{ fontSize: '12px' }}>{text}</code>
+                      {modalConfiguredModels.includes(text) && (
+                        <Tag color="green" style={{ marginLeft: 4 }}>
+                          Configured
+                        </Tag>
+                      )}
+                    </Space>
+                  ),
+                },
+                {
+                  title: 'Owner',
+                  dataIndex: 'owned_by',
+                  key: 'owned_by',
+                  render: (text?: string) => (text ? <Tag>{text}</Tag> : '-'),
+                },
+                {
+                  title: '测速',
+                  key: 'speed-test',
+                  width: 140,
+                  render: (_: unknown, record: ModelInfo) =>
+                    modalProvider ? renderSpeedTestResult(modalProvider.provider, record.id) : null,
+                },
+              ]}
+              rowKey="id"
+              pagination={{ pageSize: 20, size: 'small' }}
+              size="small"
+            />
+          </div>
+        )}
+      </Modal>
     </div>
   );
 }
