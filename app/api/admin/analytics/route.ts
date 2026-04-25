@@ -133,26 +133,26 @@ export async function GET(request: NextRequest) {
 
   const apiKeyQuery = `
   SELECT
-    indexes AS api_key,
+    index1 AS api_key,
     SUM(_sample_interval) AS count
   FROM playbox_events
   WHERE ${timeCondition}
   AND blob1 = 'llm_api'
-  GROUP BY api_key
+  GROUP BY index1
   ORDER BY count DESC
   LIMIT 100
   `;
 
   const apiKeyTokenQuery = `
   SELECT
-    indexes AS api_key,
+    index1 AS api_key,
     SUM(double1) AS prompt_tokens,
     SUM(double2) AS completion_tokens,
     SUM(double3) AS total_tokens
   FROM playbox_events
   WHERE ${timeCondition}
   AND blob1 = 'llm_api_tokens'
-  GROUP BY api_key
+  GROUP BY index1
   ORDER BY total_tokens DESC
   LIMIT 100
   `;
