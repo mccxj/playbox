@@ -87,6 +87,12 @@ export async function POST(request: NextRequest) {
     // Replace model name with resolved model (handles aliases)
     upstreamRequest.model = realModel;
 
+    // Ensure upstream returns usage in streaming responses
+    // (OpenAI spec requires stream_options.include_usage for usage in SSE chunks)
+    if (isStream) {
+      upstreamRequest.stream_options = { include_usage: true };
+    }
+
     const MAX_ATTEMPTS = upstreamProtocol.getAttempt();
     let lastResponse: Response | undefined;
 
@@ -120,14 +126,39 @@ export async function POST(request: NextRequest) {
         throw new Error('Response body is null');
       }
 
-      // Wrapper stream to capture token usage at stream end
+      // Parse usage inline instead of tee()+background reader (race condition:
+      // flush() fired before background reader finished, losing analytics).
       let tokenUsage: TokenUsage | null = null;
+      const decoder = new TextDecoder();
       const tokenCaptureStream = new TransformStream({
         transform(chunk, controller) {
+          // OpenAI streaming: last chunk before [DONE] contains json.usage
+          try {
+            const text = decoder.decode(chunk, { stream: true });
+            const lines = text.split('\n');
+            for (const line of lines) {
+              if (line.startsWith('data: ') && line !== 'data: [DONE]') {
+                try {
+                  const json = JSON.parse(line.slice(6));
+                  if (json.usage) {
+                    tokenUsage = {
+                      prompt_tokens: json.usage.prompt_tokens || 0,
+                      completion_tokens: json.usage.completion_tokens || 0,
+                      total_tokens: json.usage.total_tokens || 0,
+                    };
+                  }
+                } catch (_e) {
+                  // Ignore parse errors for individual lines
+                }
+              }
+            }
+          } catch (_e) {
+            // Ignore decode errors
+          }
           controller.enqueue(chunk);
         },
         flush() {
-          // Record token analytics when stream ends
+          // transform() processes all chunks before flush(), so tokenUsage is set
           if (tokenUsage) {
             (env as unknown as { PLAYBOX_EVENTS?: AnalyticsEngineDataset }).PLAYBOX_EVENTS?.writeDataPoint({
               blobs: [
@@ -147,51 +178,7 @@ export async function POST(request: NextRequest) {
         },
       });
 
-      // Create a tee stream: one for parsing usage, one for the response
-      const [streamForUsage, streamForResponse] = stream.tee();
-
-      // Parse usage data from the stream in background
-      (async () => {
-        const reader = streamForUsage.getReader();
-        const decoder = new TextDecoder();
-        let buffer = '';
-        try {
-          while (true) {
-            const { done, value } = await reader.read();
-            if (done) break;
-            buffer += decoder.decode(value, { stream: true });
-            // Try to extract usage from final chunks
-            // OpenAI format: last chunk before [DONE] contains usage
-            // Anthropic format: message_delta event contains usage
-            // Google/Gemini: check for usageMetadata in final response
-            const lines = buffer.split('\n');
-            for (const line of lines) {
-              if (line.startsWith('data: ') && line !== 'data: [DONE]') {
-                try {
-                  const jsonStr = line.slice(6);
-                  const json = JSON.parse(jsonStr);
-                  // OpenAI streaming format (stream_options.include_usage)
-                  if (json.usage) {
-                    tokenUsage = {
-                      prompt_tokens: json.usage.prompt_tokens || 0,
-                      completion_tokens: json.usage.completion_tokens || 0,
-                      total_tokens: json.usage.total_tokens || 0,
-                    };
-                  }
-                } catch (_e) {
-                  // Ignore parse errors
-                }
-              }
-            }
-          }
-        } catch (_e) {
-          // Ignore errors in usage extraction
-        } finally {
-          reader.releaseLock();
-        }
-      })();
-
-      stream = streamForResponse.pipeThrough(upstreamProtocol.createToStandardStream(realModel));
+      stream = stream.pipeThrough(upstreamProtocol.createToStandardStream(realModel));
       stream = stream.pipeThrough(clientProtocol.createFromStandardStream());
       stream = stream.pipeThrough(tokenCaptureStream);
 

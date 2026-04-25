@@ -214,43 +214,20 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     if (isStream && lastResponse?.body) {
       let stream = lastResponse.body;
 
-      // Wrapper stream to capture token usage at stream end
+      // Parse usage inline instead of tee()+background reader (race condition:
+      // flush() fired before background reader finished, losing analytics).
       let tokenUsage: TokenUsage | null = null;
+      const decoder = new TextDecoder();
       const tokenCaptureStream = new TransformStream({
         transform(chunk, controller) {
-          controller.enqueue(chunk);
-        },
-        flush() {
-          if (tokenUsage) {
-            (env as unknown as { PLAYBOX_EVENTS?: AnalyticsEngineDataset }).PLAYBOX_EVENTS?.writeDataPoint({
-              blobs: ['llm_api_tokens', requestedModel, providerName, 'stream'],
-              doubles: [tokenUsage.prompt_tokens, tokenUsage.completion_tokens, tokenUsage.total_tokens],
-              indexes: [apiKey],
-            });
-          }
-        },
-      });
-
-      // Create a tee stream: one for parsing usage, one for the response
-      const [streamForUsage, streamForResponse] = stream.tee();
-
-      // Parse usage data from the stream in background
-      (async () => {
-        const reader = streamForUsage.getReader();
-        const decoder = new TextDecoder();
-        let buffer = '';
-        try {
-          while (true) {
-            const { done, value } = await reader.read();
-            if (done) break;
-            buffer += decoder.decode(value, { stream: true });
-            // Gemini streaming format: final chunk contains usageMetadata
-            const lines = buffer.split('\n');
+          // Gemini streaming: final chunk contains json.usageMetadata
+          try {
+            const text = decoder.decode(chunk, { stream: true });
+            const lines = text.split('\n');
             for (const line of lines) {
               if (line.startsWith('data: ') && line !== 'data: [DONE]') {
                 try {
-                  const jsonStr = line.slice(6);
-                  const json = JSON.parse(jsonStr);
+                  const json = JSON.parse(line.slice(6));
                   if (json.usageMetadata) {
                     tokenUsage = {
                       prompt_tokens: json.usageMetadata.promptTokenCount || 0,
@@ -263,15 +240,24 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
                 }
               }
             }
+          } catch (_e) {
+            // Ignore decode errors
           }
-        } catch (_e) {
-          // Ignore errors in usage extraction
-        } finally {
-          reader.releaseLock();
-        }
-      })();
+          controller.enqueue(chunk);
+        },
+        flush() {
+          // transform() processes all chunks before flush(), so tokenUsage is set
+          if (tokenUsage) {
+            (env as unknown as { PLAYBOX_EVENTS?: AnalyticsEngineDataset }).PLAYBOX_EVENTS?.writeDataPoint({
+              blobs: ['llm_api_tokens', requestedModel, providerName, 'stream'],
+              doubles: [tokenUsage.prompt_tokens, tokenUsage.completion_tokens, tokenUsage.total_tokens],
+              indexes: [apiKey],
+            });
+          }
+        },
+      });
 
-      stream = streamForResponse.pipeThrough(tokenCaptureStream);
+      stream = stream.pipeThrough(tokenCaptureStream);
 
       return new Response(stream, { headers: { ...resHeaders, 'Cache-Control': 'no-cache', 'Connection': 'keep-alive' } });
     }
