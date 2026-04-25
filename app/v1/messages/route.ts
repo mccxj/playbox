@@ -1,6 +1,6 @@
 import { NextRequest } from 'next/server';
 import { getCloudflareContext } from '@opennextjs/cloudflare';
-import { authenticate, createUnauthorizedResponse } from '@/lib/auth';
+import { authenticate, createUnauthorizedResponse, extractApiKey } from '@/lib/auth';
 import { createInternalErrorResponse } from '@/lib/response-helpers';
 import { getConfig, resolveProvider } from '@/config';
 import { ProtocolFactory } from '@/protocols';
@@ -58,7 +58,7 @@ export async function POST(request: NextRequest) {
     logger.info('Request routed', { model: requestedModel, realModel, isStream, providerName, providerType: provider.type });
 
     // Record analytics data point (async, non-blocking)
-    const apiKey = request.headers.get('x-api-key') || request.headers.get('Authorization')?.replace('Bearer ', '') || 'anonymous';
+    const apiKey = extractApiKey(request) || 'anonymous';
     (env as unknown as { PLAYBOX_EVENTS?: AnalyticsEngineDataset }).PLAYBOX_EVENTS?.writeDataPoint({
       blobs: [
         'llm_api', // blob1: fixed tag for filtering
@@ -67,7 +67,7 @@ export async function POST(request: NextRequest) {
         isStream ? 'stream' : 'non-stream', // blob4: stream type
         providerName, // blob5: provider name
       ],
-      indexes: [apiKey], // index for sampling
+      indexes: [apiKey], // index for sampling (masked for security)
     });
 
     const clientProtocol = ProtocolFactory.get('anthropic');
@@ -82,9 +82,9 @@ export async function POST(request: NextRequest) {
     const MAX_ATTEMPTS = upstreamProtocol.getAttempt();
     let lastResponse: Response | undefined;
     for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
-      const apiKey = await upstreamProtocol.getApiKey(env, provider, ctx);
-      const fetchUrl = await upstreamProtocol.getEndpoint(provider, realModel, isStream, apiKey);
-      const fetchHeaders = await upstreamProtocol.getHeaders(provider, env, ctx, apiKey);
+      const upstreamApiKey = await upstreamProtocol.getApiKey(env, provider, ctx);
+      const fetchUrl = await upstreamProtocol.getEndpoint(provider, realModel, isStream, upstreamApiKey);
+      const fetchHeaders = await upstreamProtocol.getHeaders(provider, env, ctx, upstreamApiKey);
       lastResponse = await fetch(fetchUrl, {
         method: 'POST',
         headers: fetchHeaders,
