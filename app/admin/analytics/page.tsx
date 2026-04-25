@@ -50,6 +50,18 @@ interface TokenTimeSeriesRow {
   total_tokens: number;
 }
 
+interface ApiKeyRow {
+  api_key: string;
+  count: number;
+}
+
+interface ApiKeyTokenRow {
+  api_key: string;
+  prompt_tokens: number;
+  completion_tokens: number;
+  total_tokens: number;
+}
+
 const COLORS = ['#1890ff', '#52c41a', '#faad14', '#f5222d', '#722ed1', '#13c2c2', '#eb2f96', '#fa8c16'];
 
 const PIE_COLORS = ['#1890ff', '#52c41a', '#faad14', '#f5222d', '#722ed1', '#13c2c2'];
@@ -79,6 +91,8 @@ export default function AnalyticsPage() {
   const [totalPromptTokens, setTotalPromptTokens] = useState(0);
   const [totalCompletionTokens, setTotalCompletionTokens] = useState(0);
   const [dateRange, setDateRange] = useState<[dayjs.Dayjs, dayjs.Dayjs]>([dayjs().subtract(1, 'day'), dayjs()]);
+  const [apiKeyStats, setApiKeyStats] = useState<ApiKeyRow[]>([]);
+  const [apiKeyTokenStats, setApiKeyTokenStats] = useState<ApiKeyTokenRow[]>([]);
 
   const fetchAnalytics = useCallback(async () => {
     setLoading(true);
@@ -99,6 +113,8 @@ export default function AnalyticsPage() {
         totalTokens?: number;
         totalPromptTokens?: number;
         totalCompletionTokens?: number;
+        apiKeyStats?: ApiKeyRow[];
+        apiKeyTokenStats?: ApiKeyTokenRow[];
         error?: string;
       };
 
@@ -111,6 +127,8 @@ export default function AnalyticsPage() {
         setTotalTokens(result.totalTokens || 0);
         setTotalPromptTokens(result.totalPromptTokens || 0);
         setTotalCompletionTokens(result.totalCompletionTokens || 0);
+        setApiKeyStats(result.apiKeyStats || []);
+        setApiKeyTokenStats(result.apiKeyTokenStats || []);
       } else {
         setError(result.error || 'Failed to fetch analytics');
       }
@@ -178,6 +196,54 @@ export default function AnalyticsPage() {
       title: 'Provider',
       dataIndex: 'provider',
       key: 'provider',
+    },
+    {
+      title: 'Prompt Tokens',
+      dataIndex: 'prompt_tokens',
+      key: 'prompt_tokens',
+      render: (tokens: number) => formatNumber(tokens),
+      sorter: (a, b) => a.prompt_tokens - b.prompt_tokens,
+    },
+    {
+      title: 'Completion Tokens',
+      dataIndex: 'completion_tokens',
+      key: 'completion_tokens',
+      render: (tokens: number) => formatNumber(tokens),
+      sorter: (a, b) => a.completion_tokens - b.completion_tokens,
+    },
+    {
+      title: 'Total Tokens',
+      dataIndex: 'total_tokens',
+      key: 'total_tokens',
+      render: (tokens: number) => formatNumber(tokens),
+      sorter: (a, b) => a.total_tokens - b.total_tokens,
+      defaultSortOrder: 'descend',
+    },
+  ];
+
+  const apiKeyColumns: ColumnsType<ApiKeyRow> = [
+    {
+      title: 'API Key',
+      dataIndex: 'api_key',
+      key: 'api_key',
+      sorter: (a, b) => a.api_key.localeCompare(b.api_key),
+    },
+    {
+      title: 'Requests',
+      dataIndex: 'count',
+      key: 'count',
+      render: (count: number) => count.toLocaleString(),
+      sorter: (a, b) => a.count - b.count,
+      defaultSortOrder: 'descend',
+    },
+  ];
+
+  const apiKeyTokenColumns: ColumnsType<ApiKeyTokenRow> = [
+    {
+      title: 'API Key',
+      dataIndex: 'api_key',
+      key: 'api_key',
+      sorter: (a, b) => a.api_key.localeCompare(b.api_key),
     },
     {
       title: 'Prompt Tokens',
@@ -368,6 +434,37 @@ export default function AnalyticsPage() {
             </Col>
           </Row>
 
+          <Row gutter={16} style={{ marginBottom: 16 }}>
+            <Col span={12}>
+              <Card title="Requests by API Key" bordered={false}>
+                <ResponsiveContainer width="100%" height={300}>
+                  <BarChart data={apiKeyStats.slice(0, 10)}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="api_key" />
+                    <YAxis />
+                    <Tooltip />
+                    <Bar dataKey="count" fill="#722ed1" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </Card>
+            </Col>
+            <Col span={12}>
+              <Card title="Token Usage by API Key" bordered={false}>
+                <ResponsiveContainer width="100%" height={300}>
+                  <BarChart data={apiKeyTokenStats.slice(0, 10)}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="api_key" />
+                    <YAxis />
+                    <Tooltip formatter={(value) => formatNumber(Number(value))} />
+                    <Legend />
+                    <Bar dataKey="prompt_tokens" fill="#1890ff" name="Prompt" />
+                    <Bar dataKey="completion_tokens" fill="#52c41a" name="Completion" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </Card>
+            </Col>
+          </Row>
+
           {timeSeriesChartData.length > 0 && (
             <Card title="Daily Request Trend" bordered={false} style={{ marginBottom: 16 }}>
               <ResponsiveContainer width="100%" height={300}>
@@ -468,6 +565,26 @@ export default function AnalyticsPage() {
               </ResponsiveContainer>
             </Card>
           )}
+
+          <Card title="API Key Statistics" bordered={false} style={{ marginBottom: 16 }}>
+            <Table
+              columns={apiKeyColumns}
+              dataSource={apiKeyStats}
+              rowKey="api_key"
+              pagination={{ pageSize: 20, showSizeChanger: true, showTotal: (total) => `Total ${total} items` }}
+              scroll={{ x: 400 }}
+            />
+          </Card>
+
+          <Card title="API Key Token Statistics" bordered={false} style={{ marginBottom: 16 }}>
+            <Table
+              columns={apiKeyTokenColumns}
+              dataSource={apiKeyTokenStats}
+              rowKey="api_key"
+              pagination={{ pageSize: 20, showSizeChanger: true, showTotal: (total) => `Total ${total} items` }}
+              scroll={{ x: 800 }}
+            />
+          </Card>
 
           <Card title="Token Statistics" bordered={false} style={{ marginBottom: 16 }}>
             <Table

@@ -1,6 +1,6 @@
 import { NextRequest } from 'next/server';
 import { getCloudflareContext } from '@opennextjs/cloudflare';
-import { authenticate } from '@/lib/auth';
+import { authenticate, extractApiKey } from '@/lib/auth';
 import { createUnauthorizedResponse } from '@/lib/response-helpers';
 import { getConfig, resolveProvider } from '@/config';
 import { ProtocolFactory } from '@/protocols';
@@ -119,7 +119,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 
     logger.info('Gemini request routed', { model: requestedModel, realModel, isStream, providerName, providerType: provider.type, action });
 
-    const apiKey = request.headers.get('x-api-key') || request.headers.get('Authorization')?.replace('Bearer ', '') || 'anonymous';
+    const apiKey = extractApiKey(request) || 'anonymous';
     (env as unknown as { PLAYBOX_EVENTS?: AnalyticsEngineDataset }).PLAYBOX_EVENTS?.writeDataPoint({
       blobs: ['llm_api', `/v1beta/models/${requestedModel}:${action}`, requestedModel, isStream ? 'stream' : 'non-stream', providerName],
       indexes: [apiKey],

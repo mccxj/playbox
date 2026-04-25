@@ -31,6 +31,18 @@ interface TokenTimeSeriesRow {
   total_tokens: number;
 }
 
+interface ApiKeyRow {
+  api_key: string;
+  count: number;
+}
+
+interface ApiKeyTokenRow {
+  api_key: string;
+  prompt_tokens: number;
+  completion_tokens: number;
+  total_tokens: number;
+}
+
 export async function GET(request: NextRequest) {
   const { env } = getCloudflareContext();
   const searchParams = request.nextUrl.searchParams;
@@ -108,23 +120,51 @@ export async function GET(request: NextRequest) {
   `;
 
   const tokenTimeSeriesQuery = `
-    SELECT
-      toStartOfDay(timestamp) AS day,
-      blob2 AS model,
-      SUM(double3) AS total_tokens
-    FROM playbox_events
-    WHERE ${timeCondition}
-    AND blob1 = 'llm_api_tokens'
-    GROUP BY day, model
-    ORDER BY day ASC
+  SELECT
+    toStartOfDay(timestamp) AS day,
+    blob2 AS model,
+    SUM(double3) AS total_tokens
+  FROM playbox_events
+  WHERE ${timeCondition}
+  AND blob1 = 'llm_api_tokens'
+  GROUP BY day, model
+  ORDER BY day ASC
+  `;
+
+  const apiKeyQuery = `
+  SELECT
+    indexes AS api_key,
+    SUM(_sample_interval) AS count
+  FROM playbox_events
+  WHERE ${timeCondition}
+  AND blob1 = 'llm_api'
+  GROUP BY api_key
+  ORDER BY count DESC
+  LIMIT 100
+  `;
+
+  const apiKeyTokenQuery = `
+  SELECT
+    indexes AS api_key,
+    SUM(double1) AS prompt_tokens,
+    SUM(double2) AS completion_tokens,
+    SUM(double3) AS total_tokens
+  FROM playbox_events
+  WHERE ${timeCondition}
+  AND blob1 = 'llm_api_tokens'
+  GROUP BY api_key
+  ORDER BY total_tokens DESC
+  LIMIT 100
   `;
 
   try {
-    const [aggregatedResult, timeSeriesResult, tokenResult, tokenTimeSeriesResult] = await Promise.all([
+    const [aggregatedResult, timeSeriesResult, tokenResult, tokenTimeSeriesResult, apiKeyResult, apiKeyTokenResult] = await Promise.all([
       fetchAnalyticsQuery(apiToken, accountId, query),
       fetchAnalyticsQuery(apiToken, accountId, timeSeriesQuery),
       fetchAnalyticsQuery(apiToken, accountId, tokenQuery),
       fetchAnalyticsQuery(apiToken, accountId, tokenTimeSeriesQuery),
+      fetchAnalyticsQuery(apiToken, accountId, apiKeyQuery),
+      fetchAnalyticsQuery(apiToken, accountId, apiKeyTokenQuery),
     ]);
 
     const aggregated: AnalyticsRow[] =
@@ -158,6 +198,20 @@ export async function GET(request: NextRequest) {
         total_tokens: Number(row.total_tokens) || 0,
       })) || [];
 
+    const apiKeyStats: ApiKeyRow[] =
+      (apiKeyResult as any[])?.map((row: any) => ({
+        api_key: row.api_key || 'anonymous',
+        count: Number(row.count) || 0,
+      })) || [];
+
+    const apiKeyTokenStats: ApiKeyTokenRow[] =
+      (apiKeyTokenResult as any[])?.map((row: any) => ({
+        api_key: row.api_key || 'anonymous',
+        prompt_tokens: Number(row.prompt_tokens) || 0,
+        completion_tokens: Number(row.completion_tokens) || 0,
+        total_tokens: Number(row.total_tokens) || 0,
+      })) || [];
+
     const totalRequests = aggregated.reduce((sum, row) => sum + row.count, 0);
     const totalTokens = tokenStats.reduce((sum, row) => sum + row.total_tokens, 0);
     const totalPromptTokens = tokenStats.reduce((sum, row) => sum + row.prompt_tokens, 0);
@@ -173,6 +227,8 @@ export async function GET(request: NextRequest) {
       totalTokens,
       totalPromptTokens,
       totalCompletionTokens,
+      apiKeyStats,
+      apiKeyTokenStats,
     });
   } catch (error) {
     console.error('Analytics query error:', error);
