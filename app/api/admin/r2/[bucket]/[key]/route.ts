@@ -1,5 +1,5 @@
 import { NextRequest } from 'next/server';
-import { getCloudflareContext } from '@opennextjs/cloudflare';
+import { getTypedContext } from '@/lib/cloudflare-context';
 import { createJsonResponse, createInternalErrorResponse, createNotFoundResponse } from '@/lib/response-helpers';
 import { CORS_HEADERS } from '@/utils/constants';
 
@@ -7,17 +7,17 @@ export const dynamic = 'force-dynamic';
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ bucket: string; key: string }> }) {
   try {
-    const { env } = getCloudflareContext() as any;
+    const { env } = getTypedContext();
     const { bucket, key } = await params;
 
-    const r2 = env[bucket];
+    const r2 = env[bucket as keyof typeof env];
 
     if (!r2) {
       return createNotFoundResponse(`R2 bucket '${bucket}' not found`);
     }
 
     const decodedKey = decodeURIComponent(key);
-    const object = await r2.get(decodedKey);
+    const object = await (r2 as R2Bucket).get(decodedKey);
 
     if (!object) {
       return createNotFoundResponse(`Object '${decodedKey}' not found`);
@@ -44,10 +44,10 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
 export async function PUT(request: NextRequest, { params }: { params: Promise<{ bucket: string; key: string }> }) {
   try {
-    const { env } = getCloudflareContext() as any;
+    const { env } = getTypedContext();
     const { bucket, key } = await params;
 
-    const r2 = env[bucket];
+    const r2 = env[bucket as keyof typeof env];
 
     if (!r2) {
       return createNotFoundResponse(`R2 bucket '${bucket}' not found`);
@@ -60,7 +60,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       return createJsonResponse({ error: 'Value is required' }, 400);
     }
 
-    const result = await r2.put(decodedKey, body.value, {
+    const result = await (r2 as R2Bucket).put(decodedKey, body.value, {
       httpMetadata: body.contentType ? { contentType: body.contentType } : undefined,
       customMetadata: body.customMetadata,
     });
@@ -80,17 +80,17 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
 
 export async function DELETE(request: NextRequest, { params }: { params: Promise<{ bucket: string; key: string }> }) {
   try {
-    const { env } = getCloudflareContext() as any;
+    const { env } = getTypedContext();
     const { bucket, key } = await params;
 
-    const r2 = env[bucket];
+    const r2 = env[bucket as keyof typeof env];
 
     if (!r2) {
       return createNotFoundResponse(`R2 bucket '${bucket}' not found`);
     }
 
     const decodedKey = decodeURIComponent(key);
-    await r2.delete(decodedKey);
+    await (r2 as R2Bucket).delete(decodedKey);
 
     return createJsonResponse({
       success: true,
@@ -104,17 +104,17 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
 
 export async function HEAD(request: NextRequest, { params }: { params: Promise<{ bucket: string; key: string }> }) {
   try {
-    const { env } = getCloudflareContext() as any;
+    const { env } = getTypedContext();
     const { bucket, key } = await params;
 
-    const r2 = env[bucket];
+    const r2 = env[bucket as keyof typeof env];
 
     if (!r2) {
       return createNotFoundResponse(`R2 bucket '${bucket}' not found`);
     }
 
     const decodedKey = decodeURIComponent(key);
-    const object = await r2.head(decodedKey);
+    const object = await (r2 as R2Bucket).head(decodedKey);
 
     if (!object) {
       return createNotFoundResponse(`Object '${decodedKey}' not found`);

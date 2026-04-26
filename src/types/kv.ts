@@ -16,15 +16,15 @@ export interface KVKeyValue {
   key: string;
   value: string;
   expiration?: number;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
-export interface KVListParams {
-  prefix?: string;
-  cursor?: string;
-  limit?: number;
-  page?: number;
-  pageSize?: number;
+export interface KVGetResponse {
+  success: boolean;
+  key: string;
+  value: string;
+  expiration?: number;
+  metadata?: Record<string, unknown>;
 }
 
 export interface KVListResponse {
@@ -33,26 +33,12 @@ export interface KVListResponse {
   list_complete: boolean;
   cursor?: string;
   prefix?: string;
-  pagination?: {
-    page: number;
-    pageSize: number;
-    total: number;
-    hasMore: boolean;
-  };
-}
-
-export interface KVGetResponse {
-  success: boolean;
-  key: string;
-  value: string;
-  expiration?: number;
-  metadata?: Record<string, any>;
 }
 
 export interface KVWriteBody {
   value: string;
   expirationTtl?: number;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 export interface KVBatchDeleteBody {

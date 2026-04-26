@@ -68,7 +68,7 @@ export function useDownloads(): UseDownloadsReturn {
         const data = (await response.json()) as DownloadHistoryResponse;
 
         if (!response.ok) {
-          throw new Error((data as any).error || 'Failed to fetch download history');
+          throw new Error(data.error || 'Failed to fetch download history');
         }
 
         setDownloads(data.records);

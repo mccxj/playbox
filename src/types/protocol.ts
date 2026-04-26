@@ -1,6 +1,22 @@
 import type { ProviderConfig } from './provider';
 
 /**
+ * JSON Schema type for tool parameters.
+ * Represents a subset of JSON Schema Draft 07.
+ */
+export interface JsonSchema {
+  type?: string;
+  description?: string;
+  properties?: Record<string, JsonSchema>;
+  items?: JsonSchema;
+  required?: string[];
+  enum?: unknown[];
+  default?: unknown;
+  additionalProperties?: boolean | JsonSchema;
+  [key: string]: unknown;
+}
+
+/**
  * Tool Definition (OpenAI Format)
  */
 export interface StandardTool {
@@ -8,7 +24,7 @@ export interface StandardTool {
   function: {
     name: string;
     description: string;
-    parameters?: any; // JSON Schema
+    parameters?: JsonSchema;
   };
 }
 
@@ -34,6 +50,9 @@ export interface StandardMessage {
   name?: string; // For tool responses
 }
 
+/** Represents a request/response body in an unknown protocol format. */
+export type ProtocolBody = Record<string, unknown>;
+
 export interface ProtocolAdapter {
   name: string;
 
@@ -44,12 +63,12 @@ export interface ProtocolAdapter {
   getHeaders(provider: ProviderConfig, env: Env, ctx: ExecutionContext, apiKey?: string): Promise<Record<string, string>>;
 
   // Request Conversion (External <-> Standard)
-  toStandardRequest(body: any): any;
-  fromStandardRequest(stdBody: any): any;
+  toStandardRequest(body: ProtocolBody): ProtocolBody;
+  fromStandardRequest(stdBody: ProtocolBody): ProtocolBody;
 
   // Response Conversion (Non-stream)
-  toStandardResponse(body: any, model: string): any;
-  fromStandardResponse(stdBody: any): any;
+  toStandardResponse(body: ProtocolBody, model: string): ProtocolBody;
+  fromStandardResponse(stdBody: ProtocolBody): ProtocolBody;
 
   // Stream Conversion (Returns TransformStream)
   createToStandardStream(model: string): TransformStream;

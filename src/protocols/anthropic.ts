@@ -1,3 +1,4 @@
+import type { ProtocolBody } from '../types';
 import { ProtocolAdapter, Env, Provider, ExecutionContext } from './types';
 import { KeyManager } from '../managers/key';
 import { createSSEParser, SSEParser, SSEEvent } from '../utils/sse-parser';
@@ -25,78 +26,88 @@ export function createAnthropicProtocol(): ProtocolAdapter {
       return headers;
     },
 
-    toStandardRequest: (body: any): any => {
-      const messages = [];
-      if (body.system) {
-        const sys = typeof body.system === 'string' ? body.system : body.system.map((b: any) => b.text).join('\n');
+    toStandardRequest: (body: ProtocolBody): ProtocolBody => {
+      const b = body as Record<string, unknown>;
+      const messages: { role: string; content: string }[] = [];
+      if (b.system) {
+        const sys = typeof b.system === 'string' ? b.system : (b.system as { text: string }[]).map((block) => block.text).join('\n');
         if (sys) messages.push({ role: 'system', content: sys });
       }
-      for (const msg of body.messages || []) {
+      const srcMessages = b.messages as { role: string; content: string | { type: string; text: string }[] }[] | undefined;
+      for (const msg of srcMessages || []) {
         const content = Array.isArray(msg.content)
-          ? msg.content.map((b: any) => (b.type === 'text' ? b.text : '')).join('\n')
+          ? msg.content.map((block) => (block.type === 'text' ? block.text : '')).join('\n')
           : msg.content;
         messages.push({ role: msg.role, content });
       }
       return {
-        model: body.model,
+        model: b.model,
         messages,
-        max_tokens: body.max_tokens || 4096,
-        temperature: body.temperature,
-        top_p: body.top_p,
-        stop_sequences: body.stop,
-        stream: body.stream,
+        max_tokens: b.max_tokens || 4096,
+        temperature: b.temperature,
+        top_p: b.top_p,
+        stop_sequences: b.stop,
+        stream: b.stream,
       };
     },
-    fromStandardRequest: (stdBody: any): any => {
+    fromStandardRequest: (stdBody: ProtocolBody): ProtocolBody => {
+      const s = stdBody as Record<string, unknown>;
       let system = '';
-      const messages = [];
-      for (const msg of stdBody.messages || []) {
+      const messages: { role: string; content: string }[] = [];
+      const srcMessages = s.messages as { role: string; content: string }[] | undefined;
+      for (const msg of srcMessages || []) {
         if (msg.role === 'system') system += msg.content + '\n';
         else messages.push({ role: msg.role, content: msg.content });
       }
       return {
-        model: stdBody.model,
+        model: s.model,
         system: system ? system.trim() : undefined,
         messages,
-        max_tokens: stdBody.max_tokens || 4096,
-        temperature: stdBody.temperature,
-        top_p: stdBody.top_p,
-        stream: stdBody.stream,
+        max_tokens: s.max_tokens || 4096,
+        temperature: s.temperature,
+        top_p: s.top_p,
+        stream: s.stream,
       };
     },
-    toStandardResponse: (body: any, model: string): any => {
-      const finishReason = body.stop_reason === 'max_tokens' ? 'length' : 'stop';
+    toStandardResponse: (body: ProtocolBody, model: string): ProtocolBody => {
+      const b = body as Record<string, unknown>;
+      const usage = b.usage as Record<string, number> | undefined;
+      const content = b.content as { text: string }[] | undefined;
+      const finishReason = b.stop_reason === 'max_tokens' ? 'length' : 'stop';
       return {
-        id: body.id || `chatcmpl-${Date.now()}`,
+        id: b.id || `chatcmpl-${Date.now()}`,
         object: 'chat.completion',
         created: Math.floor(Date.now() / 1000),
         model,
         choices: [
           {
             index: 0,
-            message: { role: 'assistant', content: body.content?.map((c: any) => c.text).join('') || '' },
+            message: { role: 'assistant', content: content?.map((c) => c.text).join('') || '' },
             finish_reason: finishReason,
           },
         ],
         usage: {
-          prompt_tokens: body.usage?.input_tokens || 0,
-          completion_tokens: body.usage?.output_tokens || 0,
-          total_tokens: (body.usage?.input_tokens || 0) + (body.usage?.output_tokens || 0),
+          prompt_tokens: usage?.input_tokens || 0,
+          completion_tokens: usage?.output_tokens || 0,
+          total_tokens: (usage?.input_tokens || 0) + (usage?.output_tokens || 0),
         },
       };
     },
-    fromStandardResponse: (stdBody: any): any => {
-      const choice = stdBody.choices?.[0] || {};
+    fromStandardResponse: (stdBody: ProtocolBody): ProtocolBody => {
+      const s = stdBody as Record<string, unknown>;
+      const choices = s.choices as { finish_reason?: string; message?: { content?: string } }[] | undefined;
+      const choice = choices?.[0] || {};
       const stopReason = choice.finish_reason === 'length' ? 'max_tokens' : 'end_turn';
+      const usage = s.usage as Record<string, number> | undefined;
       return {
-        id: stdBody.id || `msg_${Date.now()}`,
+        id: s.id || `msg_${Date.now()}`,
         type: 'message',
         role: 'assistant',
-        model: stdBody.model,
+        model: s.model,
         content: [{ type: 'text', text: choice.message?.content || '' }],
         stop_reason: stopReason,
         stop_sequence: null,
-        usage: { input_tokens: stdBody.usage?.prompt_tokens || 0, output_tokens: stdBody.usage?.completion_tokens || 0 },
+        usage: { input_tokens: usage?.prompt_tokens || 0, output_tokens: usage?.completion_tokens || 0 },
       };
     },
     createToStandardStream: (model: string): TransformStream => {
@@ -135,11 +146,11 @@ export function createAnthropicProtocol(): ProtocolAdapter {
             }
           });
         },
-        transform(chunk: Uint8Array, _controller: TransformStreamDefaultController<any>) {
+        transform(chunk: Uint8Array, _controller: TransformStreamDefaultController) {
           if (parser) parser.process(chunk);
         },
-        flush(_controller) {
-          _controller.enqueue(new TextEncoder().encode('data: [DONE]\n\n'));
+        flush(controller) {
+          controller.enqueue(new TextEncoder().encode('data: [DONE]\n\n'));
         },
       });
     },
@@ -147,7 +158,7 @@ export function createAnthropicProtocol(): ProtocolAdapter {
       const encoder = new TextEncoder();
       let started = false;
       let parser: SSEParser | undefined;
-      const writeEvent = (controller: TransformStreamDefaultController<any>, event: string, data: any) =>
+      const writeEvent = (controller: TransformStreamDefaultController, event: string, data: unknown) =>
         controller.enqueue(encoder.encode(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`));
 
       return new TransformStream({
@@ -199,7 +210,7 @@ export function createAnthropicProtocol(): ProtocolAdapter {
             }
           });
         },
-        transform(chunk: Uint8Array, _controller: TransformStreamDefaultController<any>) {
+        transform(chunk: Uint8Array, _controller: TransformStreamDefaultController) {
           if (parser) parser.process(chunk);
         },
       });

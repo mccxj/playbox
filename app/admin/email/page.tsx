@@ -6,13 +6,19 @@ import { SendOutlined, ReloadOutlined, PlusOutlined, MailOutlined, HistoryOutlin
 import type { UploadFile } from 'antd/es/upload/interface';
 
 const { TextArea } = Input;
+interface EmailAttachment {
+  filename: string;
+  content: string;
+  contentType: string;
+}
+
 interface EmailRecord {
   id: string;
   recipients: string[];
   subject: string;
   body: string;
   htmlBody?: string;
-  attachments: any;
+  attachments: EmailAttachment[];
   status: 'pending' | 'sent' | 'failed';
   error?: string;
   createdAt: string;
@@ -52,7 +58,7 @@ export default function EmailTestPage() {
     fetchHistory();
   }, []);
 
-  const handleSend = async (values: any) => {
+  const handleSend = async (values: Record<string, unknown>) => {
     if (recipients.length === 0) {
       message.error('Please add at least one recipient');
       return;
@@ -62,7 +68,7 @@ export default function EmailTestPage() {
     try {
       const attachments = fileList.map((file) => ({
         filename: file.name,
-        content: (file as any).base64 || '',
+        content: (file as UploadFile & { base64?: string }).base64 || '',
         contentType: file.type || 'application/octet-stream',
       }));
 

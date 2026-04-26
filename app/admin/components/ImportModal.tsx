@@ -51,7 +51,7 @@ export default function ImportModal({ open, table, onClose, onSuccess }: ImportM
         }),
       });
 
-      const data = (await response.json()) as any;
+      const data = (await response.json()) as { success: boolean; error?: string; message?: string };
 
       if (data.success) {
         message.success(data.message);

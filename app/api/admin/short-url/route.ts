@@ -1,5 +1,5 @@
 import { NextRequest } from 'next/server';
-import { getCloudflareContext } from '@opennextjs/cloudflare';
+import { getTypedContext } from '@/lib/cloudflare-context';
 import { createJsonResponse, createInternalErrorResponse, createNotFoundResponse } from '@/lib/response-helpers';
 
 export const dynamic = 'force-dynamic';
@@ -24,7 +24,7 @@ function generateShortId(length = 8): string {
  */
 export async function GET(_request: NextRequest) {
   try {
-    const { env } = getCloudflareContext() as any;
+    const { env } = getTypedContext();
     const kv = env.PLAYBOX_KV;
 
     if (!kv) {
@@ -67,7 +67,7 @@ export async function GET(_request: NextRequest) {
  */
 export async function POST(request: NextRequest) {
   try {
-    const { env } = getCloudflareContext() as any;
+    const { env } = getTypedContext();
     const kv = env.PLAYBOX_KV;
 
     if (!kv) {
@@ -122,7 +122,7 @@ export async function POST(request: NextRequest) {
  */
 export async function DELETE(request: NextRequest) {
   try {
-    const { env } = getCloudflareContext() as any;
+    const { env } = getTypedContext();
     const kv = env.PLAYBOX_KV;
 
     if (!kv) {

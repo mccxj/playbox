@@ -1,14 +1,21 @@
+import type { Env } from '@/types';
 import type { CloudflareContext } from './cloudflare-context';
 import { createUnauthorizedResponse } from './response-helpers';
 
+interface AuthContext {
+  cloudflare?: CloudflareContext;
+  env?: Env;
+  executionCtx?: ExecutionContext;
+}
+
 export function withAuthentication<T>(handler: (request: Request, context: T) => Promise<Response>) {
-  return async (request: Request, context: T & { env: any; executionCtx?: ExecutionContext }): Promise<Response> => {
-    const cfContext = context as any as { cloudflare?: CloudflareContext };
+  return async (request: Request, context: T & AuthContext): Promise<Response> => {
+    const cfContext = context as AuthContext;
     const env = cfContext.cloudflare?.env || context.env;
     const executionCtx = cfContext.cloudflare?.executionCtx || context.executionCtx;
 
     const apiKey = request.headers.get('x-api-key') || request.headers.get('Authorization')?.replace('Bearer ', '');
-    const expectedKey = env.AUTH_TOKEN;
+    const expectedKey = (env as unknown as Record<string, string | undefined>)?.AUTH_TOKEN;
 
     if (!apiKey || apiKey !== expectedKey) {
       return createUnauthorizedResponse();

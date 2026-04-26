@@ -1,10 +1,10 @@
 import { NextRequest } from 'next/server';
-import { getCloudflareContext } from '@opennextjs/cloudflare';
+import { getTypedContext } from '@/lib/cloudflare-context';
 import { createJsonResponse, createInternalErrorResponse } from '@/lib/response-helpers';
 import { getConfig } from '@/config';
 import { ProtocolFamily } from '@/types/provider';
 import { KeyManager } from '@/managers/key';
-import type { Env } from '@/types';
+import type { ProviderConfig } from '@/types';
 
 export const dynamic = 'force-dynamic';
 
@@ -60,8 +60,7 @@ async function fetchGeminiModels(baseUrl: string, apiKey: string): Promise<Model
 
 export async function GET(_request: NextRequest) {
   try {
-    const { env: rawEnv, ctx } = getCloudflareContext();
-    const env = rawEnv as unknown as Env;
+    const { env, ctx } = getTypedContext();
     const config = getConfig(env);
 
     const providersByFamily: Record<ProtocolFamily, ProviderModels[]> = {
@@ -71,7 +70,7 @@ export async function GET(_request: NextRequest) {
     };
 
     for (const [name, provider] of Object.entries(config.providers)) {
-      const p = provider as any;
+      const p = provider as unknown as ProviderConfig;
       const providerInfo: ProviderModels = {
         provider: name,
         family: p.family as ProtocolFamily,

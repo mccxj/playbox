@@ -1,12 +1,13 @@
 import { NextRequest } from 'next/server';
-import { getCloudflareContext } from '@opennextjs/cloudflare';
 import { authenticate, createUnauthorizedResponse, extractApiKey } from '@/lib/auth';
 import { createInternalErrorResponse } from '@/lib/response-helpers';
 import { getConfig, resolveProvider } from '@/config';
 import { ProtocolFactory } from '@/protocols';
-import type { Env } from '@/types';
+import type { ProtocolBody } from '@/types/protocol';
+
 import { createLogger } from '@/utils/logger';
 import { CORS_HEADERS } from '@/utils/constants';
+import { getTypedContext } from '@/lib/cloudflare-context';
 
 interface AnalyticsEngineDataset {
   writeDataPoint(event?: { blobs?: (string | ArrayBuffer | null)[]; doubles?: number[]; indexes?: (string | ArrayBuffer | null)[] }): void;
@@ -23,24 +24,24 @@ export const dynamic = 'force-dynamic';
 interface MessagesBody {
   model: string;
   stream?: boolean;
-  messages?: any[];
-  [key: string]: any;
+  messages?: unknown[];
+  [key: string]: unknown;
 }
 
 export async function POST(request: NextRequest) {
   const logger = createLogger();
 
-  const { env: rawEnv, ctx } = getCloudflareContext();
-  const env = rawEnv as unknown as Env;
+  const { env, ctx } = getTypedContext();
 
-  const authResult = await authenticate(request as any, env);
+  const authResult = await authenticate(request, env);
   if (!authResult) {
     return createUnauthorizedResponse();
   }
 
   try {
     const rawBody = (await request.json()) as MessagesBody;
-    delete (rawBody as any).store;
+    const rawBodyMut = rawBody as unknown as Record<string, unknown>;
+    delete rawBodyMut.store;
 
     const requestedModel = rawBody.model;
     const isStream = rawBody.stream === true;
@@ -159,10 +160,10 @@ export async function POST(request: NextRequest) {
       return new Response(stream, { headers: { ...resHeaders, 'Cache-Control': 'no-cache', 'Connection': 'keep-alive' } });
     } else if (lastResponse) {
       const upstreamJson = await lastResponse.json();
-      const standardResponse = upstreamProtocol.toStandardResponse(upstreamJson, realModel);
+      const standardResponse = upstreamProtocol.toStandardResponse(upstreamJson as ProtocolBody, realModel);
 
       // Extract token usage from response
-      const usage = standardResponse.usage;
+      const usage = (standardResponse as Record<string, unknown>).usage as Record<string, number> | undefined;
       if (usage) {
         (env as unknown as { PLAYBOX_EVENTS?: AnalyticsEngineDataset }).PLAYBOX_EVENTS?.writeDataPoint({
           blobs: ['llm_api_tokens', requestedModel, providerName, 'non-stream'],

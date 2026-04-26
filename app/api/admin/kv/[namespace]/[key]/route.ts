@@ -1,22 +1,22 @@
 import { NextRequest } from 'next/server';
-import { getCloudflareContext } from '@opennextjs/cloudflare';
+import { getTypedContext } from '@/lib/cloudflare-context';
 import { createJsonResponse, createInternalErrorResponse, createNotFoundResponse } from '@/lib/response-helpers';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ namespace: string; key: string }> }) {
   try {
-    const { env } = getCloudflareContext() as any;
+    const { env } = getTypedContext();
     const { namespace, key } = await params;
 
-    const kv = env[namespace];
+    const kv = env[namespace as keyof typeof env];
 
     if (!kv) {
       return createNotFoundResponse(`KV namespace '${namespace}' not found`);
     }
 
     const decodedKey = decodeURIComponent(key);
-    const { value, metadata } = await kv.getWithMetadata(decodedKey);
+    const { value, metadata } = await (kv as KVNamespace).getWithMetadata(decodedKey);
 
     if (value === null) {
       return createNotFoundResponse(`Key '${decodedKey}' not found`);
@@ -36,10 +36,10 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
 export async function PUT(request: NextRequest, { params }: { params: Promise<{ namespace: string; key: string }> }) {
   try {
-    const { env } = getCloudflareContext() as any;
+    const { env } = getTypedContext();
     const { namespace, key } = await params;
 
-    const kv = env[namespace];
+    const kv = env[namespace as keyof typeof env];
 
     if (!kv) {
       return createNotFoundResponse(`KV namespace '${namespace}' not found`);
@@ -57,7 +57,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       options.expirationTtl = body.expirationTtl;
     }
 
-    await kv.put(decodedKey, body.value, options);
+    await (kv as KVNamespace).put(decodedKey, body.value, options);
 
     return createJsonResponse({
       success: true,
@@ -72,17 +72,17 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
 
 export async function DELETE(request: NextRequest, { params }: { params: Promise<{ namespace: string; key: string }> }) {
   try {
-    const { env } = getCloudflareContext() as any;
+    const { env } = getTypedContext();
     const { namespace, key } = await params;
 
-    const kv = env[namespace];
+    const kv = env[namespace as keyof typeof env];
 
     if (!kv) {
       return createNotFoundResponse(`KV namespace '${namespace}' not found`);
     }
 
     const decodedKey = decodeURIComponent(key);
-    await kv.delete(decodedKey);
+    await (kv as KVNamespace).delete(decodedKey);
 
     return createJsonResponse({
       success: true,

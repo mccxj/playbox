@@ -1,15 +1,15 @@
 import { NextRequest } from 'next/server';
-import { getCloudflareContext } from '@opennextjs/cloudflare';
+import { getTypedContext } from '@/lib/cloudflare-context';
 import { createJsonResponse, createInternalErrorResponse, createNotFoundResponse } from '@/lib/response-helpers';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ bucket: string }> }) {
   try {
-    const { env } = getCloudflareContext() as any;
+    const { env } = getTypedContext();
     const { bucket } = await params;
 
-    const r2 = env[bucket];
+    const r2 = env[bucket as keyof typeof env];
 
     if (!r2) {
       return createNotFoundResponse(`R2 bucket '${bucket}' not found`);
@@ -20,7 +20,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     const cursor = searchParams.get('cursor') || undefined;
     const limit = parseInt(searchParams.get('limit') || '100', 10);
 
-    const result = await r2.list({
+    const result = await (r2 as R2Bucket).list({
       prefix,
       cursor,
       limit,
@@ -29,7 +29,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
     return createJsonResponse({
       success: true,
-      objects: result.objects.map((obj: any) => ({
+      objects: result.objects.map((obj) => ({
         key: obj.key,
         size: obj.size,
         etag: obj.etag,
@@ -40,7 +40,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       })),
       delimitedPrefixes: result.delimitedPrefixes || [],
       truncated: result.truncated,
-      cursor: result.cursor,
+      cursor: (result as unknown as { cursor?: string }).cursor,
     });
   } catch (error) {
     console.error('Error listing R2 objects:', error);
@@ -50,10 +50,10 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
 export async function POST(request: NextRequest, { params }: { params: Promise<{ bucket: string }> }) {
   try {
-    const { env } = getCloudflareContext() as any;
+    const { env } = getTypedContext();
     const { bucket } = await params;
 
-    const r2 = env[bucket];
+    const r2 = env[bucket as keyof typeof env];
 
     if (!r2) {
       return createNotFoundResponse(`R2 bucket '${bucket}' not found`);
@@ -70,7 +70,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 
     const customMetadata = customMetadataStr ? JSON.parse(customMetadataStr) : undefined;
 
-    const result = await r2.put(key, file.stream(), {
+    const result = await (r2 as R2Bucket).put(key, file.stream(), {
       httpMetadata: {
         contentType: file.type,
       },

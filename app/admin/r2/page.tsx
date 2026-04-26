@@ -36,6 +36,39 @@ interface R2ObjectDisplay extends R2ObjectInfo {
   type: 'file' | 'folder';
 }
 
+interface R2BucketsResponse {
+  success: boolean;
+  buckets?: { binding: string; bucket_name: string }[];
+  error?: string;
+}
+
+interface R2ObjectsResponse {
+  success: boolean;
+  objects?: R2ObjectInfo[];
+  delimitedPrefixes?: string[];
+  truncated?: boolean;
+  cursor?: string;
+  error?: string;
+}
+
+interface R2ActionResponse {
+  success: boolean;
+  message?: string;
+  error?: string;
+}
+
+interface R2MetadataResponse {
+  success: boolean;
+  key?: string;
+  size?: number;
+  etag?: string;
+  httpEtag?: string;
+  uploaded?: string;
+  contentType?: string;
+  metadata?: Record<string, string>;
+  customMetadata?: Record<string, string>;
+}
+
 export default function R2AdminPage() {
   const [buckets, setBuckets] = useState<KVNamespaceOption[]>([]);
   const [selectedBucket, setSelectedBucket] = useState<string>('');
@@ -61,9 +94,9 @@ export default function R2AdminPage() {
   const fetchBuckets = async () => {
     try {
       const response = await fetch('/api/admin/r2');
-      const data = (await response.json()) as any;
+      const data = (await response.json()) as R2BucketsResponse;
       if (data.success) {
-        const bucketOptions: KVNamespaceOption[] = data.buckets.map((b: any) => ({
+        const bucketOptions: KVNamespaceOption[] = (data.buckets ?? []).map((b) => ({
           value: b.binding,
           label: b.binding,
           id: b.bucket_name,
@@ -92,11 +125,11 @@ export default function R2AdminPage() {
         params.set('limit', '100');
 
         const response = await fetch(`/api/admin/r2/${selectedBucket}?${params}`);
-        const data = (await response.json()) as any;
+        const data = (await response.json()) as R2ObjectsResponse;
 
         if (data.success) {
           const objectDisplays: R2ObjectDisplay[] = [
-            ...(data.delimitedPrefixes || []).map((p: string) => ({
+            ...(data.delimitedPrefixes ?? []).map((p: string) => ({
               key: p,
               size: 0,
               etag: '',
@@ -107,7 +140,7 @@ export default function R2AdminPage() {
               type: 'folder' as const,
               contentType: 'folder',
             })),
-            ...data.objects.map((o: R2ObjectInfo) => ({
+            ...(data.objects ?? []).map((o: R2ObjectInfo) => ({
               ...o,
               sizeFormatted: formatSize(o.size),
               uploadedFormatted: o.uploaded ? new Date(o.uploaded).toLocaleString() : '-',
@@ -115,7 +148,7 @@ export default function R2AdminPage() {
             })),
           ];
           setObjects(objectDisplays);
-          setTruncated(data.truncated);
+          setTruncated(data.truncated ?? false);
           setCursor(data.cursor || undefined);
         } else {
           setError(data.error || 'Failed to fetch objects');
@@ -176,7 +209,7 @@ export default function R2AdminPage() {
       const response = await fetch(`/api/admin/r2/${selectedBucket}/${encodeURIComponent(key)}`, {
         method: 'DELETE',
       });
-      const data = (await response.json()) as any;
+      const data = (await response.json()) as R2ActionResponse;
       if (data.success) {
         message.success(data.message);
         fetchObjects(true);
@@ -200,7 +233,7 @@ export default function R2AdminPage() {
           keys: selectedRowKeys,
         }),
       });
-      const data = (await response.json()) as any;
+      const data = (await response.json()) as R2ActionResponse;
       if (data.success) {
         message.success(data.message);
         setSelectedRowKeys([]);
@@ -431,7 +464,7 @@ export default function R2AdminPage() {
 
 function ObjectDetails({ bucket, keyName, onDownload }: { bucket: string; keyName: string; onDownload: () => void }) {
   const [loading, setLoading] = useState(true);
-  const [metadata, setMetadata] = useState<any>(null);
+  const [metadata, setMetadata] = useState<R2MetadataResponse | null>(null);
 
   useEffect(() => {
     const fetchMetadata = async () => {
@@ -439,7 +472,7 @@ function ObjectDetails({ bucket, keyName, onDownload }: { bucket: string; keyNam
         const response = await fetch(`/api/admin/r2/${bucket}/${encodeURIComponent(keyName)}`, {
           method: 'HEAD',
         });
-        const data = (await response.json()) as any;
+        const data = (await response.json()) as R2MetadataResponse;
         if (data.success) {
           setMetadata(data);
         }

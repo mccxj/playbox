@@ -1,6 +1,7 @@
 import { NextRequest } from 'next/server';
-import { getCloudflareContext } from '@opennextjs/cloudflare';
+import { getTypedContext } from '@/lib/cloudflare-context';
 import { createJsonResponse, createInternalErrorResponse, createNotFoundResponse } from '@/lib/response-helpers';
+import type { D1Database, D1PreparedStatement } from '@cloudflare/workers-types';
 
 export const dynamic = 'force-dynamic';
 
@@ -10,7 +11,7 @@ interface ColumnInfo {
   pk: number;
 }
 
-async function validateTable(db: any, tableName: string): Promise<ColumnInfo[] | null> {
+async function validateTable(db: D1Database, tableName: string): Promise<ColumnInfo[] | null> {
   const tablesResult = await db
     .prepare(
       `
@@ -27,7 +28,7 @@ async function validateTable(db: any, tableName: string): Promise<ColumnInfo[] |
   if (!tablesResult) return null;
 
   const columnsResult = await db.prepare(`PRAGMA table_info(${tableName})`).all();
-  return columnsResult.results as ColumnInfo[];
+  return columnsResult.results as unknown as ColumnInfo[];
 }
 
 function escapeColumnName(name: string): string {
@@ -37,16 +38,16 @@ function escapeColumnName(name: string): string {
   return `"${name}"`;
 }
 
-function parseCSV(content: string): Record<string, any>[] {
+function parseCSV(content: string): Record<string, unknown>[] {
   const lines = content.trim().split('\n');
   if (lines.length < 2) return [];
 
   const headers = lines[0].split(',').map((h) => h.trim().replace(/^"|"$/g, ''));
-  const rows: Record<string, any>[] = [];
+  const rows: Record<string, unknown>[] = [];
 
   for (let i = 1; i < lines.length; i++) {
     const values = lines[i].split(',').map((v) => v.trim().replace(/^"|"$/g, ''));
-    const row: Record<string, any> = {};
+    const row: Record<string, unknown> = {};
     headers.forEach((header, idx) => {
       row[header] = values[idx] || null;
     });
@@ -58,7 +59,7 @@ function parseCSV(content: string): Record<string, any>[] {
 
 export async function POST(request: NextRequest, { params }: { params: Promise<{ table: string }> }) {
   try {
-    const { env } = getCloudflareContext() as any;
+    const { env } = getTypedContext();
     const db = env.PLAYBOX_D1;
 
     if (!db) {
@@ -75,7 +76,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     const body = (await request.json()) as {
       operation?: 'delete';
       ids?: number[];
-      data?: Record<string, any>[] | string;
+      data?: Record<string, unknown>[] | string;
       format?: 'json' | 'csv';
     };
 
@@ -100,7 +101,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     }
 
     if (body.data) {
-      let rowsToInsert: Record<string, any>[];
+      let rowsToInsert: Record<string, unknown>[];
 
       if (typeof body.data === 'string' && body.format === 'csv') {
         rowsToInsert = parseCSV(body.data);
@@ -114,20 +115,20 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
         return createJsonResponse({ error: 'No data to import' }, 400);
       }
 
-      const statements: any[] = [];
+      const statements: D1PreparedStatement[] = [];
       let successCount = 0;
       let errorCount = 0;
 
       for (const row of rowsToInsert) {
         const insertColumns: string[] = [];
         const insertValues: string[] = [];
-        const bindParams: any[] = [];
+        const bindParams: (string | number | null)[] = [];
 
         for (const [key, value] of Object.entries(row)) {
           if (validColumnNames.includes(key)) {
             insertColumns.push(escapeColumnName(key));
             insertValues.push('?');
-            bindParams.push(value);
+            bindParams.push(value as string | number | null);
           }
         }
 

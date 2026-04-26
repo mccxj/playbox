@@ -1,12 +1,12 @@
 import { NextRequest } from 'next/server';
-import { getCloudflareContext } from '@opennextjs/cloudflare';
+import { getTypedContext } from '@/lib/cloudflare-context';
 import { createJsonResponse, createInternalErrorResponse } from '@/lib/response-helpers';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET() {
   try {
-    const { env } = getCloudflareContext() as any;
+    const { env } = getTypedContext();
     const db = env.PLAYBOX_D1;
 
     if (!db) {
@@ -23,14 +23,14 @@ export async function GET() {
       )
       .all();
 
-    const keys = result.results.map((row: any) => ({
-      id: row.id,
-      name: row.name,
-      api_key: row.api_key,
-      expires_at: row.expires_at,
-      created_at: row.created_at,
-      is_active: row.is_active === 1,
-      last_used_at: row.last_used_at,
+    const keys = (result.results as readonly Record<string, unknown>[]).map((row) => ({
+      id: row.id as string,
+      name: row.name as string,
+      api_key: row.api_key as string,
+      expires_at: row.expires_at as string,
+      created_at: row.created_at as string,
+      is_active: (row.is_active as number) === 1,
+      last_used_at: row.last_used_at as string,
     }));
 
     return createJsonResponse({ success: true, keys });
@@ -42,7 +42,7 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
-    const { env } = getCloudflareContext() as any;
+    const { env } = getTypedContext();
     const db = env.PLAYBOX_D1;
 
     if (!db) {
@@ -63,7 +63,7 @@ export async function POST(request: NextRequest) {
       INSERT INTO llm_api_keys (id, api_key, name, created_at, is_active)
       VALUES (?, ?, ?, datetime('now'), 1)
     `;
-    let bindParams: any[] = [id, apiKey, name];
+    let bindParams: (string | number)[] = [id, apiKey, name];
 
     if (expires_at) {
       insertQuery = `

@@ -25,7 +25,7 @@ export interface PaginatedResponse<T> {
   };
 }
 
-export interface TableRow extends Record<string, any> {
+export interface TableRow extends Record<string, unknown> {
   _rowid: number;
 }
 

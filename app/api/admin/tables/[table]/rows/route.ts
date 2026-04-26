@@ -1,6 +1,7 @@
 import { NextRequest } from 'next/server';
-import { getCloudflareContext } from '@opennextjs/cloudflare';
+import { getTypedContext } from '@/lib/cloudflare-context';
 import { createJsonResponse, createInternalErrorResponse, createNotFoundResponse } from '@/lib/response-helpers';
+import type { D1Database } from '@cloudflare/workers-types';
 
 export const dynamic = 'force-dynamic';
 
@@ -13,7 +14,7 @@ interface ColumnInfo {
   pk: number;
 }
 
-async function validateTable(db: any, tableName: string): Promise<ColumnInfo[] | null> {
+async function validateTable(db: D1Database, tableName: string): Promise<ColumnInfo[] | null> {
   const tablesResult = await db
     .prepare(
       `
@@ -30,7 +31,7 @@ async function validateTable(db: any, tableName: string): Promise<ColumnInfo[] |
   if (!tablesResult) return null;
 
   const columnsResult = await db.prepare(`PRAGMA table_info(${tableName})`).all();
-  return columnsResult.results as ColumnInfo[];
+  return columnsResult.results as unknown as ColumnInfo[];
 }
 
 function escapeColumnName(name: string): string {
@@ -42,7 +43,7 @@ function escapeColumnName(name: string): string {
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ table: string }> }) {
   try {
-    const { env } = getCloudflareContext() as any;
+    const { env } = getTypedContext();
     const db = env.PLAYBOX_D1;
 
     if (!db) {
@@ -76,7 +77,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
     const offset = (page - 1) * pageSize;
     const whereClauses: string[] = [];
-    const bindParams: any[] = [];
+    const bindParams: (string | number)[] = [];
 
     if (search && searchColumn) {
       whereClauses.push(`${escapeColumnName(searchColumn)} LIKE ?`);
@@ -94,7 +95,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       .bind(...bindParams)
       .first();
 
-    const total = (countResult as any)?.total || 0;
+    const total = (countResult as { total: number } | null)?.total || 0;
 
     const orderByClause = sort ? `ORDER BY ${escapeColumnName(sort)} ${order}` : 'ORDER BY rowid ASC';
 
@@ -129,7 +130,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
 export async function POST(request: NextRequest, { params }: { params: Promise<{ table: string }> }) {
   try {
-    const { env } = getCloudflareContext() as any;
+    const { env } = getTypedContext();
     const db = env.PLAYBOX_D1;
 
     if (!db) {
@@ -143,18 +144,18 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       return createNotFoundResponse(`Table '${tableName}' not found`);
     }
 
-    const body = (await request.json()) as Record<string, any>;
+    const body = (await request.json()) as Record<string, unknown>;
     const validColumnNames = columns.map((c) => c.name);
 
     const insertColumns: string[] = [];
     const insertValues: string[] = [];
-    const bindParams: any[] = [];
+    const bindParams: (string | number | null)[] = [];
 
     for (const [key, value] of Object.entries(body)) {
       if (validColumnNames.includes(key)) {
         insertColumns.push(escapeColumnName(key));
         insertValues.push('?');
-        bindParams.push(value);
+        bindParams.push(value as string | number | null);
       }
     }
 

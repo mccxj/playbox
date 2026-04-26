@@ -1,5 +1,5 @@
 import { NextRequest } from 'next/server';
-import { getCloudflareContext } from '@opennextjs/cloudflare';
+import { getTypedContext } from '@/lib/cloudflare-context';
 import { createJsonResponse, createInternalErrorResponse } from '@/lib/response-helpers';
 
 export const dynamic = 'force-dynamic';
@@ -31,7 +31,7 @@ interface TableSchema {
 export async function GET(_request: NextRequest) {
   try {
     // Get Cloudflare bindings from global context
-    const { env } = getCloudflareContext() as any;
+    const { env } = getTypedContext();
     const db = env.PLAYBOX_D1;
 
     if (!db) {
@@ -52,7 +52,7 @@ export async function GET(_request: NextRequest) {
       )
       .all();
 
-    const tables = tablesResult.results as TableInfo[];
+    const tables = tablesResult.results as unknown as TableInfo[];
 
     // Get column info for each table
     const tableSchemas: TableSchema[] = [];
@@ -62,7 +62,7 @@ export async function GET(_request: NextRequest) {
       tableSchemas.push({
         name: table.name,
         sql: table.sql,
-        columns: columnsResult.results as ColumnInfo[],
+        columns: columnsResult.results as unknown as ColumnInfo[],
       });
     }
 

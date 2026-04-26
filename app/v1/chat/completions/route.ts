@@ -1,12 +1,13 @@
 import { NextRequest } from 'next/server';
-import { getCloudflareContext } from '@opennextjs/cloudflare';
 import { authenticate, extractApiKey } from '@/lib/auth';
 import { createUnauthorizedResponse } from '@/lib/response-helpers';
 import { getConfig, resolveProvider } from '@/config';
 import { ProtocolFactory } from '@/protocols';
-import type { Env } from '@/types';
+import type { ProtocolBody } from '@/types/protocol';
+
 import { CORS_HEADERS } from '@/utils/constants';
 import { createLogger } from '@/utils/logger';
+import { getTypedContext } from '@/lib/cloudflare-context';
 
 interface AnalyticsEngineDataset {
   writeDataPoint(event?: { blobs?: (string | ArrayBuffer | null)[]; doubles?: number[]; indexes?: (string | ArrayBuffer | null)[] }): void;
@@ -23,17 +24,16 @@ export const dynamic = 'force-dynamic';
 interface ChatBody {
   model: string;
   stream?: boolean;
-  store?: any;
-  [key: string]: any;
+  store?: unknown;
+  [key: string]: unknown;
 }
 
 export async function POST(request: NextRequest) {
   const logger = createLogger();
 
-  const { env: rawEnv, ctx } = getCloudflareContext();
-  const env = rawEnv as unknown as Env;
+  const { env, ctx } = getTypedContext();
 
-  const authResult = await authenticate(request as any, env);
+  const authResult = await authenticate(request, env);
   if (!authResult) {
     return createUnauthorizedResponse();
   }
@@ -46,7 +46,8 @@ export async function POST(request: NextRequest) {
 
   try {
     const rawBody = (await request.json()) as ChatBody;
-    delete rawBody.store;
+    const rawBodyObj = rawBody as unknown as Record<string, unknown>;
+    delete rawBodyObj.store;
 
     const requestedModel = rawBody.model;
     const isStream = !isDebug && rawBody.stream === true;
@@ -214,10 +215,10 @@ export async function POST(request: NextRequest) {
         });
       }
 
-      const standardResponse = upstreamProtocol.toStandardResponse(upstreamJson, realModel);
+      const standardResponse = upstreamProtocol.toStandardResponse(upstreamJson as ProtocolBody, realModel);
 
       // Extract token usage from response
-      const usage = standardResponse.usage;
+      const usage = (standardResponse as Record<string, unknown>).usage as Record<string, number> | undefined;
       if (usage) {
         (env as unknown as { PLAYBOX_EVENTS?: AnalyticsEngineDataset }).PLAYBOX_EVENTS?.writeDataPoint({
           blobs: [

@@ -1,5 +1,5 @@
 import { NextRequest } from 'next/server';
-import { getCloudflareContext } from '@opennextjs/cloudflare';
+import { getTypedContext } from '@/lib/cloudflare-context';
 import { createJsonResponse, createInternalErrorResponse } from '@/lib/response-helpers';
 
 export const dynamic = 'force-dynamic';
@@ -16,13 +16,17 @@ interface DownloadRecord {
   completed_at: string | null;
 }
 
+interface CountRow {
+  total: number;
+}
+
 /**
  * GET /api/admin/download/history
  * Fetch download history with pagination and filtering
  */
 export async function GET(request: NextRequest) {
   try {
-    const { env } = getCloudflareContext() as any;
+    const { env } = getTypedContext();
     const db = env.PLAYBOX_D1;
 
     if (!db) {
@@ -41,7 +45,7 @@ export async function GET(request: NextRequest) {
 
     // Build WHERE clause
     const whereClauses: string[] = [];
-    const params: any[] = [];
+    const params: (string | number)[] = [];
 
     if (status) {
       whereClauses.push('status = ?');
@@ -65,7 +69,7 @@ export async function GET(request: NextRequest) {
       .prepare(countQuery)
       .bind(...params)
       .all();
-    const total = (countResult.results as any[])[0]?.total || 0;
+    const total = (countResult.results as unknown as CountRow[])[0]?.total || 0;
 
     // Get records
     const query = `
@@ -82,7 +86,7 @@ export async function GET(request: NextRequest) {
       .bind(...queryParams)
       .all();
 
-    const records = (result.results as DownloadRecord[]).map((r) => ({
+    const records = (result.results as unknown as DownloadRecord[]).map((r) => ({
       id: r.id,
       url: r.url,
       filename: r.filename,

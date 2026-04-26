@@ -1,3 +1,4 @@
+import type { ProtocolBody } from '../types';
 import { ProtocolAdapter } from './types';
 import { createOpenAIProtocol } from './openai';
 import { createAnthropicProtocol } from './anthropic';
@@ -14,10 +15,10 @@ const protocols: Record<string, () => ProtocolAdapter> = {
 };
 
 interface IdentityTransforms {
-  toStandardRequest(body: any): any;
-  fromStandardRequest(body: any): any;
-  toStandardResponse(body: any, model: string): any;
-  fromStandardResponse(body: any): any;
+  toStandardRequest(body: ProtocolBody): ProtocolBody;
+  fromStandardRequest(body: ProtocolBody): ProtocolBody;
+  toStandardResponse(body: ProtocolBody, model: string): ProtocolBody;
+  fromStandardResponse(body: ProtocolBody): ProtocolBody;
   createToStandardStream(model: string): TransformStream;
   createFromStandardStream(): TransformStream;
 }

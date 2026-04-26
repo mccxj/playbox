@@ -3,6 +3,7 @@
 import { Table, Button, Space, Popconfirm, Typography } from 'antd';
 import { EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import type { ColumnsType, TableProps } from 'antd/es/table';
+import type { SorterResult } from 'antd/es/table/interface';
 import type { TableRow, ColumnInfo } from '../types';
 
 const { Text } = Typography;
@@ -53,7 +54,7 @@ export default function DataTable({
       key: col.name,
       ellipsis: true,
       sorter: true,
-      render: (value: any) => {
+      render: (value: unknown) => {
         if (value === null || value === undefined) {
           return <Text type="secondary">NULL</Text>;
         }
@@ -120,9 +121,13 @@ export default function DataTable({
           showTotal: (total) => `Total ${total} rows`,
           onChange: onPageChange,
         }}
-        onChange={(pagination, filters, sorter: any) => {
-          if (sorter.field) {
-            onSort(sorter.field as string, sorter.order === 'ascend' ? 'asc' : sorter.order === 'descend' ? 'desc' : null);
+        onChange={(pagination, filters, sorter: SorterResult<TableRow> | SorterResult<TableRow>[]) => {
+          const singleSorter = Array.isArray(sorter) ? sorter[0] : sorter;
+          if (singleSorter.field) {
+            onSort(
+              singleSorter.field as string,
+              singleSorter.order === 'ascend' ? 'asc' : singleSorter.order === 'descend' ? 'desc' : null
+            );
           }
         }}
         scroll={{ x: 'max-content' }}

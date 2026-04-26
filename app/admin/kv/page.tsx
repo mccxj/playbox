@@ -19,6 +19,25 @@ import NamespaceSelector from './components/NamespaceSelector';
 import type { KVNamespaceOption, KVKeyDisplay } from '../types/kv';
 import type { KVKeyInfo } from '@/types/kv';
 
+interface KVNamespacesResponse {
+  success: boolean;
+  namespaces?: { binding: string; id: string }[];
+  error?: string;
+}
+
+interface KVKeysResponse {
+  success: boolean;
+  keys?: KVKeyInfo[];
+  list_complete?: boolean;
+  cursor?: string;
+  error?: string;
+}
+
+interface KVActionResponse {
+  success: boolean;
+  message?: string;
+  error?: string;
+}
 const KVFormModal = dynamic(() => import('./components/KVFormModal'), { ssr: false });
 const KVImportModal = dynamic(() => import('./components/KVImportModal'), { ssr: false });
 const KeyValueDrawer = dynamic(() => import('./components/KeyValueDrawer'), { ssr: false });
@@ -43,9 +62,9 @@ export default function KVAdminPage() {
   const fetchNamespaces = async () => {
     try {
       const response = await fetch('/api/admin/kv');
-      const data = (await response.json()) as any;
+      const data = (await response.json()) as KVNamespacesResponse;
       if (data.success) {
-        const nsOptions: KVNamespaceOption[] = data.namespaces.map((ns: any) => ({
+        const nsOptions: KVNamespaceOption[] = (data.namespaces ?? []).map((ns) => ({
           value: ns.binding,
           label: ns.binding,
           id: ns.id,
@@ -74,16 +93,16 @@ export default function KVAdminPage() {
         params.set('limit', '100');
 
         const response = await fetch(`/api/admin/kv/${selectedNamespace}?${params}`);
-        const data = (await response.json()) as any;
+        const data = (await response.json()) as KVKeysResponse;
 
         if (data.success) {
-          const keyDisplays: KVKeyDisplay[] = data.keys.map((k: KVKeyInfo) => ({
+          const keyDisplays: KVKeyDisplay[] = (data.keys ?? []).map((k) => ({
             name: k.name,
             expiration: k.expiration,
             expirationFormatted: k.expiration ? new Date(k.expiration * 1000).toLocaleString() : 'Never',
           }));
           setKeys(keyDisplays);
-          setListComplete(data.list_complete);
+          setListComplete(data.list_complete ?? false);
           setCursor(data.cursor || undefined);
         } else {
           setError(data.error || 'Failed to fetch keys');
@@ -145,7 +164,7 @@ export default function KVAdminPage() {
       const response = await fetch(`/api/admin/kv/${selectedNamespace}/${encodedKey}`, {
         method: 'DELETE',
       });
-      const data = (await response.json()) as any;
+      const data = (await response.json()) as KVActionResponse;
       if (data.success) {
         message.success(data.message);
         fetchKeys(true);
@@ -169,7 +188,7 @@ export default function KVAdminPage() {
           keys: selectedRowKeys,
         }),
       });
-      const data = (await response.json()) as any;
+      const data = (await response.json()) as KVActionResponse;
       if (data.success) {
         message.success(data.message);
         setSelectedRowKeys([]);

@@ -1,9 +1,9 @@
 import { NextRequest } from 'next/server';
-import { getCloudflareContext } from '@opennextjs/cloudflare';
 import { authenticate } from '@/lib/auth';
 import { createJsonResponse, createUnauthorizedResponse } from '@/lib/response-helpers';
 import { getConfig } from '@/config';
-import type { Env } from '@/types';
+import type { ProviderConfig } from '@/types';
+import { getTypedContext } from '@/lib/cloudflare-context';
 
 export const dynamic = 'force-dynamic';
 
@@ -15,10 +15,9 @@ interface ModelInfo {
 }
 
 export async function GET(request: NextRequest) {
-  const { env: rawEnv } = getCloudflareContext();
-  const env = rawEnv as unknown as Env;
+  const { env } = getTypedContext();
 
-  if (!(await authenticate(request as any, env))) {
+  if (!(await authenticate(request, env))) {
     return createUnauthorizedResponse();
   }
 
@@ -33,7 +32,7 @@ export async function GET(request: NextRequest) {
     const seenIds = new Set<string>();
 
     for (const [providerName, providerData] of Object.entries(providers)) {
-      const provider = providerData as any;
+      const provider = providerData as unknown as ProviderConfig;
 
       if (provider.family === 'gemini') {
         continue;

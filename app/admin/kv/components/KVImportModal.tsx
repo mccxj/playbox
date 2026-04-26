@@ -84,7 +84,7 @@ export default function KVImportModal({ open, namespace, onClose, onSuccess }: K
         body: JSON.stringify({ items: validItems }),
       });
 
-      const data = (await response.json()) as any;
+      const data = (await response.json()) as { success: boolean; error?: string; message?: string };
 
       if (data.success) {
         message.success(data.message);

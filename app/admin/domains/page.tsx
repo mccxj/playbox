@@ -59,7 +59,7 @@ export default function DomainsPage() {
       setLoading(true);
       setError(null);
       const response = await fetch('/api/admin/domains');
-      const data = (await response.json()) as any;
+      const data = (await response.json()) as { success: boolean; data?: Record<string, unknown>[]; error?: string };
 
       if (data.success) {
         const rawDomains = (data.data || []) as Record<string, unknown>[];

@@ -2,11 +2,28 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import dynamic from 'next/dynamic';
-import { Select, Spin, Alert, Card, Row, Col } from 'antd';
+import { Select, Spin, Alert, Card, Row, Col, Statistic } from 'antd';
 import { TableOutlined, DatabaseOutlined } from '@ant-design/icons';
 import type { TableSchema, TableRow, ColumnInfo } from './types';
 
-const Statistic = dynamic(() => import('antd').then((mod) => ({ default: mod.Statistic })), { ssr: false });
+interface TableActionResponse {
+  success: boolean;
+  error?: string;
+}
+
+interface TablesListResponse {
+  success: boolean;
+  tables?: TableSchema[];
+  error?: string;
+}
+
+interface TableRowsResponse {
+  success: boolean;
+  rows?: TableRow[];
+  columns?: ColumnInfo[];
+  pagination?: { total: number; totalPages: number };
+  error?: string;
+}
 const DataTable = dynamic(() => import('./components/DataTable'), { ssr: false });
 const SearchBar = dynamic(() => import('./components/SearchBar'), { ssr: false });
 const CreateRowModal = dynamic(() => import('./components/CreateRowModal'), { ssr: false });
@@ -44,12 +61,13 @@ export default function AdminPage() {
     try {
       setLoading(true);
       const response = await fetch('/api/admin/tables');
-      const data = (await response.json()) as any;
+      const data = (await response.json()) as TablesListResponse;
       if (data.success) {
-        setTables(data.tables);
-        if (data.tables.length > 0 && !selectedTable) {
-          setSelectedTable(data.tables[0].name);
-          setSelectedTableSchema(data.tables[0]);
+        setTables(data.tables ?? []);
+        const tableList = data.tables ?? [];
+        if (tableList.length > 0 && !selectedTable) {
+          setSelectedTable(tableList[0].name);
+          setSelectedTableSchema(tableList[0]);
         }
       } else {
         setError(data.error || 'Failed to fetch tables');
@@ -79,15 +97,15 @@ export default function AdminPage() {
       }
 
       const response = await fetch(`/api/admin/tables/${selectedTable}/rows?${params}`);
-      const data = (await response.json()) as any;
+      const data = (await response.json()) as TableRowsResponse;
 
       if (data.success) {
-        setRows(data.rows);
-        setColumns(data.columns || []);
+        setRows(data.rows ?? []);
+        setColumns(data.columns ?? []);
         setPagination((prev) => ({
           ...prev,
-          total: data.pagination.total,
-          totalPages: data.pagination.totalPages,
+          total: data.pagination?.total ?? 0,
+          totalPages: data.pagination?.totalPages ?? 0,
         }));
       } else {
         setError(data.error || 'Failed to fetch rows');
@@ -153,7 +171,7 @@ export default function AdminPage() {
       const response = await fetch(`/api/admin/tables/${selectedTable}/rows/${rowid}`, {
         method: 'DELETE',
       });
-      const data = (await response.json()) as any;
+      const data = (await response.json()) as TableActionResponse;
       if (data.success) {
         fetchRows();
       } else {
@@ -176,7 +194,7 @@ export default function AdminPage() {
           ids: selectedRowKeys,
         }),
       });
-      const data = (await response.json()) as any;
+      const data = (await response.json()) as TableActionResponse;
       if (data.success) {
         setSelectedRowKeys([]);
         fetchRows();

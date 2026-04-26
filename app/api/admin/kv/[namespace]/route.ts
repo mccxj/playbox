@@ -1,5 +1,5 @@
 import { NextRequest } from 'next/server';
-import { getCloudflareContext } from '@opennextjs/cloudflare';
+import { getTypedContext } from '@/lib/cloudflare-context';
 import { createJsonResponse, createInternalErrorResponse, createNotFoundResponse } from '@/lib/response-helpers';
 import type { KVKeyInfo, KVListResponse } from '@/types/kv';
 
@@ -15,10 +15,10 @@ const DEFAULT_LIMIT = 100;
  */
 export async function GET(request: NextRequest, { params }: { params: Promise<{ namespace: string }> }) {
   try {
-    const { env } = getCloudflareContext() as any;
+    const { env } = getTypedContext();
     const { namespace } = await params;
 
-    const kv = env[namespace];
+    const kv = env[namespace as keyof typeof env];
 
     if (!kv) {
       return createNotFoundResponse(`KV namespace '${namespace}' not found`);
@@ -30,8 +30,12 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     const limit = Math.min(MAX_LIMIT, Math.max(1, parseInt(url.searchParams.get('limit') || String(DEFAULT_LIMIT), 10)));
 
     // Execute KV list operation
-    const result = await kv.list({ prefix, cursor, limit });
-    const keys: KVKeyInfo[] = result.keys.map((k: any) => ({
+    const result = (await (kv as KVNamespace).list({ prefix, cursor, limit })) as {
+      keys: { name: string; expiration?: number }[];
+      list_complete: boolean;
+      cursor?: string;
+    };
+    const keys: KVKeyInfo[] = result.keys.map((k) => ({
       name: k.name,
       expiration: k.expiration,
     }));
@@ -58,10 +62,10 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
  */
 export async function POST(request: NextRequest, { params }: { params: Promise<{ namespace: string }> }) {
   try {
-    const { env } = getCloudflareContext() as any;
+    const { env } = getTypedContext();
     const { namespace } = await params;
 
-    const kv = env[namespace];
+    const kv = env[namespace as keyof typeof env];
 
     if (!kv) {
       return createNotFoundResponse(`KV namespace '${namespace}' not found`);
@@ -78,7 +82,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       options.expirationTtl = body.expirationTtl;
     }
 
-    await kv.put(body.key, body.value, options);
+    await (kv as KVNamespace).put(body.key, body.value, options);
 
     return createJsonResponse(
       {

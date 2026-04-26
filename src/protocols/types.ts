@@ -1,6 +1,6 @@
-import type { Env } from '../types';
+import type { Env, ProtocolBody } from '../types';
 
-export type { Env };
+export type { Env, ProtocolBody };
 
 export interface Provider {
   key: string;
@@ -13,19 +13,10 @@ export interface Provider {
 }
 
 export interface ExecutionContext {
-  waitUntil(promise: Promise<any>): void;
+  waitUntil(promise: Promise<unknown>): void;
   passThroughOnException(): void;
 }
 
-/**
- * Protocol Adapter Interface
- *
- * Core methods (required): getApiKey, getEndpoint, getHeaders, getAttempt
- * Conversion methods (optional): Only needed for protocol-to-protocol conversion (e.g., Anthropic ↔ OpenAI)
- *
- * Most adapters are pass-through and don't need conversion methods.
- * Anthropic adapter is the only one with real conversion logic.
- */
 export interface ProtocolAdapter {
   name: string;
   getAttempt(): number;
@@ -34,10 +25,10 @@ export interface ProtocolAdapter {
   getHeaders(provider: Provider, env: Env, ctx: ExecutionContext, apiKey: string): Promise<Record<string, string>>;
 
   // Optional: Request/response conversion (only for protocol-to-protocol conversion)
-  toStandardRequest?(body: any): any;
-  fromStandardRequest?(stdBody: any): any;
-  toStandardResponse?(body: any, model: string): any;
-  fromStandardResponse?(stdBody: any): any;
+  toStandardRequest?(body: ProtocolBody): ProtocolBody;
+  fromStandardRequest?(stdBody: ProtocolBody): ProtocolBody;
+  toStandardResponse?(body: ProtocolBody, model: string): ProtocolBody;
+  fromStandardResponse?(stdBody: ProtocolBody): ProtocolBody;
   createToStandardStream?(model: string): TransformStream;
   createFromStandardStream?(): TransformStream;
 }

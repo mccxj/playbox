@@ -37,6 +37,7 @@ export interface DownloadHistoryResponse {
   total: number;
   page: number;
   pageSize: number;
+  error?: string;
 }
 
 export interface CreateDownloadRequest {

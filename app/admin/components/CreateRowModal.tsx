@@ -27,7 +27,7 @@ export default function CreateRowModal({ open, table, columns, onClose, onSucces
         body: JSON.stringify(values),
       });
 
-      const data = (await response.json()) as any;
+      const data = (await response.json()) as { success: boolean; error?: string };
 
       if (data.success) {
         message.success('Row created successfully');

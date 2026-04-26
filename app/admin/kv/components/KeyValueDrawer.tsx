@@ -12,10 +12,10 @@ interface KeyValueDrawerProps {
 }
 
 interface KeyValuePairResponse {
-  success: true;
+  success: boolean;
   key: string;
   value: string;
-  metadata?: any;
+  metadata?: Record<string, unknown>;
 }
 
 type LoadingState = 'idle' | 'loading' | 'success' | 'error';
@@ -54,7 +54,9 @@ export default function KeyValueDrawer({ open, namespace, keyName, onClose }: Ke
         setLoadingState('error');
         const errorMessage =
           typeof data === 'object' && data !== null
-            ? (data as any).message || (data as any).error || 'Failed to fetch key details'
+            ? (data as { message?: string; error?: string }).message ||
+              (data as { message?: string; error?: string }).error ||
+              'Failed to fetch key details'
             : 'Failed to fetch key details';
         setErrorMessage(errorMessage);
         message.error('Key not found or access denied');

@@ -1,8 +1,9 @@
 import { NextRequest } from 'next/server';
-import { getCloudflareContext } from '@opennextjs/cloudflare';
+import { getTypedContext } from '@/lib/cloudflare-context';
 import { createJsonResponse, createInternalErrorResponse } from '@/lib/response-helpers';
 import { extract, ExampleData } from 'langextract';
 import { DEFAULT_CONFIG } from '@/config/default';
+import type { D1Database } from '@cloudflare/workers-types';
 
 export const dynamic = 'force-dynamic';
 
@@ -31,7 +32,7 @@ const MODEL_TYPE_TO_PROVIDER_KEY: Record<string, string | undefined> = {
   ollama: undefined, // Ollama typically uses local mode without API key
 };
 
-async function resolveApiKey(db: any, provider: string | undefined, providedKey?: string): Promise<string | undefined> {
+async function resolveApiKey(db: D1Database | undefined, provider: string | undefined, providedKey?: string): Promise<string | undefined> {
   if (providedKey) return providedKey;
 
   // provider is the provider key name (e.g., 'LongCat', 'Gemini')
@@ -45,9 +46,11 @@ async function resolveApiKey(db: any, provider: string | undefined, providedKey?
       const stored = await db
         .prepare(`SELECT content FROM security_keys WHERE type = 'API_KEY' AND provider = ? LIMIT 1`)
         .bind(provider)
-        .first();
+        .first<{ content: string }>();
       if (stored?.content) return stored.content;
-    } catch {}
+    } catch (_e) {
+      void _e;
+    }
   }
 
   return undefined;
@@ -55,7 +58,7 @@ async function resolveApiKey(db: any, provider: string | undefined, providedKey?
 
 export async function POST(request: NextRequest) {
   try {
-    const { env } = getCloudflareContext() as any;
+    const { env } = getTypedContext();
     const db = env.PLAYBOX_D1;
 
     const body = (await request.json()) as ExtractBody;

@@ -149,7 +149,7 @@ export default function ChatTestPage() {
           const delta = chunk.choices[0]?.delta;
           setMessages((prev) => {
             const newMessages = [...prev];
-            const assistantIdx = newMessages.findIndex((m) => (m as any).id === assistantMessageId);
+            const assistantIdx = newMessages.findIndex((m) => m.id === assistantMessageId);
             if (assistantIdx !== -1) {
               const msg = newMessages[assistantIdx];
               newMessages[assistantIdx] = {
@@ -216,7 +216,7 @@ export default function ChatTestPage() {
             )}
             {messages.map((msg, index) => (
               <ChatMessage
-                key={(msg as any).id || `${msg.role}-${msg.content.slice(0, 20)}`}
+                key={msg.id || `${msg.role}-${msg.content.slice(0, 20)}`}
                 message={msg}
                 onDelete={() => {
                   const newMessages = messages.filter((_, i) => i !== index);

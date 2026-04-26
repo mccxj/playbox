@@ -1,3 +1,4 @@
+import { getCloudflareContext as getRawContext } from '@opennextjs/cloudflare';
 import type { Env } from '../types';
 
 export function createCloudflareContext(executionCtx: ExecutionContext, env: Env) {
@@ -19,4 +20,22 @@ export function createCloudflareContext(executionCtx: ExecutionContext, env: Env
 export interface CloudflareContext {
   env: Cloudflare.Env;
   executionCtx: ExecutionContext;
+}
+
+/** Typed result from getCloudflareContext(). */
+export interface TypedContext {
+  env: Env;
+  ctx: ExecutionContext;
+}
+
+/**
+ * Typed wrapper around getCloudflareContext().
+ * Returns properly typed env and ctx for use in API routes.
+ */
+export function getTypedContext(): TypedContext {
+  const raw = getRawContext();
+  return {
+    env: raw.env as unknown as Env,
+    ctx: raw.ctx,
+  };
 }

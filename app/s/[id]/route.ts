@@ -1,5 +1,5 @@
 import { NextRequest } from 'next/server';
-import { getCloudflareContext } from '@opennextjs/cloudflare';
+import { getTypedContext } from '@/lib/cloudflare-context';
 
 export const dynamic = 'force-dynamic';
 
@@ -15,7 +15,7 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
   }
 
   try {
-    const { env } = getCloudflareContext() as any;
+    const { env } = getTypedContext();
     const kv = env.PLAYBOX_KV;
 
     if (!kv) {

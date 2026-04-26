@@ -1,6 +1,7 @@
 import { NextRequest } from 'next/server';
-import { getCloudflareContext } from '@opennextjs/cloudflare';
+import { getTypedContext } from '@/lib/cloudflare-context';
 import { createJsonResponse, createInternalErrorResponse } from '@/lib/response-helpers';
+import type nodemailer from 'nodemailer';
 
 export const dynamic = 'force-dynamic';
 
@@ -46,7 +47,7 @@ async function sendGmailEmail(
     },
   });
 
-  const mailOptions: any = {
+  const mailOptions: nodemailer.SendMailOptions = {
     from: credentials.from,
     to: to.join(', '),
     subject,
@@ -75,7 +76,7 @@ async function sendGmailEmail(
 
 export async function POST(request: NextRequest) {
   try {
-    const { env } = getCloudflareContext() as any;
+    const { env } = getTypedContext();
     const db = env.PLAYBOX_D1;
 
     if (!db) {
@@ -107,7 +108,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const credentials: EmailCredentials = JSON.parse((credResult.results[0] as any).content);
+    const credentials: EmailCredentials = JSON.parse((credResult.results[0] as unknown as { content: string }).content);
 
     const emailId = generateId();
     const now = new Date().toISOString();
@@ -161,7 +162,7 @@ export async function POST(request: NextRequest) {
 
 export async function GET(request: NextRequest) {
   try {
-    const { env } = getCloudflareContext() as any;
+    const { env } = getTypedContext();
     const db = env.PLAYBOX_D1;
 
     if (!db) {
@@ -176,7 +177,7 @@ export async function GET(request: NextRequest) {
     const offset = (page - 1) * pageSize;
 
     const whereClauses: string[] = [];
-    const params: any[] = [];
+    const params: string[] = [];
 
     if (status) {
       whereClauses.push('status = ?');
@@ -190,7 +191,11 @@ export async function GET(request: NextRequest) {
       .prepare(countQuery)
       .bind(...params)
       .all();
-    const total = (countResult.results as any[])[0]?.total || 0;
+
+    interface CountRow {
+      total: number;
+    }
+    const total = (countResult.results as unknown as CountRow[])[0]?.total || 0;
 
     const query = `
       SELECT id, recipients, subject, body, html_body, attachments, status, error, created_at, sent_at
@@ -206,7 +211,20 @@ export async function GET(request: NextRequest) {
       .bind(...queryParams)
       .all();
 
-    const records = (result.results as any[]).map((r) => ({
+    interface EmailHistoryRow {
+      id: string;
+      recipients: string;
+      subject: string;
+      body: string;
+      html_body: string | null;
+      attachments: string | null;
+      status: string;
+      error: string | null;
+      created_at: string;
+      sent_at: string | null;
+    }
+
+    const records = (result.results as unknown as EmailHistoryRow[]).map((r) => ({
       id: r.id,
       recipients: JSON.parse(r.recipients),
       subject: r.subject,

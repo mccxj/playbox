@@ -2,7 +2,7 @@ import { NextRequest } from 'next/server';
 import { CORS_HEADERS } from '@/utils/constants';
 import { createJsonResponse, createInternalErrorResponse } from '@/lib/response-helpers';
 import { validateSafeUrl } from '@/utils/ssrf-protection';
-import { getCloudflareContext } from '@opennextjs/cloudflare';
+import { getTypedContext } from '@/lib/cloudflare-context';
 
 export const dynamic = 'force-dynamic';
 
@@ -15,7 +15,7 @@ async function logDownload(
   rangeHeader?: string
 ): Promise<void> {
   try {
-    const { env } = getCloudflareContext() as any;
+    const { env } = getTypedContext();
     const db = env.PLAYBOX_D1;
 
     if (!db) {

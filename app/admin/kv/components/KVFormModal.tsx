@@ -31,7 +31,7 @@ export default function KVFormModal({ open, namespace, editingKey, onClose, onSu
     try {
       setLoading(true);
       const response = await fetch(`/api/admin/kv/${encodeURIComponent(namespace)}/${encodeURIComponent(editingKey)}`);
-      const data = (await response.json()) as any;
+      const data = (await response.json()) as { success: boolean; value?: string; error?: string };
 
       if (data.success) {
         form.setFieldsValue({
@@ -64,7 +64,7 @@ export default function KVFormModal({ open, namespace, editingKey, onClose, onSu
             expirationTtl: values.expirationTtl,
           }),
         });
-        const data = (await response.json()) as any;
+        const data = (await response.json()) as { success: boolean; error?: string };
 
         if (data.success) {
           message.success('Key updated successfully');
@@ -79,7 +79,7 @@ export default function KVFormModal({ open, namespace, editingKey, onClose, onSu
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(values),
         });
-        const data = (await response.json()) as any;
+        const data = (await response.json()) as { success: boolean; error?: string };
 
         if (data.success) {
           message.success('Key created successfully');

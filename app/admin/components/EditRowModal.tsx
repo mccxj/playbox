@@ -19,7 +19,7 @@ export default function EditRowModal({ open, table, columns, row, onClose, onSuc
 
   useEffect(() => {
     if (row && open) {
-      const values: Record<string, any> = {};
+      const values: Record<string, unknown> = {};
       columns.forEach((col) => {
         values[col.name] = row[col.name];
       });
@@ -40,7 +40,7 @@ export default function EditRowModal({ open, table, columns, row, onClose, onSuc
         body: JSON.stringify(values),
       });
 
-      const data = (await response.json()) as any;
+      const data = (await response.json()) as { success: boolean; error?: string };
 
       if (data.success) {
         message.success('Row updated successfully');

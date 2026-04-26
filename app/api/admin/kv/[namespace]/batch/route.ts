@@ -1,15 +1,15 @@
 import { NextRequest } from 'next/server';
-import { getCloudflareContext } from '@opennextjs/cloudflare';
+import { getTypedContext } from '@/lib/cloudflare-context';
 import { createJsonResponse, createInternalErrorResponse, createNotFoundResponse } from '@/lib/response-helpers';
 
 export const dynamic = 'force-dynamic';
 
 export async function POST(request: NextRequest, { params }: { params: Promise<{ namespace: string }> }) {
   try {
-    const { env } = getCloudflareContext() as any;
+    const { env } = getTypedContext();
     const { namespace } = await params;
 
-    const kv = env[namespace];
+    const kv = env[namespace as keyof typeof env] as KVNamespace;
 
     if (!kv) {
       return createNotFoundResponse(`KV namespace '${namespace}' not found`);

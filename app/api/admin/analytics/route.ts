@@ -1,5 +1,5 @@
 import { NextRequest } from 'next/server';
-import { getCloudflareContext } from '@opennextjs/cloudflare';
+import { getTypedContext } from '@/lib/cloudflare-context';
 import { createJsonResponse, createInternalErrorResponse } from '@/lib/response-helpers';
 
 export const dynamic = 'force-dynamic';
@@ -44,7 +44,7 @@ interface ApiKeyTokenRow {
 }
 
 export async function GET(request: NextRequest) {
-  const { env } = getCloudflareContext();
+  const { env } = getTypedContext();
   const searchParams = request.nextUrl.searchParams;
 
   const startDate = searchParams.get('startDate');
@@ -167,8 +167,20 @@ export async function GET(request: NextRequest) {
       fetchAnalyticsQuery(apiToken, accountId, apiKeyTokenQuery),
     ]);
 
+    interface AnalyticsQueryResult {
+      model?: string;
+      stream_type?: string;
+      provider?: string;
+      count?: number;
+      day?: string;
+      prompt_tokens?: number;
+      completion_tokens?: number;
+      total_tokens?: number;
+      api_key?: string;
+    }
+
     const aggregated: AnalyticsRow[] =
-      (aggregatedResult as any[])?.map((row: any) => ({
+      (aggregatedResult as AnalyticsQueryResult[] | undefined)?.map((row) => ({
         model: row.model || 'unknown',
         stream_type: row.stream_type || 'unknown',
         provider: row.provider || 'unknown',
@@ -176,14 +188,14 @@ export async function GET(request: NextRequest) {
       })) || [];
 
     const timeSeries: TimeSeriesRow[] =
-      (timeSeriesResult as any[])?.map((row: any) => ({
+      (timeSeriesResult as AnalyticsQueryResult[] | undefined)?.map((row) => ({
         timestamp: row.day || new Date().toISOString(),
         model: row.model || 'unknown',
         count: Number(row.count) || 0,
       })) || [];
 
     const tokenStats: TokenRow[] =
-      (tokenResult as any[])?.map((row: any) => ({
+      (tokenResult as AnalyticsQueryResult[] | undefined)?.map((row) => ({
         model: row.model || 'unknown',
         provider: row.provider || 'unknown',
         prompt_tokens: Number(row.prompt_tokens) || 0,
@@ -192,20 +204,20 @@ export async function GET(request: NextRequest) {
       })) || [];
 
     const tokenTimeSeries: TokenTimeSeriesRow[] =
-      (tokenTimeSeriesResult as any[])?.map((row: any) => ({
+      (tokenTimeSeriesResult as AnalyticsQueryResult[] | undefined)?.map((row) => ({
         timestamp: row.day || new Date().toISOString(),
         model: row.model || 'unknown',
         total_tokens: Number(row.total_tokens) || 0,
       })) || [];
 
     const apiKeyStats: ApiKeyRow[] =
-      (apiKeyResult as any[])?.map((row: any) => ({
+      (apiKeyResult as AnalyticsQueryResult[] | undefined)?.map((row) => ({
         api_key: row.api_key || 'anonymous',
         count: Number(row.count) || 0,
       })) || [];
 
     const apiKeyTokenStats: ApiKeyTokenRow[] =
-      (apiKeyTokenResult as any[])?.map((row: any) => ({
+      (apiKeyTokenResult as AnalyticsQueryResult[] | undefined)?.map((row) => ({
         api_key: row.api_key || 'anonymous',
         prompt_tokens: Number(row.prompt_tokens) || 0,
         completion_tokens: Number(row.completion_tokens) || 0,

@@ -1,10 +1,10 @@
 import { NextRequest } from 'next/server';
-import { getCloudflareContext } from '@opennextjs/cloudflare';
+import { getTypedContext } from '@/lib/cloudflare-context';
 import { authenticate, extractApiKey } from '@/lib/auth';
 import { createUnauthorizedResponse } from '@/lib/response-helpers';
 import { getConfig, resolveProvider } from '@/config';
 import { ProtocolFactory } from '@/protocols';
-import type { Env } from '@/types';
+
 import { CORS_HEADERS } from '@/utils/constants';
 import { createLogger } from '@/utils/logger';
 
@@ -20,14 +20,19 @@ interface TokenUsage {
 
 export const dynamic = 'force-dynamic';
 
+interface GeminiSafetySetting {
+  category: string;
+  threshold: string;
+}
+
 interface GeminiGenerateRequest {
   model?: string;
-  contents: any[];
-  system_instruction?: any;
-  generationConfig?: any;
-  safetySettings?: any[];
-  tools?: any[];
-  toolConfig?: any;
+  contents: unknown[];
+  system_instruction?: unknown;
+  generationConfig?: unknown;
+  safetySettings?: GeminiSafetySetting[];
+  tools?: unknown[];
+  toolConfig?: unknown;
 }
 
 /**
@@ -60,10 +65,9 @@ function parseActionSegment(actionSegment: string): { model: string; action: str
 export async function POST(request: NextRequest, { params }: { params: Promise<{ action: string[] }> }) {
   const logger = createLogger();
 
-  const { env: rawEnv, ctx } = getCloudflareContext();
-  const env = rawEnv as unknown as Env;
+  const { env, ctx } = getTypedContext();
 
-  const authResult = await authenticate(request as any, env);
+  const authResult = await authenticate(request, env);
   if (!authResult) {
     return createUnauthorizedResponse();
   }
@@ -127,7 +131,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 
     const protocol = ProtocolFactory.get(provider.type);
 
-    const geminiRequest = {
+    const geminiRequest: Record<string, unknown> = {
       contents: rawBody.contents,
       system_instruction: rawBody.system_instruction,
       generationConfig: rawBody.generationConfig,
@@ -139,8 +143,8 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       ],
     };
 
-    if (rawBody.tools) (geminiRequest as any).tools = rawBody.tools;
-    if (rawBody.toolConfig) (geminiRequest as any).toolConfig = rawBody.toolConfig;
+    if (rawBody.tools) geminiRequest.tools = rawBody.tools;
+    if (rawBody.toolConfig) geminiRequest.toolConfig = rawBody.toolConfig;
 
     const MAX_ATTEMPTS = protocol.getAttempt();
     let lastResponse: Response | undefined;
@@ -181,7 +185,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
         responseHeaders[key] = value;
       });
 
-      let responseBody: any;
+      let responseBody: unknown;
       const contentType = lastResponse.headers.get('content-type') || '';
 
       if (contentType.includes('application/json')) {
@@ -266,7 +270,10 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       const responseJson = await lastResponse.json();
 
       // Extract token usage from Gemini response
-      const usageMetadata = (responseJson as any).usageMetadata;
+      const responseData = responseJson as Record<string, unknown>;
+      const usageMetadata = responseData.usageMetadata as
+        | { promptTokenCount?: number; candidatesTokenCount?: number; totalTokenCount?: number }
+        | undefined;
       if (usageMetadata) {
         (env as unknown as { PLAYBOX_EVENTS?: AnalyticsEngineDataset }).PLAYBOX_EVENTS?.writeDataPoint({
           blobs: ['llm_api_tokens', requestedModel, providerName, 'non-stream'],

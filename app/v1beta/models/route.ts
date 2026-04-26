@@ -1,9 +1,8 @@
 import { NextRequest } from 'next/server';
-import { getCloudflareContext } from '@opennextjs/cloudflare';
+import { getTypedContext } from '@/lib/cloudflare-context';
 import { authenticate } from '@/lib/auth';
 import { createJsonResponse, createUnauthorizedResponse } from '@/lib/response-helpers';
-import { getConfig } from '@/config';
-import type { Env } from '@/types';
+import { getConfig, type ProviderConfig } from '@/config';
 
 export const dynamic = 'force-dynamic';
 
@@ -24,10 +23,9 @@ interface GeminiModelsResponse {
 }
 
 export async function GET(request: NextRequest) {
-  const { env: rawEnv } = getCloudflareContext();
-  const env = rawEnv as unknown as Env;
+  const { env } = getTypedContext();
 
-  if (!(await authenticate(request as any, env))) {
+  if (!(await authenticate(request, env))) {
     return createUnauthorizedResponse();
   }
 
@@ -39,12 +37,13 @@ export async function GET(request: NextRequest) {
     const seenIds = new Set<string>();
 
     for (const [, providerData] of Object.entries(providers)) {
-      if ((providerData as any).family !== 'gemini') {
+      const typedProvider = providerData as unknown as ProviderConfig;
+      if (typedProvider.family !== 'gemini') {
         continue;
       }
 
-      if (Array.isArray((providerData as any).models)) {
-        (providerData as any).models.forEach((modelId: string) => {
+      if (Array.isArray(typedProvider.models)) {
+        typedProvider.models.forEach((modelId: string) => {
           if (!seenIds.has(modelId)) {
             seenIds.add(modelId);
             modelsList.push({

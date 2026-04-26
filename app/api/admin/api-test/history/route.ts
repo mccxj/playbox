@@ -1,5 +1,5 @@
 import { NextRequest } from 'next/server';
-import { getCloudflareContext } from '@opennextjs/cloudflare';
+import { getTypedContext } from '@/lib/cloudflare-context';
 import { createJsonResponse, createInternalErrorResponse } from '@/lib/response-helpers';
 
 export const dynamic = 'force-dynamic';
@@ -9,7 +9,7 @@ const DEFAULT_PAGE_SIZE = 20;
 
 export async function GET(request: NextRequest) {
   try {
-    const { env } = getCloudflareContext() as any;
+    const { env } = getTypedContext();
     const db = env.PLAYBOX_D1;
 
     if (!db) {
@@ -32,9 +32,9 @@ export async function GET(request: NextRequest) {
 		`
       )
       .bind(...bindParams)
-      .first();
+      .first<{ total: number }>();
 
-    const total = (countResult as any)?.total || 0;
+    const total = countResult?.total || 0;
 
     const rowsResult = await db
       .prepare(
@@ -46,9 +46,22 @@ export async function GET(request: NextRequest) {
 		`
       )
       .bind(...bindParams, pageSize, offset)
-      .all();
+      .all<{
+        id: string;
+        method: string;
+        url: string;
+        headers: string | null;
+        body: string | null;
+        body_format: string | null;
+        response_status: number | null;
+        response_headers: string | null;
+        response_body: string | null;
+        duration_ms: number | null;
+        error_message: string | null;
+        created_at: string;
+      }>();
 
-    const records = (rowsResult.results as any[]).map((row) => ({
+    const records = rowsResult.results.map((row) => ({
       id: row.id,
       method: row.method,
       url: row.url,
@@ -80,7 +93,7 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const { env } = getCloudflareContext() as any;
+    const { env } = getTypedContext();
     const db = env.PLAYBOX_D1;
 
     if (!db) {
@@ -139,7 +152,7 @@ export async function POST(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
   try {
-    const { env } = getCloudflareContext() as any;
+    const { env } = getTypedContext();
     const db = env.PLAYBOX_D1;
 
     if (!db) {

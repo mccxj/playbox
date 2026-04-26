@@ -1,6 +1,7 @@
 import { NextRequest } from 'next/server';
-import { getCloudflareContext } from '@opennextjs/cloudflare';
+import { getTypedContext } from '@/lib/cloudflare-context';
 import { createJsonResponse, createInternalErrorResponse, createNotFoundResponse } from '@/lib/response-helpers';
+import type { D1Database } from '@cloudflare/workers-types';
 
 export const dynamic = 'force-dynamic';
 
@@ -10,7 +11,7 @@ interface ColumnInfo {
   pk: number;
 }
 
-async function validateTable(db: any, tableName: string): Promise<ColumnInfo[] | null> {
+async function validateTable(db: D1Database, tableName: string): Promise<ColumnInfo[] | null> {
   const tablesResult = await db
     .prepare(
       `
@@ -27,7 +28,7 @@ async function validateTable(db: any, tableName: string): Promise<ColumnInfo[] |
   if (!tablesResult) return null;
 
   const columnsResult = await db.prepare(`PRAGMA table_info(${tableName})`).all();
-  return columnsResult.results as ColumnInfo[];
+  return columnsResult.results as unknown as ColumnInfo[];
 }
 
 function escapeColumnName(name: string): string {
@@ -39,7 +40,7 @@ function escapeColumnName(name: string): string {
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ table: string; rowid: string }> }) {
   try {
-    const { env } = getCloudflareContext() as any;
+    const { env } = getTypedContext();
     const db = env.PLAYBOX_D1;
 
     if (!db) {
@@ -83,7 +84,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
 export async function PUT(request: NextRequest, { params }: { params: Promise<{ table: string; rowid: string }> }) {
   try {
-    const { env } = getCloudflareContext() as any;
+    const { env } = getTypedContext();
     const db = env.PLAYBOX_D1;
 
     if (!db) {
@@ -102,16 +103,16 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       return createNotFoundResponse(`Table '${tableName}' not found`);
     }
 
-    const body = (await request.json()) as Record<string, any>;
+    const body = (await request.json()) as Record<string, unknown>;
     const validColumnNames = columns.map((c) => c.name);
 
     const updateClauses: string[] = [];
-    const bindParams: any[] = [];
+    const bindParams: (string | number | null)[] = [];
 
     for (const [key, value] of Object.entries(body)) {
       if (validColumnNames.includes(key)) {
         updateClauses.push(`${escapeColumnName(key)} = ?`);
-        bindParams.push(value);
+        bindParams.push(value as string | number | null);
       }
     }
 
@@ -153,7 +154,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
 
 export async function DELETE(request: NextRequest, { params }: { params: Promise<{ table: string; rowid: string }> }) {
   try {
-    const { env } = getCloudflareContext() as any;
+    const { env } = getTypedContext();
     const db = env.PLAYBOX_D1;
 
     if (!db) {
