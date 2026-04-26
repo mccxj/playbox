@@ -91,7 +91,7 @@ export default function R2AdminPage() {
     return `${(bytes / (1024 * 1024 * 1024)).toFixed(2)} GB`;
   };
 
-  const fetchBuckets = async () => {
+  const fetchBuckets = useCallback(async () => {
     try {
       const response = await fetch('/api/admin/r2');
       const data = (await response.json()) as R2BucketsResponse;
@@ -111,7 +111,7 @@ export default function R2AdminPage() {
     } catch (err) {
       setError((err as Error).message);
     }
-  };
+  }, [selectedBucket]);
 
   const fetchObjects = useCallback(
     async (resetCursor = false) => {
@@ -164,7 +164,7 @@ export default function R2AdminPage() {
 
   useEffect(() => {
     fetchBuckets();
-  }, []);
+  }, [fetchBuckets]);
 
   useEffect(() => {
     if (selectedBucket) {
@@ -172,7 +172,7 @@ export default function R2AdminPage() {
       setTruncated(false);
       fetchObjects(true);
     }
-  }, [selectedBucket, prefix]);
+  }, [selectedBucket, prefix, fetchObjects]);
 
   const handleSearch = () => {
     setCursor(undefined);

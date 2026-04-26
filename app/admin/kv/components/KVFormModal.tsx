@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Modal, Form, Input, InputNumber, message } from 'antd';
 
 interface KVFormModalProps {
@@ -17,15 +17,7 @@ export default function KVFormModal({ open, namespace, editingKey, onClose, onSu
 
   const isEditing = !!editingKey;
 
-  useEffect(() => {
-    if (open && editingKey) {
-      fetchKeyValue();
-    } else if (open) {
-      form.resetFields();
-    }
-  }, [open, editingKey]);
-
-  const fetchKeyValue = async () => {
+  const fetchKeyValue = useCallback(async () => {
     if (!editingKey || !namespace) return;
 
     try {
@@ -47,7 +39,15 @@ export default function KVFormModal({ open, namespace, editingKey, onClose, onSu
     } finally {
       setLoading(false);
     }
-  };
+  }, [editingKey, namespace, form]);
+
+  useEffect(() => {
+    if (open && editingKey) {
+      fetchKeyValue();
+    } else if (open) {
+      form.resetFields();
+    }
+  }, [open, editingKey, fetchKeyValue, form]);
 
   const handleOk = async () => {
     try {

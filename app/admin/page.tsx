@@ -57,7 +57,7 @@ export default function AdminPage() {
   const [importModalOpen, setImportModalOpen] = useState(false);
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
 
-  const fetchTables = async () => {
+  const fetchTables = useCallback(async () => {
     try {
       setLoading(true);
       const response = await fetch('/api/admin/tables');
@@ -77,7 +77,7 @@ export default function AdminPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [selectedTable]);
 
   const fetchRows = useCallback(async () => {
     if (!selectedTable) return;
@@ -119,7 +119,7 @@ export default function AdminPage() {
 
   useEffect(() => {
     fetchTables();
-  }, []);
+  }, [fetchTables]);
 
   useEffect(() => {
     if (selectedTable) {
@@ -127,7 +127,7 @@ export default function AdminPage() {
       setSelectedTableSchema(schema || null);
       fetchRows();
     }
-  }, [selectedTable, fetchRows]);
+  }, [selectedTable, fetchRows, tables]);
 
   const handleTableChange = (tableName: string) => {
     setSelectedTable(tableName);

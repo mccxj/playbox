@@ -59,7 +59,7 @@ export default function KVAdminPage() {
   const [editingKey, setEditingKey] = useState<string | null>(null);
   const [viewingKey, setViewingKey] = useState<string | null>(null);
 
-  const fetchNamespaces = async () => {
+  const fetchNamespaces = useCallback(async () => {
     try {
       const response = await fetch('/api/admin/kv');
       const data = (await response.json()) as KVNamespacesResponse;
@@ -79,7 +79,7 @@ export default function KVAdminPage() {
     } catch (err) {
       setError((err as Error).message);
     }
-  };
+  }, [selectedNamespace]);
 
   const fetchKeys = useCallback(
     async (resetCursor = false) => {
@@ -118,7 +118,7 @@ export default function KVAdminPage() {
 
   useEffect(() => {
     fetchNamespaces();
-  }, []);
+  }, [fetchNamespaces]);
 
   useEffect(() => {
     if (selectedNamespace) {
@@ -126,7 +126,7 @@ export default function KVAdminPage() {
       setListComplete(true);
       fetchKeys(true);
     }
-  }, [selectedNamespace, prefix]);
+  }, [selectedNamespace, prefix, fetchKeys]);
 
   const handleSearch = () => {
     setCursor(undefined);

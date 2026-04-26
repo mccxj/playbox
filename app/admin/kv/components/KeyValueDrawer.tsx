@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Drawer, Descriptions, Input, Button, Spin, message, Space, Alert } from 'antd';
 import { CopyOutlined, LoadingOutlined } from '@ant-design/icons';
 
@@ -25,18 +25,7 @@ export default function KeyValueDrawer({ open, namespace, keyName, onClose }: Ke
   const [keyData, setKeyData] = useState<KeyValuePairResponse | null>(null);
   const [errorMessage, setErrorMessage] = useState<string>('');
 
-  useEffect(() => {
-    if (open && keyName && namespace) {
-      fetchKeyValue();
-    } else {
-      // Reset state when drawer closes
-      setLoadingState('idle');
-      setKeyData(null);
-      setErrorMessage('');
-    }
-  }, [open, keyName, namespace]);
-
-  const fetchKeyValue = async () => {
+  const fetchKeyValue = useCallback(async () => {
     if (!keyName || !namespace) return;
 
     try {
@@ -66,7 +55,18 @@ export default function KeyValueDrawer({ open, namespace, keyName, onClose }: Ke
       setErrorMessage(error instanceof Error ? error.message : 'Network error');
       message.error('Failed to load key details');
     }
-  };
+  }, [keyName, namespace]);
+
+  useEffect(() => {
+    if (open && keyName && namespace) {
+      fetchKeyValue();
+    } else {
+      // Reset state when drawer closes
+      setLoadingState('idle');
+      setKeyData(null);
+      setErrorMessage('');
+    }
+  }, [open, keyName, namespace, fetchKeyValue]);
 
   const handleCopyValue = async () => {
     if (!keyData?.value) return;
