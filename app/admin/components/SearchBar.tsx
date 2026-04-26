@@ -21,7 +21,7 @@ export default function SearchBar({ columns, onSearch, onCreate, onImport, onRef
     if (columns.length > 0 && !searchColumn) {
       setSearchColumn(columns[0].name);
     }
-  }, [columns]);
+  }, [columns, searchColumn]);
 
   const handleSearch = () => {
     if (searchColumn) {

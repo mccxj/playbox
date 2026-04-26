@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Card, Form, Input, Button, Space, Table, Tag, message, Tabs, Upload, Alert } from 'antd';
 import { SendOutlined, ReloadOutlined, PlusOutlined, MailOutlined, HistoryOutlined } from '@ant-design/icons';
 import type { UploadFile } from 'antd/es/upload/interface';
@@ -36,27 +36,30 @@ export default function EmailTestPage() {
   const [recipients, setRecipients] = useState<string[]>([]);
   const [fileList, setFileList] = useState<UploadFile[]>([]);
 
-  const fetchHistory = async (p = page, ps = pageSize) => {
-    setHistoryLoading(true);
-    try {
-      const res = await fetch(`/api/admin/email?page=${p}&pageSize=${ps}`);
-      const data = (await res.json()) as { success: boolean; records?: EmailRecord[]; total?: number; error?: string };
-      if (data.success) {
-        setHistory(data.records || []);
-        setTotal(data.total || 0);
-      } else {
-        message.error(data.error || 'Failed to fetch email history');
+  const fetchHistory = useCallback(
+    async (p = page, ps = pageSize) => {
+      setHistoryLoading(true);
+      try {
+        const res = await fetch(`/api/admin/email?page=${p}&pageSize=${ps}`);
+        const data = (await res.json()) as { success: boolean; records?: EmailRecord[]; total?: number; error?: string };
+        if (data.success) {
+          setHistory(data.records || []);
+          setTotal(data.total || 0);
+        } else {
+          message.error(data.error || 'Failed to fetch email history');
+        }
+      } catch (_err) {
+        message.error('Failed to fetch email history');
+      } finally {
+        setHistoryLoading(false);
       }
-    } catch (_err) {
-      message.error('Failed to fetch email history');
-    } finally {
-      setHistoryLoading(false);
-    }
-  };
+    },
+    [page, pageSize]
+  );
 
   useEffect(() => {
     fetchHistory();
-  }, []);
+  }, [fetchHistory]);
 
   const handleSend = async (values: Record<string, unknown>) => {
     if (recipients.length === 0) {
