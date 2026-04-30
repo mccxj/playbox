@@ -127,6 +127,7 @@
         "minimaxai/minimax-m2.7",
         "moonshotai/kimi-k2.5",
         "nvidia/nemotron-3-super-120b-a12b",
+        "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning",
         "deepseek-ai/deepseek-v3.2",
         "deepseek-ai/deepseek-v4-flash",
         "deepseek-ai/deepseek-v4-pro"
