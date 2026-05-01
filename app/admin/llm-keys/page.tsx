@@ -14,6 +14,7 @@ import {
 } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
 import dayjs from 'dayjs';
+import { useIsMobile } from '../../lib/responsive';
 
 interface ApiKey {
   id: string;
@@ -30,6 +31,7 @@ const CreateKeyModal = dynamic(() => import('./components/CreateKeyModal'), { ss
 import dynamic from 'next/dynamic';
 
 export default function LLMKeysAdminPage() {
+  const isMobile = useIsMobile();
   const [keys, setKeys] = useState<ApiKey[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -245,19 +247,27 @@ export default function LLMKeysAdminPage() {
       )}
 
       <Card style={{ marginBottom: 16 }}>
-        <Space align="center" style={{ width: '100%', justifyContent: 'space-between' }}>
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: isMobile ? 'column' : 'row',
+            alignItems: isMobile ? 'flex-start' : 'center',
+            justifyContent: 'space-between',
+            gap: isMobile ? 8 : undefined,
+          }}
+        >
           <Title level={5} style={{ margin: 0 }}>
             Total API Keys: {keys.length}
           </Title>
-          <Space>
+          <Space wrap>
             <Button icon={<ReloadOutlined />} onClick={fetchKeys}>
-              Refresh
+              {!isMobile && 'Refresh'}
             </Button>
             <Button type="primary" icon={<PlusOutlined />} onClick={handleCreate}>
-              Create New Key
+              {!isMobile ? 'Create New Key' : 'New Key'}
             </Button>
           </Space>
-        </Space>
+        </div>
       </Card>
 
       <Table
@@ -266,7 +276,7 @@ export default function LLMKeysAdminPage() {
         rowKey="id"
         loading={loading}
         pagination={false}
-        scroll={{ y: 'calc(100vh - 350px)' }}
+        scroll={{ y: isMobile ? 'calc(100vh - 380px)' : 'calc(100vh - 350px)' }}
         size="small"
       />
 

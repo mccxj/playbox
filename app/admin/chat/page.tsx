@@ -11,6 +11,7 @@ import ApiKeyModal from '../../components/Chat/ApiKeyModal';
 
 import type { Model, ChatMessage as ChatMessageType } from '../../lib/chat-api';
 import { fetchModels, chatCompletion } from '../../lib/chat-api';
+import { useIsMobile } from '../../lib/responsive';
 import {
   getApiKey,
   getSessions,
@@ -23,6 +24,7 @@ import {
 } from '../../lib/storage';
 
 export default function ChatTestPage() {
+  const isMobile = useIsMobile();
   const [apiKey, setApiKey] = useState<string | null>(null);
   const [showApiKeyModal, setShowApiKeyModal] = useState(false);
   const [models, setModels] = useState<Model[]>([]);
@@ -177,16 +179,18 @@ export default function ChatTestPage() {
   };
 
   return (
-    <div style={{ display: 'flex', height: 'calc(100vh - 140px)', overflow: 'hidden' }}>
-      <ChatHistorySidebar
-        sessions={sessions}
-        currentSessionId={currentSessionId}
-        onSelect={loadSession}
-        onCreate={handleCreateSession}
-        onDelete={handleDeleteSession}
-      />
+    <div style={{ display: 'flex', height: isMobile ? 'calc(100dvh - 100px)' : 'calc(100vh - 140px)', overflow: 'hidden' }}>
+      {!isMobile && (
+        <ChatHistorySidebar
+          sessions={sessions}
+          currentSessionId={currentSessionId}
+          onSelect={loadSession}
+          onCreate={handleCreateSession}
+          onDelete={handleDeleteSession}
+        />
+      )}
 
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', minWidth: 0 }}>
         <div style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
           {error && (
             <Alert

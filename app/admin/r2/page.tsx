@@ -19,6 +19,7 @@ import type { ColumnsType } from 'antd/es/table';
 import type { UploadProps } from 'antd';
 import NamespaceSelector from '../kv/components/NamespaceSelector';
 import type { KVNamespaceOption } from '../types/kv';
+import { useIsMobile, useMobileDrawerWidth } from '../../lib/responsive';
 
 interface R2ObjectInfo {
   key: string;
@@ -70,6 +71,8 @@ interface R2MetadataResponse {
 }
 
 export default function R2AdminPage() {
+  const isMobile = useIsMobile();
+  const drawerWidth = useMobileDrawerWidth();
   const [buckets, setBuckets] = useState<KVNamespaceOption[]>([]);
   const [selectedBucket, setSelectedBucket] = useState<string>('');
   const [objects, setObjects] = useState<R2ObjectDisplay[]>([]);
@@ -347,43 +350,58 @@ export default function R2AdminPage() {
       )}
 
       <Card style={{ marginBottom: 16 }}>
-        <Space size="large" align="center" wrap>
-          <CloudServerOutlined style={{ fontSize: 24, color: '#1890ff' }} />
-          <NamespaceSelector
-            namespaces={buckets}
-            selected={selectedBucket}
-            onChange={(b) => {
-              setSelectedBucket(b);
-              setPrefix('');
-              setSelectedRowKeys([]);
-            }}
-            loading={loading}
-          />
-          <Space.Compact>
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: isMobile ? 'column' : 'row',
+            gap: isMobile ? 8 : 16,
+            alignItems: isMobile ? 'stretch' : 'center',
+            flexWrap: isMobile ? 'nowrap' : 'wrap',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <CloudServerOutlined style={{ fontSize: 24, color: '#1890ff' }} />
+            <NamespaceSelector
+              namespaces={buckets}
+              selected={selectedBucket}
+              onChange={(b) => {
+                setSelectedBucket(b);
+                setPrefix('');
+                setSelectedRowKeys([]);
+              }}
+              loading={loading}
+            />
+          </div>
+          <Space.Compact style={{ width: isMobile ? '100%' : 'auto' }}>
             <Input
-              style={{ width: 300 }}
-              placeholder="Filter by prefix..."
+              style={{ width: isMobile ? '60%' : 300 }}
+              placeholder="Filter prefix..."
               value={prefix}
               onChange={(e) => setPrefix(e.target.value)}
               onPressEnter={handleSearch}
             />
             <Button type="primary" icon={<SearchOutlined />} onClick={handleSearch}>
-              Search
+              {!isMobile && 'Search'}
             </Button>
             <Button icon={<ClearOutlined />} onClick={handleClear}>
-              Clear
+              {!isMobile && 'Clear'}
             </Button>
           </Space.Compact>
           <div style={{ flex: 1 }} />
-          <Space>
-            <Button icon={<ReloadOutlined />} onClick={handleRefresh}>
-              Refresh
+          <Space wrap>
+            <Button icon={<ReloadOutlined />} onClick={handleRefresh} size={isMobile ? 'small' : 'middle'}>
+              {!isMobile && 'Refresh'}
             </Button>
-            <Button type="primary" icon={<CloudUploadOutlined />} onClick={() => setUploadModalOpen(true)}>
-              Upload
+            <Button
+              type="primary"
+              icon={<CloudUploadOutlined />}
+              onClick={() => setUploadModalOpen(true)}
+              size={isMobile ? 'small' : 'middle'}
+            >
+              {!isMobile && 'Upload'}
             </Button>
           </Space>
-        </Space>
+        </div>
       </Card>
 
       {prefix && (
@@ -425,7 +443,7 @@ export default function R2AdminPage() {
         loading={loading && objects.length === 0}
         rowSelection={rowSelection}
         pagination={false}
-        scroll={{ y: 'calc(100vh - 400px)' }}
+        scroll={{ y: isMobile ? 'calc(100vh - 420px)' : 'calc(100vh - 400px)' }}
         size="small"
       />
 
@@ -454,7 +472,7 @@ export default function R2AdminPage() {
           setDrawerOpen(false);
           setViewingKey(null);
         }}
-        width={600}
+        width={drawerWidth}
       >
         {viewingKey && <ObjectDetails bucket={selectedBucket} keyName={viewingKey} onDownload={() => handleDownload(viewingKey)} />}
       </Drawer>

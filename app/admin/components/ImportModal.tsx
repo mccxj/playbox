@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Modal, Upload, Radio, Button, message, Typography, Space } from 'antd';
 import { UploadOutlined, FileTextOutlined } from '@ant-design/icons';
 import type { UploadFile } from 'antd/es/upload/interface';
+import { useMobileModalWidth } from '../../lib/responsive';
 
 const { Text, Paragraph } = Typography;
 
@@ -19,6 +20,7 @@ export default function ImportModal({ open, table, onClose, onSuccess }: ImportM
   const [fileList, setFileList] = useState<UploadFile[]>([]);
   const [previewData, setPreviewData] = useState<string>('');
   const [loading, setLoading] = useState(false);
+  const modalWidth = useMobileModalWidth();
 
   const handleUpload = (file: File) => {
     const reader = new FileReader();
@@ -81,7 +83,7 @@ export default function ImportModal({ open, table, onClose, onSuccess }: ImportM
       onOk={handleImport}
       onCancel={handleClose}
       confirmLoading={loading}
-      width={600}
+      width={modalWidth}
       okText="Import"
     >
       <Space direction="vertical" style={{ width: '100%' }} size="large">

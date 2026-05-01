@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { Card, Collapse, Table, Tag, Space, Button, Spin, Alert, Tooltip, Modal, Input } from 'antd';
+import { useIsMobile, useMobileModalWidth } from '../../lib/responsive';
 import {
   ApiOutlined,
   CheckCircleOutlined,
@@ -78,6 +79,8 @@ function speedTestKey(provider: string, model: string) {
 const DELAY_BETWEEN_TESTS_MS = 1000;
 
 export default function ProvidersPage() {
+  const isMobile = useIsMobile();
+  const modalWidth = useMobileModalWidth();
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState<ProvidersResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -394,7 +397,7 @@ export default function ProvidersPage() {
                     placeholder="搜索模型 ID..."
                     value={searchTerm}
                     onChange={(e) => handleModelSearch(providerKey, e.target.value)}
-                    style={{ width: 200 }}
+                    style={{ width: isMobile ? '100%' : 200 }}
                     allowClear
                     size="small"
                   />
@@ -451,7 +454,7 @@ export default function ProvidersPage() {
         open={modalOpen}
         onCancel={closeModal}
         footer={null}
-        width={800}
+        width={modalWidth}
         destroyOnClose
       >
         {modalLoading ? (
@@ -468,7 +471,7 @@ export default function ProvidersPage() {
                 placeholder="搜索模型 ID..."
                 value={modalSearchTerm}
                 onChange={(e) => setModalSearchTerm(e.target.value)}
-                style={{ width: 250 }}
+                style={{ width: isMobile ? '100%' : 250 }}
                 allowClear
                 size="small"
               />

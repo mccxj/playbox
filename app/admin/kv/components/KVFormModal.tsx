@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { Modal, Form, Input, InputNumber, message } from 'antd';
+import { useMobileModalWidth } from '../../../lib/responsive';
 
 interface KVFormModalProps {
   open: boolean;
@@ -101,6 +102,8 @@ export default function KVFormModal({ open, namespace, editingKey, onClose, onSu
     onClose();
   };
 
+  const modalWidth = useMobileModalWidth();
+
   return (
     <Modal
       title={isEditing ? `Edit Key: ${editingKey}` : 'Create New Key'}
@@ -108,7 +111,7 @@ export default function KVFormModal({ open, namespace, editingKey, onClose, onSu
       onOk={handleOk}
       onCancel={handleClose}
       confirmLoading={loading}
-      width={600}
+      width={modalWidth}
       okText={isEditing ? 'Update' : 'Create'}
     >
       <Form form={form} layout="vertical">

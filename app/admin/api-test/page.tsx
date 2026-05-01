@@ -6,6 +6,7 @@ import HistoryPanel from './components/HistoryPanel';
 import ApiTestForm from './components/ApiTestForm';
 import ResponseViewer from './components/ResponseViewer';
 import type { ApiTestRequest, ApiTestResponse, ExecuteApiResponse } from './types';
+import { useIsMobile } from '../../lib/responsive';
 
 const defaultRequest: ApiTestRequest = {
   method: 'GET',
@@ -16,6 +17,7 @@ const defaultRequest: ApiTestRequest = {
 };
 
 export default function ApiTestPage() {
+  const isMobile = useIsMobile();
   const [request, setRequest] = useState<ApiTestRequest>(defaultRequest);
   const [response, setResponse] = useState<ApiTestResponse | null>(null);
   const [loading, setLoading] = useState(false);
@@ -60,18 +62,18 @@ export default function ApiTestPage() {
   };
 
   return (
-    <Row gutter={16} style={{ height: 'calc(100vh - 200px)' }}>
-      <Col span={6}>
+    <Row gutter={[8, 8]} style={{ height: isMobile ? 'calc(100dvh - 160px)' : 'calc(100vh - 200px)' }}>
+      <Col xs={24} sm={24} md={6}>
         <Card
           title="History"
           size="small"
-          style={{ height: '100%', overflow: 'hidden' }}
+          style={{ height: isMobile ? 200 : '100%', overflow: 'hidden', marginBottom: isMobile ? 8 : 0 }}
           bodyStyle={{ height: 'calc(100% - 57px)', overflow: 'auto' }}
         >
           <HistoryPanel onSelect={handleLoadFromHistory} />
         </Card>
       </Col>
-      <Col span={18}>
+      <Col xs={24} sm={24} md={18}>
         <Space direction="vertical" style={{ width: '100%' }} size="middle">
           <Card title="Request" size="small">
             <ApiTestForm request={request} onChange={setRequest} onExecute={handleExecute} loading={loading} />

@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Modal, Form, Input, InputNumber, message } from 'antd';
 import type { ColumnInfo, TableRow } from '../types';
+import { useMobileModalWidth } from '../../lib/responsive';
 
 interface EditRowModalProps {
   open: boolean;
@@ -16,6 +17,7 @@ interface EditRowModalProps {
 export default function EditRowModal({ open, table, columns, row, onClose, onSuccess }: EditRowModalProps) {
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
+  const modalWidth = useMobileModalWidth();
 
   useEffect(() => {
     if (row && open) {
@@ -80,7 +82,7 @@ export default function EditRowModal({ open, table, columns, row, onClose, onSuc
         onClose();
       }}
       confirmLoading={loading}
-      width={600}
+      width={modalWidth}
     >
       <Form form={form} layout="vertical">
         {columns.map((column) => (
@@ -90,7 +92,7 @@ export default function EditRowModal({ open, table, columns, row, onClose, onSuc
             label={
               <span>
                 {column.name}
-                {column.pk ? ' (Primary Key)' : ''}
+                {column.pk ? ' (PK)' : ''}
               </span>
             }
           >

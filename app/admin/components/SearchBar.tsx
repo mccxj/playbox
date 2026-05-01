@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { Space, Select, Input, Button } from 'antd';
 import { SearchOutlined, ClearOutlined, PlusOutlined, UploadOutlined, ReloadOutlined } from '@ant-design/icons';
 import type { ColumnInfo } from '../types';
+import { useIsMobile } from '../../lib/responsive';
 
 interface SearchBarProps {
   columns: ColumnInfo[];
@@ -14,6 +15,7 @@ interface SearchBarProps {
 }
 
 export default function SearchBar({ columns, onSearch, onCreate, onImport, onRefresh }: SearchBarProps) {
+  const isMobile = useIsMobile();
   const [searchValue, setSearchValue] = useState('');
   const [searchColumn, setSearchColumn] = useState('');
 
@@ -35,41 +37,41 @@ export default function SearchBar({ columns, onSearch, onCreate, onImport, onRef
   };
 
   return (
-    <div style={{ marginBottom: 16, display: 'flex', gap: 16, flexWrap: 'wrap', alignItems: 'center' }}>
-      <Space.Compact style={{ width: 400 }}>
+    <div style={{ marginBottom: 16, display: 'flex', gap: isMobile ? 8 : 16, flexWrap: 'wrap', alignItems: 'center' }}>
+      <Space.Compact style={{ width: '100%', maxWidth: 400, flex: isMobile ? '1 1 100%' : '0 0 auto' }}>
         <Select
-          style={{ width: 150 }}
+          style={{ width: isMobile ? '35%' : 150 }}
           value={searchColumn}
           onChange={setSearchColumn}
           options={columns.map((c) => ({ label: c.name, value: c.name }))}
-          placeholder="Select column"
+          placeholder="Column"
         />
         <Input
-          style={{ width: 200 }}
+          style={{ width: isMobile ? '35%' : 200 }}
           placeholder="Search..."
           value={searchValue}
           onChange={(e) => setSearchValue(e.target.value)}
           onPressEnter={handleSearch}
         />
         <Button type="primary" icon={<SearchOutlined />} onClick={handleSearch}>
-          Search
+          {!isMobile && 'Search'}
         </Button>
         <Button icon={<ClearOutlined />} onClick={handleClear}>
-          Clear
+          {!isMobile && 'Clear'}
         </Button>
       </Space.Compact>
 
       <div style={{ flex: 1 }} />
 
-      <Space>
+      <Space wrap>
         <Button icon={<ReloadOutlined />} onClick={onRefresh}>
-          Refresh
+          {!isMobile && 'Refresh'}
         </Button>
         <Button type="primary" icon={<PlusOutlined />} onClick={onCreate}>
-          New Row
+          {!isMobile ? 'New Row' : 'New'}
         </Button>
         <Button icon={<UploadOutlined />} onClick={onImport}>
-          Import
+          {!isMobile && 'Import'}
         </Button>
       </Space>
     </div>

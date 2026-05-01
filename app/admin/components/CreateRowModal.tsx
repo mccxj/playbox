@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { Modal, Form, Input, InputNumber, message } from 'antd';
 import type { ColumnInfo } from '../types';
+import { useMobileModalWidth } from '../../lib/responsive';
 
 interface CreateRowModalProps {
   open: boolean;
@@ -15,6 +16,7 @@ interface CreateRowModalProps {
 export default function CreateRowModal({ open, table, columns, onClose, onSuccess }: CreateRowModalProps) {
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
+  const modalWidth = useMobileModalWidth();
 
   const handleOk = async () => {
     try {
@@ -67,7 +69,7 @@ export default function CreateRowModal({ open, table, columns, onClose, onSucces
         onClose();
       }}
       confirmLoading={loading}
-      width={600}
+      width={modalWidth}
     >
       <Form form={form} layout="vertical">
         {columns.map((column) => (
@@ -77,7 +79,7 @@ export default function CreateRowModal({ open, table, columns, onClose, onSucces
             label={
               <span>
                 {column.name}
-                {column.pk ? ' (Primary Key)' : ''}
+                {column.pk ? ' (PK)' : ''}
                 {column.notnull ? ' *' : ''}
               </span>
             }

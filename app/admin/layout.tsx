@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { ConfigProvider, App as AntApp, Layout, Menu, Typography, Button } from 'antd';
+import { ConfigProvider, App as AntApp, Layout, Menu, Typography, Button, Drawer } from 'antd';
 import {
   DatabaseOutlined,
   CloudOutlined,
@@ -23,6 +23,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import VConsole from '../components/VConsole';
 import ReferralBadge from './components/ReferralBadge';
+import { useIsMobile } from '../lib/responsive';
 
 const { Header, Sider, Content } = Layout;
 const { Title } = Typography;
@@ -152,38 +153,83 @@ const TITLE_STYLE = {
   overflow: 'hidden',
 } as const;
 
-const HEADER_STYLE = {
-  background: '#fff',
-  padding: '0 24px',
-  borderBottom: '1px solid #f0f0f0',
-  display: 'flex',
-  alignItems: 'center',
-} as const;
-
-const CONTENT_STYLE = {
-  margin: '24px',
-  padding: '24px',
-  background: '#fff',
-  borderRadius: '8px',
-  minHeight: '280px',
-} as const;
-
-export default function AdminLayout({ children }: { children: React.ReactNode }) {
-  const pathname = usePathname();
-  const [collapsed, setCollapsed] = useState(false);
-
-  const getSelectedKey = () => {
-    for (const [path, key] of Object.entries(PATH_KEY_MAP)) {
-      if (pathname?.includes(`/admin/${path}`)) {
-        return key;
-      }
+function getSelectedKey(pathname: string | null): string {
+  for (const [path, key] of Object.entries(PATH_KEY_MAP)) {
+    if (pathname?.includes(`/admin/${path}`)) {
+      return key;
     }
-    return 'tables';
+  }
+  return 'tables';
+}
+
+function getPageTitle(selectedKey: string): string {
+  return PAGE_TITLE_MAP[selectedKey] || 'Database Management';
+}
+
+function SidebarContent({
+  collapsed,
+  setCollapsed,
+  onNavigate,
+}: {
+  collapsed: boolean;
+  setCollapsed: (v: boolean) => void;
+  onNavigate?: () => void;
+}) {
+  const pathname = usePathname();
+
+  const handleClick = () => {
+    onNavigate?.();
   };
 
-  const getPageTitle = () => {
-    const key = getSelectedKey();
-    return PAGE_TITLE_MAP[key] || 'Database Management';
+  return (
+    <>
+      <div style={{ ...BRAND_STYLE, justifyContent: collapsed ? 'center' : 'flex-start' }}>
+        <Title level={4} style={TITLE_STYLE}>
+          <DatabaseOutlined style={{ marginRight: 8 }} />
+          {!collapsed && 'Admin'}
+        </Title>
+        <Button
+          type="text"
+          icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
+          onClick={() => setCollapsed(!collapsed)}
+          style={{
+            position: collapsed ? 'absolute' : 'relative',
+            right: collapsed ? 8 : 'auto',
+            top: collapsed ? '50%' : 'auto',
+            transform: collapsed ? 'translateY(-50%)' : 'none',
+          }}
+        />
+      </div>
+      <Menu mode="inline" selectedKeys={[getSelectedKey(pathname)]} items={menuItems} inlineCollapsed={collapsed} onClick={handleClick} />
+    </>
+  );
+}
+
+export default function AdminLayout({ children }: { children: React.ReactNode }) {
+  const isMobile = useIsMobile();
+  const [collapsed, setCollapsed] = useState(false);
+  const [drawerOpen, setDrawerOpen] = useState(false);
+
+  const selectedKey = getSelectedKey(usePathname());
+  const pageTitle = getPageTitle(selectedKey);
+
+  const handleDrawerClose = () => setDrawerOpen(false);
+  const handleDrawerOpen = () => setDrawerOpen(true);
+
+  const headerStyle: React.CSSProperties = {
+    background: '#fff',
+    padding: isMobile ? '0 12px' : '0 24px',
+    borderBottom: '1px solid #f0f0f0',
+    display: 'flex',
+    alignItems: 'center',
+  };
+
+  const contentStyle: React.CSSProperties = {
+    margin: isMobile ? '8px' : '24px',
+    padding: isMobile ? '12px' : '24px',
+    background: '#fff',
+    borderRadius: '8px',
+    minHeight: '280px',
   };
 
   return (
@@ -197,35 +243,55 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       <VConsole />
       <AntApp>
         <Layout style={{ minHeight: '100vh' }}>
-          <Sider width={220} theme="light" collapsible collapsed={collapsed} onCollapse={setCollapsed} trigger={null} style={SIDER_STYLE}>
-            <div style={{ ...BRAND_STYLE, justifyContent: collapsed ? 'center' : 'flex-start' }}>
-              <Title level={4} style={TITLE_STYLE}>
-                <DatabaseOutlined style={{ marginRight: 8 }} />
-                {!collapsed && 'Admin'}
-              </Title>
-              <Button
-                type="text"
-                icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
-                onClick={() => setCollapsed(!collapsed)}
-                style={{
-                  position: collapsed ? 'absolute' : 'relative',
-                  right: collapsed ? 8 : 'auto',
-                  top: collapsed ? '50%' : 'auto',
-                  transform: collapsed ? 'translateY(-50%)' : 'none',
-                }}
-              />
-            </div>
-            <Menu mode="inline" selectedKeys={[getSelectedKey()]} items={menuItems} inlineCollapsed={collapsed} />
-          </Sider>
-          <Layout>
-            <Header style={HEADER_STYLE}>
-              <Title level={4} style={{ margin: 0 }}>
-                {getPageTitle()}
-              </Title>
-              <ReferralBadge />
-            </Header>
-            <Content style={CONTENT_STYLE}>{children}</Content>
-          </Layout>
+          {isMobile ? (
+            <>
+              <Header style={headerStyle}>
+                <Button type="text" icon={<MenuUnfoldOutlined />} onClick={handleDrawerOpen} style={{ marginRight: 8 }} />
+                <Title level={4} style={{ margin: 0, fontSize: 16 }}>
+                  {pageTitle}
+                </Title>
+              </Header>
+              <Drawer
+                title={
+                  <Title level={4} style={{ margin: 0 }}>
+                    <DatabaseOutlined style={{ marginRight: 8 }} />
+                    Admin
+                  </Title>
+                }
+                placement="left"
+                onClose={handleDrawerClose}
+                open={drawerOpen}
+                bodyStyle={{ padding: 0 }}
+                width="75%"
+              >
+                <SidebarContent collapsed={false} setCollapsed={() => {}} onNavigate={handleDrawerClose} />
+              </Drawer>
+              <Content style={contentStyle}>{children}</Content>
+            </>
+          ) : (
+            <>
+              <Sider
+                width={220}
+                theme="light"
+                collapsible
+                collapsed={collapsed}
+                onCollapse={setCollapsed}
+                trigger={null}
+                style={SIDER_STYLE}
+              >
+                <SidebarContent collapsed={collapsed} setCollapsed={setCollapsed} />
+              </Sider>
+              <Layout>
+                <Header style={headerStyle}>
+                  <Title level={4} style={{ margin: 0 }}>
+                    {pageTitle}
+                  </Title>
+                  <ReferralBadge />
+                </Header>
+                <Content style={contentStyle}>{children}</Content>
+              </Layout>
+            </>
+          )}
         </Layout>
       </AntApp>
     </ConfigProvider>

@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { Card, Input, Button, Space, message, Typography, Alert } from 'antd';
 import { LinkOutlined, QrcodeOutlined, CopyOutlined, DeleteOutlined, DownloadOutlined } from '@ant-design/icons';
+import { useIsMobile } from '../../lib/responsive';
 
 const { Title } = Typography;
 

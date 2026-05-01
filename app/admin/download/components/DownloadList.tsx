@@ -4,6 +4,7 @@ import { Table, Tag, Space, Button, Tooltip, Input, Select, message } from 'antd
 import { DownloadOutlined, ReloadOutlined, SearchOutlined, FileTextOutlined, CopyOutlined } from '@ant-design/icons';
 import type { DownloadRecord } from '../types';
 import type { ColumnsType } from 'antd/es/table';
+import { useIsMobile } from '../../../lib/responsive';
 
 interface DownloadListProps {
   downloads: DownloadRecord[];
@@ -61,6 +62,8 @@ export function DownloadList({
   onSearch,
   onStatusFilter,
 }: DownloadListProps) {
+  const isMobile = useIsMobile();
+
   const handleDownloadFile = (download: DownloadRecord) => {
     if (download.status === 'success') {
       window.open(`/api/download?url=${encodeURIComponent(download.url)}`, '_blank');
@@ -195,17 +198,17 @@ export function DownloadList({
 
   return (
     <div>
-      <Space style={{ marginBottom: 16 }} wrap>
+      <Space style={{ marginBottom: 16, width: '100%' }} wrap>
         <Input
-          placeholder="Search by URL or filename"
+          placeholder="Search URL or filename"
           prefix={<SearchOutlined />}
-          style={{ width: 250 }}
+          style={{ width: isMobile ? '100%' : 250 }}
           onChange={(e) => onSearch?.(e.target.value)}
           onPressEnter={(e) => onSearch?.((e.target as HTMLInputElement).value)}
         />
         <Select
-          placeholder="Filter by status"
-          style={{ width: 150 }}
+          placeholder="Status"
+          style={{ width: isMobile ? 'calc(50% - 4px)' : 150 }}
           allowClear
           onChange={(value) => onStatusFilter?.(value || '')}
           options={[
@@ -214,7 +217,7 @@ export function DownloadList({
           ]}
         />
         <Button type="primary" icon={<ReloadOutlined />} onClick={onRefresh} loading={loading}>
-          Refresh
+          {!isMobile && 'Refresh'}
         </Button>
       </Space>
 
@@ -227,11 +230,12 @@ export function DownloadList({
           current: page,
           pageSize,
           total,
-          showSizeChanger: true,
-          showTotal: (total) => `Total ${total} items`,
+          showSizeChanger: !isMobile,
+          showTotal: (total) => (isMobile ? `${total}` : `Total ${total} items`),
           onChange: onPageChange,
         }}
-        scroll={{ x: 1000 }}
+        scroll={{ x: isMobile ? 600 : 1000 }}
+        size={isMobile ? 'small' : 'middle'}
       />
     </div>
   );

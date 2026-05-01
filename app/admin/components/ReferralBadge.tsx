@@ -2,10 +2,15 @@
 
 import { Tag, Space, Typography } from 'antd';
 import { GiftOutlined } from '@ant-design/icons';
+import { useIsMobile } from '../../lib/responsive';
 
 const { Text } = Typography;
 
 export default function ReferralBadge() {
+  const isMobile = useIsMobile();
+
+  if (isMobile) return null;
+
   return (
     <a
       href="https://dash.domain.digitalplat.org/signup?ref=BA6ZfZnfat"

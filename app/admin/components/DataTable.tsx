@@ -5,6 +5,7 @@ import { EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import type { ColumnsType, TableProps } from 'antd/es/table';
 import type { SorterResult } from 'antd/es/table/interface';
 import type { TableRow, ColumnInfo } from '../types';
+import { useIsMobile } from '../../lib/responsive';
 
 const { Text } = Typography;
 
@@ -40,6 +41,8 @@ export default function DataTable({
   onBatchDelete,
   loading,
 }: DataTableProps) {
+  const isMobile = useIsMobile();
+
   const tableColumns: ColumnsType<TableRow> = [
     {
       title: 'rowid',
@@ -67,10 +70,10 @@ export default function DataTable({
     {
       title: 'Actions',
       key: '_actions',
-      width: 120,
-      fixed: 'right',
+      width: isMobile ? 80 : 120,
+      fixed: isMobile ? undefined : 'right',
       render: (_, record) => (
-        <Space>
+        <Space size={isMobile ? 0 : undefined}>
           <Button type="text" icon={<EditOutlined />} onClick={() => onEdit(record)} size="small" />
           <Popconfirm
             title="Delete this row?"
@@ -116,10 +119,11 @@ export default function DataTable({
           current: pagination.page,
           pageSize: pagination.pageSize,
           total: pagination.total,
-          showSizeChanger: true,
-          showQuickJumper: true,
-          showTotal: (total) => `Total ${total} rows`,
+          showSizeChanger: !isMobile,
+          showQuickJumper: !isMobile,
+          showTotal: (total) => (isMobile ? `${total}` : `Total ${total} rows`),
           onChange: onPageChange,
+          simple: isMobile,
         }}
         onChange={(pagination, filters, sorter: SorterResult<TableRow> | SorterResult<TableRow>[]) => {
           const singleSorter = Array.isArray(sorter) ? sorter[0] : sorter;

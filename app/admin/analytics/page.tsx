@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { Card, Row, Col, DatePicker, Button, Spin, Alert, Table, Statistic } from 'antd';
+import { Card, Row, Col, DatePicker, Button, Spin, Alert, Table, Statistic, Space } from 'antd';
 import { BarChartOutlined, ReloadOutlined } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
 import {
@@ -20,6 +20,7 @@ import {
   Cell,
 } from 'recharts';
 import dayjs from 'dayjs';
+import { useIsMobile } from '../../lib/responsive';
 
 const { RangePicker } = DatePicker;
 
@@ -98,6 +99,7 @@ const formatNumber = (num: number): string => {
 };
 
 export default function AnalyticsPage() {
+  const isMobile = useIsMobile();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [aggregated, setAggregated] = useState<AnalyticsRow[]>([]);
@@ -425,40 +427,46 @@ export default function AnalyticsPage() {
       )}
 
       <Card style={{ marginBottom: 16 }}>
-        <Row gutter={16} align="middle">
-          <Col>
-            <BarChartOutlined style={{ fontSize: 24, color: '#1890ff' }} />
+        <Row gutter={[8, 8]} align="middle">
+          <Col xs={24} md={12} lg={14}>
+            <RangePicker
+              value={dateRange}
+              onChange={handleDateRangeChange}
+              showTime={false}
+              format="YYYY-MM-DD"
+              allowClear={false}
+              style={{ width: '100%' }}
+            />
           </Col>
-          <Col flex="auto">
-            <RangePicker value={dateRange} onChange={handleDateRangeChange} showTime={false} format="YYYY-MM-DD" allowClear={false} />
-            <Button onClick={() => handleQuickRange(1)} style={{ marginLeft: 8 }}>
-              1 Day
-            </Button>
-            <Button onClick={() => handleQuickRange(7)} style={{ marginLeft: 8 }}>
-              7 Days
-            </Button>
-            <Button onClick={() => handleQuickRange(30)} style={{ marginLeft: 8 }}>
-              30 Days
-            </Button>
-          </Col>
-          <Col>
-            <Button icon={<ReloadOutlined />} onClick={fetchAnalytics} loading={loading}>
-              Refresh
-            </Button>
+          <Col xs={24} md={12} lg={10}>
+            <Space wrap={isMobile}>
+              <Button onClick={() => handleQuickRange(1)} size="small">
+                1D
+              </Button>
+              <Button onClick={() => handleQuickRange(7)} size="small">
+                7D
+              </Button>
+              <Button onClick={() => handleQuickRange(30)} size="small">
+                30D
+              </Button>
+              <Button icon={<ReloadOutlined />} onClick={fetchAnalytics} loading={loading} size="small">
+                {!isMobile && 'Refresh'}
+              </Button>
+            </Space>
           </Col>
         </Row>
-        <Row gutter={16} style={{ marginTop: 16 }}>
-          <Col span={6}>
-            <Statistic title="Total Requests" value={totalRequests.toLocaleString()} />
+        <Row gutter={[8, 8]} style={{ marginTop: 8 }}>
+          <Col xs={12} sm={6}>
+            <Statistic title="Requests" value={totalRequests.toLocaleString()} />
           </Col>
-          <Col span={6}>
-            <Statistic title="Total Tokens" value={formatNumber(totalTokens)} suffix="tokens" />
+          <Col xs={12} sm={6}>
+            <Statistic title="Tokens" value={formatNumber(totalTokens)} />
           </Col>
-          <Col span={6}>
-            <Statistic title="Prompt Tokens" value={formatNumber(totalPromptTokens)} />
+          <Col xs={12} sm={6}>
+            <Statistic title="Prompt" value={formatNumber(totalPromptTokens)} />
           </Col>
-          <Col span={6}>
-            <Statistic title="Completion Tokens" value={formatNumber(totalCompletionTokens)} />
+          <Col xs={12} sm={6}>
+            <Statistic title="Completion" value={formatNumber(totalCompletionTokens)} />
           </Col>
         </Row>
       </Card>
@@ -469,10 +477,10 @@ export default function AnalyticsPage() {
         </div>
       ) : (
         <>
-          <Row gutter={16} style={{ marginBottom: 16 }}>
-            <Col span={12}>
-              <Card title="Requests by Model" bordered={false}>
-                <ResponsiveContainer width="100%" height={300}>
+          <Row gutter={[8, 8]} style={{ marginBottom: 8 }}>
+            <Col xs={24} md={12}>
+              <Card title="Requests by Model" bordered={false} bodyStyle={{ padding: isMobile ? 8 : undefined }}>
+                <ResponsiveContainer width="100%" height={isMobile ? 250 : 300}>
                   <PieChart>
                     <Pie
                       data={modelPieData}
@@ -480,8 +488,8 @@ export default function AnalyticsPage() {
                       nameKey="name"
                       cx="50%"
                       cy="50%"
-                      outerRadius={100}
-                      label={({ name, percent }) => `${name}: ${((percent || 0) * 100).toFixed(0)}%`}
+                      outerRadius={isMobile ? 70 : 100}
+                      label={isMobile ? false : ({ name, percent }) => `${name}: ${((percent || 0) * 100).toFixed(0)}%`}
                     >
                       {modelPieData.map((_, index) => (
                         <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
@@ -492,13 +500,13 @@ export default function AnalyticsPage() {
                 </ResponsiveContainer>
               </Card>
             </Col>
-            <Col span={12}>
-              <Card title="Requests by Provider" bordered={false}>
-                <ResponsiveContainer width="100%" height={300}>
+            <Col xs={24} md={12}>
+              <Card title="Requests by Provider" bordered={false} bodyStyle={{ padding: isMobile ? 8 : undefined }}>
+                <ResponsiveContainer width="100%" height={isMobile ? 250 : 300}>
                   <BarChart data={providerBarData.slice(0, 10)}>
                     <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="provider" />
-                    <YAxis />
+                    <XAxis dataKey="provider" tick={{ fontSize: isMobile ? 10 : 12 }} />
+                    <YAxis tick={{ fontSize: isMobile ? 10 : 12 }} />
                     <Tooltip />
                     <Bar dataKey="count" fill="#1890ff" />
                   </BarChart>
@@ -507,27 +515,27 @@ export default function AnalyticsPage() {
             </Col>
           </Row>
 
-          <Row gutter={16} style={{ marginBottom: 16 }}>
-            <Col span={12}>
-              <Card title="Requests by API Key" bordered={false}>
-                <ResponsiveContainer width="100%" height={300}>
+          <Row gutter={[8, 8]} style={{ marginBottom: 8 }}>
+            <Col xs={24} md={12}>
+              <Card title="Requests by API Key" bordered={false} bodyStyle={{ padding: isMobile ? 8 : undefined }}>
+                <ResponsiveContainer width="100%" height={isMobile ? 250 : 300}>
                   <BarChart data={apiKeyStats.slice(0, 10)}>
                     <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="api_key" />
-                    <YAxis />
+                    <XAxis dataKey="api_key" tick={{ fontSize: isMobile ? 10 : 12 }} />
+                    <YAxis tick={{ fontSize: isMobile ? 10 : 12 }} />
                     <Tooltip />
                     <Bar dataKey="count" fill="#722ed1" />
                   </BarChart>
                 </ResponsiveContainer>
               </Card>
             </Col>
-            <Col span={12}>
-              <Card title="Token Usage by API Key" bordered={false}>
-                <ResponsiveContainer width="100%" height={300}>
+            <Col xs={24} md={12}>
+              <Card title="Token Usage by API Key" bordered={false} bodyStyle={{ padding: isMobile ? 8 : undefined }}>
+                <ResponsiveContainer width="100%" height={isMobile ? 250 : 300}>
                   <BarChart data={apiKeyTokenStats.slice(0, 10)}>
                     <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="api_key" />
-                    <YAxis />
+                    <XAxis dataKey="api_key" tick={{ fontSize: isMobile ? 10 : 12 }} />
+                    <YAxis tick={{ fontSize: isMobile ? 10 : 12 }} />
                     <Tooltip formatter={(value) => formatNumber(Number(value))} />
                     <Legend />
                     <Bar dataKey="prompt_tokens" fill="#1890ff" name="Prompt" />
@@ -562,10 +570,10 @@ export default function AnalyticsPage() {
             </Card>
           )}
 
-          <Row gutter={16} style={{ marginBottom: 16 }}>
-            <Col span={12}>
-              <Card title="Token Distribution by Model" bordered={false}>
-                <ResponsiveContainer width="100%" height={300}>
+          <Row gutter={[8, 8]} style={{ marginBottom: 8 }}>
+            <Col xs={24} md={12}>
+              <Card title="Token Distribution by Model" bordered={false} bodyStyle={{ padding: isMobile ? 8 : undefined }}>
+                <ResponsiveContainer width="100%" height={isMobile ? 250 : 300}>
                   <PieChart>
                     <Pie
                       data={tokenModelPieData}
@@ -573,8 +581,8 @@ export default function AnalyticsPage() {
                       nameKey="name"
                       cx="50%"
                       cy="50%"
-                      outerRadius={100}
-                      label={({ name, percent }) => `${name}: ${((percent || 0) * 100).toFixed(0)}%`}
+                      outerRadius={isMobile ? 70 : 100}
+                      label={isMobile ? false : ({ name, percent }) => `${name}: ${((percent || 0) * 100).toFixed(0)}%`}
                     >
                       {tokenModelPieData.map((_, index) => (
                         <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
@@ -585,13 +593,13 @@ export default function AnalyticsPage() {
                 </ResponsiveContainer>
               </Card>
             </Col>
-            <Col span={12}>
-              <Card title="Token Usage by Provider" bordered={false}>
-                <ResponsiveContainer width="100%" height={300}>
+            <Col xs={24} md={12}>
+              <Card title="Token Usage by Provider" bordered={false} bodyStyle={{ padding: isMobile ? 8 : undefined }}>
+                <ResponsiveContainer width="100%" height={isMobile ? 250 : 300}>
                   <BarChart data={tokenProviderBarData.slice(0, 10)}>
                     <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="provider" />
-                    <YAxis />
+                    <XAxis dataKey="provider" tick={{ fontSize: isMobile ? 10 : 12 }} />
+                    <YAxis tick={{ fontSize: isMobile ? 10 : 12 }} />
                     <Tooltip formatter={(value) => formatNumber(Number(value))} />
                     <Legend />
                     <Bar dataKey="prompt_tokens" fill="#1890ff" name="Prompt" />
@@ -639,13 +647,18 @@ export default function AnalyticsPage() {
             </Card>
           )}
 
-          <Card title="API Key Statistics" bordered={false} style={{ marginBottom: 16 }}>
+          <Card title="API Key Statistics" bordered={false} style={{ marginBottom: 8 }}>
             <Table
               columns={apiKeyMergedColumns}
               dataSource={apiKeyMergedData}
               rowKey="api_key"
-              pagination={{ pageSize: 20, showSizeChanger: true, showTotal: (total) => `Total ${total} items` }}
-              scroll={{ x: 800 }}
+              pagination={{
+                pageSize: 20,
+                showSizeChanger: !isMobile,
+                showTotal: (total) => (isMobile ? `${total}` : `Total ${total} items`),
+              }}
+              scroll={{ x: isMobile ? 600 : 800 }}
+              size={isMobile ? 'small' : 'middle'}
             />
           </Card>
 
@@ -654,8 +667,13 @@ export default function AnalyticsPage() {
               columns={modelStatsColumns}
               dataSource={modelStatsData}
               rowKey={(record) => `${record.model}-${record.provider}`}
-              pagination={{ pageSize: 20, showSizeChanger: true, showTotal: (total) => `Total ${total} items` }}
-              scroll={{ x: 900 }}
+              pagination={{
+                pageSize: 20,
+                showSizeChanger: !isMobile,
+                showTotal: (total) => (isMobile ? `${total}` : `Total ${total} items`),
+              }}
+              scroll={{ x: isMobile ? 600 : 900 }}
+              size={isMobile ? 'small' : 'middle'}
             />
           </Card>
         </>

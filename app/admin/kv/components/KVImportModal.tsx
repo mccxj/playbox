@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Modal, Upload, Button, Input, message, Space, Alert } from 'antd';
 import { UploadOutlined } from '@ant-design/icons';
 import type { UploadFile } from 'antd/es/upload/interface';
+import { useMobileModalWidth } from '../../../lib/responsive';
 
 interface KVImportModalProps {
   open: boolean;
@@ -108,6 +109,8 @@ export default function KVImportModal({ open, namespace, onClose, onSuccess }: K
     onClose();
   };
 
+  const modalWidth = useMobileModalWidth();
+
   return (
     <Modal
       title="Import KV Keys"
@@ -115,7 +118,7 @@ export default function KVImportModal({ open, namespace, onClose, onSuccess }: K
       onOk={handleImport}
       onCancel={handleClose}
       confirmLoading={loading}
-      width={700}
+      width={modalWidth}
       okText="Import"
     >
       <Space direction="vertical" style={{ width: '100%' }} size="large">

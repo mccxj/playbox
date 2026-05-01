@@ -5,6 +5,7 @@ import dynamic from 'next/dynamic';
 import { Select, Spin, Alert, Card, Row, Col, Statistic } from 'antd';
 import { TableOutlined, DatabaseOutlined } from '@ant-design/icons';
 import type { TableSchema, TableRow, ColumnInfo } from './types';
+import { useIsMobile } from '../lib/responsive';
 
 interface TableActionResponse {
   success: boolean;
@@ -31,6 +32,7 @@ const EditRowModal = dynamic(() => import('./components/EditRowModal'), { ssr: f
 const ImportModal = dynamic(() => import('./components/ImportModal'), { ssr: false });
 
 export default function AdminPage() {
+  const isMobile = useIsMobile();
   const [tables, setTables] = useState<TableSchema[]>([]);
   const [selectedTable, setSelectedTable] = useState<string | null>(null);
   const [selectedTableSchema, setSelectedTableSchema] = useState<TableSchema | null>(null);
@@ -229,20 +231,18 @@ export default function AdminPage() {
       )}
 
       <Card style={{ marginBottom: 16 }}>
-        <Row gutter={16} align="middle">
-          <Col>
-            <DatabaseOutlined style={{ fontSize: 24, color: '#1890ff' }} />
-          </Col>
-          <Col flex="auto">
+        <Row gutter={[8, 8]} align="middle">
+          <Col xs={24} sm={12} md={16} lg={18}>
             <Select
-              style={{ width: 300 }}
+              style={{ width: '100%', maxWidth: isMobile ? undefined : 300 }}
               placeholder="Select a table"
               value={selectedTable}
               onChange={handleTableChange}
               options={tables.map((t) => ({ label: t.name, value: t.name }))}
+              prefix={<DatabaseOutlined style={{ color: '#1890ff' }} />}
             />
           </Col>
-          <Col>
+          <Col xs={24} sm={12} md={8} lg={6} style={{ textAlign: isMobile ? 'left' : 'right' }}>
             <Statistic title="Tables" value={tables.length} prefix={<TableOutlined />} />
           </Col>
         </Row>

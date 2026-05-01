@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Drawer, Descriptions, Input, Button, Spin, message, Space, Alert } from 'antd';
 import { CopyOutlined, LoadingOutlined } from '@ant-design/icons';
+import { useMobileDrawerWidth } from '../../../lib/responsive';
 
 interface KeyValueDrawerProps {
   open: boolean;
@@ -21,6 +22,7 @@ interface KeyValuePairResponse {
 type LoadingState = 'idle' | 'loading' | 'success' | 'error';
 
 export default function KeyValueDrawer({ open, namespace, keyName, onClose }: KeyValueDrawerProps) {
+  const drawerWidth = useMobileDrawerWidth();
   const [loadingState, setLoadingState] = useState<LoadingState>('idle');
   const [keyData, setKeyData] = useState<KeyValuePairResponse | null>(null);
   const [errorMessage, setErrorMessage] = useState<string>('');
@@ -158,7 +160,7 @@ export default function KeyValueDrawer({ open, namespace, keyName, onClose }: Ke
   };
 
   return (
-    <Drawer title="Key Details" placement="right" onClose={onClose} open={open} width={520} footer={null}>
+    <Drawer title="Key Details" placement="right" onClose={onClose} open={open} width={drawerWidth} footer={null}>
       {keyName && namespace ? (
         renderContent()
       ) : (

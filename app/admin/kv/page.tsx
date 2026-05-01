@@ -18,6 +18,7 @@ import type { ColumnsType } from 'antd/es/table';
 import NamespaceSelector from './components/NamespaceSelector';
 import type { KVNamespaceOption, KVKeyDisplay } from '../types/kv';
 import type { KVKeyInfo } from '@/types/kv';
+import { useIsMobile } from '../../lib/responsive';
 
 interface KVNamespacesResponse {
   success: boolean;
@@ -43,6 +44,7 @@ const KVImportModal = dynamic(() => import('./components/KVImportModal'), { ssr:
 const KeyValueDrawer = dynamic(() => import('./components/KeyValueDrawer'), { ssr: false });
 
 export default function KVAdminPage() {
+  const isMobile = useIsMobile();
   const [namespaces, setNamespaces] = useState<KVNamespaceOption[]>([]);
   const [selectedNamespace, setSelectedNamespace] = useState<string>('');
   const [keys, setKeys] = useState<KVKeyDisplay[]>([]);
@@ -259,46 +261,56 @@ export default function KVAdminPage() {
       )}
 
       <Card style={{ marginBottom: 16 }}>
-        <Space size="large" align="center" wrap>
-          <DatabaseOutlined style={{ fontSize: 24, color: '#1890ff' }} />
-          <NamespaceSelector
-            namespaces={namespaces}
-            selected={selectedNamespace}
-            onChange={(ns) => {
-              setSelectedNamespace(ns);
-              setPrefix('');
-              setSelectedRowKeys([]);
-            }}
-            loading={loading}
-          />
-          <Space.Compact>
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: isMobile ? 'column' : 'row',
+            gap: isMobile ? 8 : 16,
+            alignItems: isMobile ? 'stretch' : 'center',
+            flexWrap: isMobile ? 'nowrap' : 'wrap',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <DatabaseOutlined style={{ fontSize: 24, color: '#1890ff' }} />
+            <NamespaceSelector
+              namespaces={namespaces}
+              selected={selectedNamespace}
+              onChange={(ns) => {
+                setSelectedNamespace(ns);
+                setPrefix('');
+                setSelectedRowKeys([]);
+              }}
+              loading={loading}
+            />
+          </div>
+          <Space.Compact style={{ width: isMobile ? '100%' : 'auto' }}>
             <Input
-              style={{ width: 250 }}
-              placeholder="Filter by prefix..."
+              style={{ width: isMobile ? '60%' : 250 }}
+              placeholder="Filter prefix..."
               value={prefix}
               onChange={(e) => setPrefix(e.target.value)}
               onPressEnter={handleSearch}
             />
             <Button type="primary" icon={<SearchOutlined />} onClick={handleSearch}>
-              Search
+              {!isMobile && 'Search'}
             </Button>
             <Button icon={<ClearOutlined />} onClick={handleClear}>
-              Clear
+              {!isMobile && 'Clear'}
             </Button>
           </Space.Compact>
           <div style={{ flex: 1 }} />
-          <Space>
-            <Button icon={<ReloadOutlined />} onClick={handleRefresh}>
-              Refresh
+          <Space wrap>
+            <Button icon={<ReloadOutlined />} onClick={handleRefresh} size={isMobile ? 'small' : 'middle'}>
+              {!isMobile && 'Refresh'}
             </Button>
-            <Button type="primary" icon={<PlusOutlined />} onClick={handleCreate}>
-              New Key
+            <Button type="primary" icon={<PlusOutlined />} onClick={handleCreate} size={isMobile ? 'small' : 'middle'}>
+              {!isMobile ? 'New Key' : 'New'}
             </Button>
-            <Button icon={<UploadOutlined />} onClick={handleImport}>
-              Import
+            <Button icon={<UploadOutlined />} onClick={handleImport} size={isMobile ? 'small' : 'middle'}>
+              {!isMobile && 'Import'}
             </Button>
           </Space>
-        </Space>
+        </div>
       </Card>
 
       {selectedRowKeys.length > 0 && (
@@ -321,7 +333,7 @@ export default function KVAdminPage() {
         loading={loading && keys.length === 0}
         rowSelection={rowSelection}
         pagination={false}
-        scroll={{ y: 'calc(100vh - 350px)' }}
+        scroll={{ y: isMobile ? 'calc(100vh - 380px)' : 'calc(100vh - 350px)' }}
         size="small"
       />
 
