@@ -1,14 +1,13 @@
 # PROJECT KNOWLEDGE BASE
 
-**Stack:** Next.js 15 + TypeScript + Vitest + Wrangler + Ant Design + Recharts **Generated:** 2026-04-24 | **Commit:**
-2225e5c (main)
+**Stack:** Next.js 15 + TypeScript + Vitest + Wrangler + Ant Design + Recharts **Generated:** 2026-05-04 | **Commit:**
+ad60b84 (opencode/issue121-20260504145018)
 
 ## OVERVIEW
 
 AI API Gateway & Protocol Converter — converts between AI provider protocols (OpenAI, Anthropic, Google, Gemini CLI) on
 Next.js with Cloudflare Workers deployment. Multi-protocol support with OAuth token management, D1 key storage, KV
-caching, R2 object storage, download proxy with SSRF protection, and Cloudflare Analytics Engine
-integration.
+caching, R2 object storage, download proxy with SSRF protection, and Cloudflare Analytics Engine integration.
 
 ## STRUCTURE
 
@@ -33,10 +32,13 @@ integration.
 │ │ │ ├── api-test/ # HTTP request proxy + history
 │ │ │ ├── llm-keys/ # LLM API key management
 │ │ │ ├── short-url/ # Short URL management
+│ │ │ ├── github-gists/ # GitHub Gists management
+│ │ │ ├── langextract/ # Language extraction
 │ │ │ ├── domains/ # Domain management
 │ │ │ ├── email/ # Email configuration
 │ │ │ └── providers/ # Provider config + speed test + models
 │ │ ├── download/ # Download proxy (SSRF-protected)
+│ │ ├── short-url/[id]/ # Short URL redirect + QR code
 │ │ └── docker/[...path]/ # Docker proxy
 │ ├── admin/ # Admin UI (React + Ant Design) — [AGENTS.md]
 │ │ ├── kv/ # KV management UI
@@ -47,13 +49,18 @@ integration.
 │ │ ├── analytics/ # API usage analytics (Recharts)
 │ │ ├── llm-keys/ # LLM key management UI
 │ │ ├── short-url/ # Short URL management UI
+│ │ ├── github-gists/ # GitHub Gists management UI
+│ │ ├── langextract/ # Language extraction UI
 │ │ ├── providers/ # Provider configuration UI
 │ │ ├── domains/ # Domain management UI
 │ │ ├── email/ # Email configuration UI
-│ │ └── components/ # Shared admin components
+│ │ ├── components/ # Shared admin components — [AGENTS.md]
+│ │ └── types/ # Shared admin types
 │ ├── components/ # React components — [AGENTS.md]
 │ │ └── Chat/ # Chat UI components
-│ └── lib/ # Client-side utilities
+│ ├── lib/ # Client-side utilities
+│ ├── s/[id]/ # Short URL redirect pages
+│ └── download/ # Download page
 ├── src/
 │ ├── protocols/ # Protocol adapters (OpenAI, Anthropic, Google, Gemini CLI) — [AGENTS.md]
 │ ├── managers/ # KeyManager (KV/D1 token management) — [AGENTS.md]
@@ -62,7 +69,7 @@ integration.
 │ ├── lib/ # Auth middleware, response helpers — [AGENTS.md]
 │ └── types/ # Protocol, request, response, R2 types — [AGENTS.md]
 ├── test/ # Vitest + Cloudflare Workers pool — [AGENTS.md]
-│ ├── unit/ # Protocol + manager tests
+│ ├── unit/ # Protocol + manager + lib + config + utils tests
 │ └── factories/ # Mock data generators
 ├── prisma/migrations/ # D1 schema migrations (6 tables)
 ├── scripts/ # Utility scripts (smoke-test.mjs)
@@ -106,6 +113,14 @@ integration.
 | Email config UI               | `app/admin/email/`                | Email settings                                                                                 |
 | API test history              | `app/api/admin/api-test/history/` | Test execution history                                                                         |
 | D1 schema                     | `prisma/migrations/`              | 6 tables: llm_api_keys, security_keys, download_history, api_test_history, short_urls, domains |
+| GitHub Gists API              | `app/api/admin/github-gists/`     | GitHub Gists management                                                                        |
+| GitHub Gists UI               | `app/admin/github-gists/`         | Gists management interface                                                                     |
+| Language Extraction API       | `app/api/admin/langextract/`      | Language extraction endpoint                                                                   |
+| Language Extraction UI        | `app/admin/langextract/`          | Language extraction interface                                                                  |
+| Shared admin components       | `app/admin/components/`           | DataTable, SearchBar, Create/Edit/Import modals, ReferralBadge                                 |
+| Short URL redirect            | `app/api/short-url/[id]/`         | Redirect + QR code generation                                                                  |
+| Download page                 | `app/download/`                   | Download page UI                                                                               |
+| Short URL pages               | `app/s/[id]/`                     | Short URL page redirects                                                                       |
 
 ## CODE MAP
 
@@ -179,11 +194,13 @@ npm test # Run Vitest tests
 - **D1 schema**: Managed via prisma/migrations/
 - **Cloudflare context**: Use `getCloudflareContext()` from `@opennextjs/cloudflare`
 - **Analytics**: Requires `ANALYTICS_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` secrets
-  implemented**
 - **ESLint**: Uses `eslint.config.mjs` with TypeScript-ESLint, React, Prettier (not enforced in CI)
 - **Build entry**: `.open-next/worker.js` (OpenNext output), not `src/index.ts`
 - **Analytics Engine**: `PLAYBOX_EVENTS` binding for Cloudflare Analytics Engine
 - **D1 tables**: 6 tables — llm_api_keys, security_keys, download_history, api_test_history, short_urls, domains
+- **Short URL**: Public redirect at `/s/{id}` and `/api/short-url/{id}`, QR code at `/api/short-url/{id}/qr`
+- **GitHub Gists**: Management UI at `/admin/github-gists`, API at `/api/admin/github-gists/`
+- **LangExtract**: Language extraction at `/admin/langextract` and `/api/admin/langextract/`
 
 <!-- code-review-graph MCP tools -->
 

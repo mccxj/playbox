@@ -42,3 +42,4 @@ config/
 
 - **Providers**: longcat, cerebras, gemini, modelscope, nvidia
 - **Key resolution**: Provider key names map to env vars (e.g., `LongCat` → `LONGCAT_API_KEY`)
+- **Config source**: `providers.jsonc` is source of truth; `providers.json` is auto-generated
