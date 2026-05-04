@@ -12,10 +12,10 @@ interface HistoryPanelProps {
 }
 
 const methodColors: Record<string, string> = {
-  GET: 'green',
-  POST: 'blue',
-  PUT: 'orange',
-  DELETE: 'red',
+  GET: 'success',
+  POST: 'processing',
+  PUT: 'warning',
+  DELETE: 'error',
   PATCH: 'purple',
   HEAD: 'cyan',
   OPTIONS: 'default',

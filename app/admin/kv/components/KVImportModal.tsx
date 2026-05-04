@@ -154,7 +154,7 @@ Or object format:
   "user:1": "John",
   "user:2": "Jane"
 }`}
-            style={{ fontFamily: 'monospace', fontSize: 12, marginTop: 8 }}
+            style={{ fontFamily: "'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace", fontSize: 13, marginTop: 8 }}
           />
         </div>
 

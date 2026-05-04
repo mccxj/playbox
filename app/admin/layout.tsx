@@ -144,6 +144,7 @@ const BRAND_STYLE = {
   alignItems: 'center',
   justifyContent: 'flex-start',
   position: 'relative',
+  height: 64,
 } as const;
 
 const TITLE_STYLE = {
@@ -204,6 +205,105 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       theme={{
         token: {
           colorPrimary: '#1890ff',
+          colorBgContainer: '#ffffff',
+          colorText: '#0f172a',
+          colorTextSecondary: '#666666',
+          colorBorder: '#f0f0f0',
+          colorError: '#ff4d4f',
+          colorSuccess: '#52c41a',
+          colorWarning: '#faad14',
+          borderRadius: 4,
+          controlHeight: 32,
+          fontSize: 14,
+          fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif",
+        },
+        components: {
+          Button: {
+            controlHeight: 32,
+            borderRadius: 4,
+            fontSize: 14,
+            fontWeight: 500,
+            colorPrimaryHover: '#40a9ff',
+            defaultBg: '#ffffff',
+            defaultColor: '#0f172a',
+            defaultBorderColor: '#f0f0f0',
+            colorError: '#ff4d4f',
+          },
+          Table: {
+            headerBg: '#ffffff',
+            headerColor: '#0f172a',
+            rowHoverBg: '#fafafa',
+            borderColor: '#f0f0f0',
+            cellPaddingInline: 12,
+            cellPaddingBlock: 8,
+            borderRadius: 8,
+            fontSize: 14,
+          },
+          Card: {
+            colorBgContainer: '#ffffff',
+            borderRadius: 8,
+            boxShadow: 'none',
+          },
+          Modal: {
+            colorBgContainer: '#ffffff',
+            borderRadius: 8,
+            boxShadow: 'none',
+          },
+          Input: {
+            controlHeight: 32,
+            borderRadius: 4,
+            colorBgContainer: '#ffffff',
+            colorText: '#0f172a',
+            colorBorder: '#f0f0f0',
+          },
+          Select: {
+            controlHeight: 32,
+            borderRadius: 4,
+            colorBgContainer: '#ffffff',
+            colorBorder: '#f0f0f0',
+          },
+          Alert: {
+            borderRadius: 4,
+            colorErrorBg: '#fff2f0',
+            colorErrorText: '#f5222d',
+            colorWarningBg: '#fffbe6',
+            colorWarningText: '#faad14',
+          },
+          Tag: {
+            borderRadius: 12,
+            fontSize: 12,
+          },
+          Layout: {
+            headerBg: '#ffffff',
+            headerHeight: 64,
+            headerPadding: '0 24px',
+            siderBg: '#ffffff',
+          },
+          Menu: {
+            itemBg: '#ffffff',
+            itemSelectedBg: '#e6f7ff',
+            itemSelectedColor: '#1890ff',
+            itemHoverBg: '#fafafa',
+            itemActiveBg: '#e6f7ff',
+            itemBorderRadius: 4,
+          },
+          Drawer: {
+            colorBgContainer: '#ffffff',
+          },
+          Statistic: {
+            contentFontSize: 24,
+          },
+          Descriptions: {
+            colorText: '#0f172a',
+            colorTextSecondary: '#666666',
+          },
+          Badge: {
+            fontSize: 12,
+          },
+          Collapse: {
+            colorBgContainer: '#ffffff',
+            borderRadius: 8,
+          },
         },
       }}
     >
@@ -233,26 +333,14 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             </Sider>
           )}
           {isMobile && (
-            <Drawer
-              title="Admin"
-              placement="left"
-              closable
-              onClose={() => setDrawerOpen(false)}
-              open={drawerOpen}
-              width={250}
-            >
+            <Drawer title="Admin" placement="left" closable onClose={() => setDrawerOpen(false)} open={drawerOpen} width={250}>
               <Menu mode="inline" selectedKeys={[getSelectedKey()]} items={menuItems} onClick={handleMenuClick} />
             </Drawer>
           )}
           <Layout>
             <Header style={{ ...HEADER_STYLE, padding: isMobile ? '0 12px' : '0 24px' }}>
               {isMobile && (
-                <Button
-                  type="text"
-                  icon={<MenuUnfoldOutlined />}
-                  onClick={() => setDrawerOpen(true)}
-                  style={{ marginRight: 12 }}
-                />
+                <Button type="text" icon={<MenuUnfoldOutlined />} onClick={() => setDrawerOpen(true)} style={{ marginRight: 12 }} />
               )}
               <Title level={isMobile ? 5 : 4} style={{ margin: 0, flex: 1 }}>
                 {getPageTitle()}

@@ -189,7 +189,7 @@ export default function EmailTestPage() {
       title: 'Error',
       dataIndex: 'error',
       key: 'error',
-      render: (error?: string) => (error ? <span style={{ color: 'red' }}>{error}</span> : '-'),
+      render: (error?: string) => (error ? <span style={{ color: '#ff4d4f' }}>{error}</span> : '-'),
     },
   ];
 

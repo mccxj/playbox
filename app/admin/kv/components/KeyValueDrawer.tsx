@@ -95,7 +95,7 @@ export default function KeyValueDrawer({ open, namespace, keyName, onClose }: Ke
               value={keyData?.value || ''}
               readOnly
               autoSize={{ minRows: 4, maxRows: 10 }}
-              style={{ fontFamily: 'monospace', fontSize: '13px' }}
+              style={{ fontFamily: "'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace", fontSize: 13 }}
             />
             <Button
               type="text"

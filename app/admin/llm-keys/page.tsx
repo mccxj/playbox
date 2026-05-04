@@ -232,7 +232,17 @@ export default function LLMKeysAdminPage() {
           description={
             <div>
               <p style={{ margin: '0 0 8px 0' }}>Copy this key now. You will not be able to see it again.</p>
-              <code style={{ display: 'block', padding: 8, background: '#f5f5f5', borderRadius: 4, fontFamily: 'monospace', wordBreak: 'break-all' }}>
+              <code
+                style={{
+                  display: 'block',
+                  padding: 8,
+                  background: '#fafafa',
+                  borderRadius: 4,
+                  fontFamily: "'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace",
+                  fontSize: 13,
+                  wordBreak: 'break-all',
+                }}
+              >
                 {newKeyData.api_key}
               </code>
             </div>

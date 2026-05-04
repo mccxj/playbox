@@ -168,10 +168,11 @@ export function DownloadList({
         <Tooltip title={rangeHeader}>
           <code
             style={{
-              fontSize: '12px',
-              background: '#f5f5f5',
+              fontSize: 12,
+              background: '#fafafa',
               padding: '2px 4px',
-              borderRadius: '3px',
+              borderRadius: 3,
+              fontFamily: "'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace",
             }}
           >
             {rangeHeader || '-'}
