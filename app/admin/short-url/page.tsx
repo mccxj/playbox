@@ -117,7 +117,7 @@ export default function ShortUrlPage() {
             Create
           </Button>
         </Space.Compact>
-        <div style={{ marginTop: 8, color: '#999', fontSize: 12 }}>Short URLs expire after 10 minutes</div>
+        <div style={{ marginTop: 8, color: '#666666', fontSize: 13 }}>Short URLs expire after 10 minutes</div>
       </Card>
 
       {result && (
@@ -156,7 +156,7 @@ export default function ShortUrlPage() {
 
       <Card title="Recent URLs">
         {recentUrls.length === 0 ? (
-          <div style={{ color: '#999', textAlign: 'center', padding: 24 }}>No recent URLs</div>
+          <div style={{ color: '#666666', textAlign: 'center', padding: 24 }}>No recent URLs</div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             {recentUrls.map((item) => (

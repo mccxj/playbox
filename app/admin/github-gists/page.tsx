@@ -251,14 +251,14 @@ const ViewGistModal = dynamic(
                   </div>
                   <pre
                     style={{
-                      background: '#f5f5f5',
+                      background: '#fafafa',
                       padding: 16,
                       borderRadius: 8,
                       maxHeight: 400,
                       overflow: 'auto',
                       fontSize: 13,
-                      lineHeight: 1.6,
-                      fontFamily: 'ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace',
+                      lineHeight: 1.5,
+                      fontFamily: "'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace",
                       whiteSpace: 'pre-wrap',
                       wordBreak: 'break-all',
                     }}
@@ -453,7 +453,7 @@ const CreateGistModal = dynamic(
                           onChange={(e) => updateFile(index, 'content', e.target.value)}
                           rows={6}
                           style={{
-                            fontFamily: 'ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace',
+                            fontFamily: "'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace",
                           }}
                         />
                       </Space>

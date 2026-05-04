@@ -60,9 +60,9 @@ type SpeedTestResults = Record<string, SpeedTestState>;
 type ModelSearchState = Record<string, string>;
 
 const familyColors: Record<string, string> = {
-  openai: '#10a37f',
-  anthropic: '#d97706',
-  gemini: '#4285f4',
+  openai: '#52c41a',
+  anthropic: '#fa8c16',
+  gemini: '#1890ff',
 };
 
 const familyLabels: Record<string, string> = {

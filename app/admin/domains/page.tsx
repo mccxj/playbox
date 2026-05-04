@@ -22,8 +22,8 @@ function getExpiryColor(expiryDate: string): string | null {
   const expiry = new Date(expiryDate);
   const diffMs = expiry.getTime() - now.getTime();
   const diffDays = diffMs / (1000 * 60 * 60 * 24);
-  if (diffDays <= 30) return 'red';
-  if (diffDays <= 90) return 'yellow';
+  if (diffDays <= 30) return '#ff4d4f';
+  if (diffDays <= 90) return '#faad14';
   return null;
 }
 

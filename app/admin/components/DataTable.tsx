@@ -113,6 +113,7 @@ export default function DataTable({
           rowKey="_rowid"
           loading={loading}
           rowSelection={rowSelection}
+          bordered
           pagination={{
             current: pagination.page,
             pageSize: pagination.pageSize,
@@ -137,17 +138,6 @@ export default function DataTable({
           size="small"
         />
       </div>
-      <style jsx>{`
-        @media (max-width: 768px) {
-          div::-webkit-scrollbar {
-            height: 4px;
-          }
-          div::-webkit-scrollbar-thumb {
-            background: #ccc;
-            border-radius: 2px;
-          }
-        }
-      `}</style>
     </div>
   );
 }
