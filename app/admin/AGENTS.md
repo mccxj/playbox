@@ -13,7 +13,7 @@ and Recharts visualizations.
 admin/
 ├── layout.tsx # Shared layout (Sider, Header, Content)
 ├── page.tsx # D1 Tables page (default)
-├── components/ # Shared admin components
+├── components/ # Shared admin components — [AGENTS.md]
 ├── kv/ # KV namespace management
 ├── r2/ # R2 storage management
 ├── download/ # Download proxy management
@@ -31,14 +31,16 @@ admin/
 │   └── page.tsx # Key management page
 ├── short-url/ # Short URL management
 │   └── page.tsx # Short URL management page
+├── github-gists/ # GitHub Gists management
+│   └── page.tsx # Gists management page
+├── langextract/ # Language extraction
+│   └── page.tsx # Language extraction UI
 ├── providers/ # AI provider configuration
 │   └── page.tsx # Provider config page
 ├── domains/ # Domain management
 │   └── page.tsx # Domain management page
 ├── email/ # Email configuration
 │   └── page.tsx # Email settings page
-├── langextract/ # Language extraction
-│   └── page.tsx # Language extraction UI
 └── types.ts # Shared admin types
 ```
 
@@ -56,12 +58,13 @@ admin/
 | API test page        | `api-test/page.tsx`              | Interactive API testing with history                 |
 | LLM key management   | `llm-keys/page.tsx`              | LLM API key CRUD                                     |
 | Short URL management | `short-url/page.tsx`             | Short URL CRUD                                       |
+| GitHub Gists         | `github-gists/page.tsx`          | GitHub Gists management                              |
+| LangExtract          | `langextract/page.tsx`           | Language extraction UI                               |
 | Provider config      | `providers/page.tsx`             | Provider configuration + speed test                  |
 | Domain management    | `domains/page.tsx`               | Domain CRUD                                          |
 | Email settings       | `email/page.tsx`                 | Email configuration                                  |
 | R2 management        | `r2/page.tsx`                    | Object browser with prefix navigation                |
 | KV management        | `kv/page.tsx`                    | KV namespace management                              |
-| LangExtract          | `langextract/page.tsx`           | Language extraction UI                               |
 
 ## CONVENTIONS
 
