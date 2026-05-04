@@ -112,7 +112,7 @@ export default function ImportModal({ open, table, onClose, onSuccess }: ImportM
             <Paragraph
               ellipsis={{ rows: 6, expandable: true }}
               style={{
-                background: '#f5f5f5',
+                background: '#fafafa',
                 padding: 12,
                 borderRadius: 4,
                 marginTop: 8,

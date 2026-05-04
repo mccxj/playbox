@@ -225,11 +225,11 @@ export default function AdminPage() {
   return (
     <div>
       {error && (
-        <Alert message="Error" description={error} type="error" closable onClose={() => setError(null)} style={{ marginBottom: 16 }} />
+        <Alert message="Error" description={error} type="error" closable onClose={() => setError(null)} style={{ marginBottom: 12 }} />
       )}
 
-      <Card style={{ marginBottom: 16 }}>
-        <Row gutter={16} align="middle">
+      <Card size="small" style={{ marginBottom: 12 }}>
+        <Row gutter={12} align="middle">
           <Col>
             <DatabaseOutlined style={{ fontSize: 24, color: '#1890ff' }} />
           </Col>

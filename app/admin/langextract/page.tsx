@@ -239,7 +239,14 @@ export default function LangExtractPage() {
           >
             <Space direction="vertical" style={{ width: '100%' }}>
               {items.map((item, idx) => (
-                <div key={idx} style={{ padding: 8, background: '#fafafa', borderRadius: 4 }}>
+                <div
+                  key={idx}
+                  style={{
+                    padding: 8,
+                    background: '#fafafa',
+                    borderRadius: 4,
+                  }}
+                >
                   <Text strong>{item.extractionText}</Text>
                   {item.charInterval?.startPos !== undefined && (
                     <Text type="secondary" style={{ marginLeft: 8 }}>
@@ -305,7 +312,7 @@ export default function LangExtractPage() {
             type="info"
             showIcon
             closable
-            style={{ marginBottom: 16 }}
+            style={{ marginBottom: 12 }}
             onClose={() => setProviders([])}
           />
         )}

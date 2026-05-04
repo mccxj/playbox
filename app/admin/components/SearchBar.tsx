@@ -35,7 +35,7 @@ export default function SearchBar({ columns, onSearch, onCreate, onImport, onRef
   };
 
   return (
-    <div style={{ marginBottom: 16, display: 'flex', gap: 16, flexWrap: 'wrap', alignItems: 'center' }}>
+    <div style={{ marginBottom: 12, display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'center' }}>
       <Space.Compact style={{ width: 400 }}>
         <Select
           style={{ width: 150 }}

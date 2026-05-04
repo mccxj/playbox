@@ -169,9 +169,9 @@ export function DownloadList({
           <code
             style={{
               fontSize: '12px',
-              background: '#f5f5f5',
+              background: '#fafafa',
               padding: '2px 4px',
-              borderRadius: '3px',
+              borderRadius: 3,
             }}
           >
             {rangeHeader || '-'}
@@ -232,6 +232,7 @@ export function DownloadList({
           onChange: onPageChange,
         }}
         scroll={{ x: 1000 }}
+        size="small"
       />
     </div>
   );

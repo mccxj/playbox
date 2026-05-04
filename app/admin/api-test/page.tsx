@@ -60,7 +60,7 @@ export default function ApiTestPage() {
   };
 
   return (
-    <Row gutter={16} style={{ height: 'calc(100vh - 200px)' }}>
+    <Row gutter={12} style={{ height: 'calc(100vh - 200px)' }}>
       <Col span={6}>
         <Card
           title="History"

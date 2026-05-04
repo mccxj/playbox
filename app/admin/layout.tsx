@@ -204,6 +204,66 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       theme={{
         token: {
           colorPrimary: '#1890ff',
+          borderRadius: 4,
+          colorBorder: '#f0f0f0',
+          colorBgContainer: '#ffffff',
+          colorText: '#0f172a',
+          colorTextSecondary: '#666666',
+          colorTextTertiary: '#475569',
+          colorFillAlter: '#fafafa',
+          colorError: '#ff4d4f',
+          colorWarning: '#faad14',
+          colorSuccess: '#52c41a',
+          fontSize: 14,
+          fontSizeHeading1: 24,
+          fontSizeHeading2: 20,
+          fontSizeHeading3: 16,
+          fontSizeHeading4: 16,
+          fontSizeHeading5: 14,
+          controlHeight: 32,
+          fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif",
+          fontFamilyCode: "'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace",
+        },
+        components: {
+          Button: {
+            controlHeight: 32,
+            borderRadius: 4,
+            primaryShadow: 'none',
+            defaultShadow: 'none',
+            dangerShadow: 'none',
+          },
+          Table: {
+            headerBg: '#fafafa',
+            headerColor: '#0f172a',
+            borderColor: '#f0f0f0',
+            cellPaddingInline: 12,
+            cellPaddingBlock: 8,
+            borderRadius: 8,
+          },
+          Card: {
+            borderRadiusLG: 8,
+            colorBgContainer: '#ffffff',
+          },
+          Modal: {
+            borderRadiusLG: 8,
+          },
+          Input: {
+            borderRadius: 4,
+            controlHeight: 32,
+          },
+          Select: {
+            borderRadius: 4,
+            controlHeight: 32,
+          },
+          Alert: {
+            borderRadius: 4,
+          },
+          Tag: {
+            borderRadius: 12,
+          },
+          Statistic: {
+            contentFontSize: 20,
+          },
         },
       }}
     >
@@ -233,26 +293,14 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             </Sider>
           )}
           {isMobile && (
-            <Drawer
-              title="Admin"
-              placement="left"
-              closable
-              onClose={() => setDrawerOpen(false)}
-              open={drawerOpen}
-              width={250}
-            >
+            <Drawer title="Admin" placement="left" closable onClose={() => setDrawerOpen(false)} open={drawerOpen} width={250}>
               <Menu mode="inline" selectedKeys={[getSelectedKey()]} items={menuItems} onClick={handleMenuClick} />
             </Drawer>
           )}
           <Layout>
             <Header style={{ ...HEADER_STYLE, padding: isMobile ? '0 12px' : '0 24px' }}>
               {isMobile && (
-                <Button
-                  type="text"
-                  icon={<MenuUnfoldOutlined />}
-                  onClick={() => setDrawerOpen(true)}
-                  style={{ marginRight: 12 }}
-                />
+                <Button type="text" icon={<MenuUnfoldOutlined />} onClick={() => setDrawerOpen(true)} style={{ marginRight: 12 }} />
               )}
               <Title level={isMobile ? 5 : 4} style={{ margin: 0, flex: 1 }}>
                 {getPageTitle()}

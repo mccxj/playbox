@@ -41,7 +41,7 @@ export default function DownloadPage() {
           onClose={() => {
             return;
           }}
-          style={{ marginBottom: 24 }}
+          style={{ marginBottom: 16 }}
         />
       )}
 

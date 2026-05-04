@@ -40,7 +40,7 @@ export function DownloadForm({ onDownload }: DownloadFormProps) {
   };
 
   return (
-    <Card title="Quick Download" style={{ marginBottom: 24 }}>
+    <Card title="Quick Download" size="small" style={{ marginBottom: 16 }}>
       <Space.Compact style={{ width: '100%' }}>
         <Input
           placeholder="Enter URL to download (e.g., https://example.com/file.pdf)"
@@ -48,9 +48,8 @@ export function DownloadForm({ onDownload }: DownloadFormProps) {
           onChange={(e) => setUrl(e.target.value)}
           onPressEnter={handleDownload}
           allowClear
-          size="large"
         />
-        <Button type="primary" icon={<DownloadOutlined />} onClick={handleDownload} loading={loading} size="large">
+        <Button type="primary" icon={<DownloadOutlined />} onClick={handleDownload} loading={loading}>
           Download
         </Button>
       </Space.Compact>

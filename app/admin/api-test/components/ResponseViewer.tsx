@@ -42,7 +42,7 @@ export default function ResponseViewer({ response }: ResponseViewerProps) {
 
   return (
     <Card size="small">
-      <div style={{ marginBottom: 16 }}>
+      <div style={{ marginBottom: 12 }}>
         <Space size="large">
           <Text strong>Status:</Text>
           <Tag color={getStatusColor(response.status)}>

@@ -389,7 +389,9 @@ export default function R2AdminPage() {
       {prefix && (
         <Card style={{ marginBottom: 16, overflowX: 'auto' }}>
           <Space wrap>
-            <Button onClick={() => setPrefix('')} size="small">Root</Button>
+            <Button onClick={() => setPrefix('')} size="small">
+              Root
+            </Button>
             {prefix
               .split('/')
               .filter(Boolean)
@@ -418,18 +420,16 @@ export default function R2AdminPage() {
         </div>
       )}
 
-      <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
-        <Table
-          columns={columns}
-          dataSource={objects}
-          rowKey="key"
-          loading={loading && objects.length === 0}
-          rowSelection={rowSelection}
-          pagination={false}
-          scroll={{ x: 700, y: 'calc(100vh - 400px)' }}
-          size="small"
-        />
-      </div>
+      <Table
+        columns={columns}
+        dataSource={objects}
+        rowKey="key"
+        loading={loading && objects.length === 0}
+        rowSelection={rowSelection}
+        pagination={false}
+        scroll={{ x: 700, y: 'calc(100vh - 400px)' }}
+        size="small"
+      />
 
       {truncated && (
         <div style={{ textAlign: 'center', marginTop: 16 }}>
@@ -512,7 +512,17 @@ function ObjectDetails({ bucket, keyName, onDownload }: { bucket: string; keyNam
         {metadata?.customMetadata && Object.keys(metadata.customMetadata).length > 0 && (
           <>
             <Text strong>Custom Metadata:</Text>
-            <pre style={{ background: '#f5f5f5', padding: 8, borderRadius: 4 }}>{JSON.stringify(metadata.customMetadata, null, 2)}</pre>
+            <pre
+              style={{
+                background: '#fafafa',
+                padding: 8,
+                borderRadius: 4,
+                fontFamily: "'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace",
+                fontSize: 13,
+              }}
+            >
+              {JSON.stringify(metadata.customMetadata, null, 2)}
+            </pre>
           </>
         )}
 

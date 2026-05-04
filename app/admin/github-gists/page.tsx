@@ -251,14 +251,14 @@ const ViewGistModal = dynamic(
                   </div>
                   <pre
                     style={{
-                      background: '#f5f5f5',
-                      padding: 16,
-                      borderRadius: 8,
+                      background: '#fafafa',
+                      padding: 12,
+                      borderRadius: 4,
                       maxHeight: 400,
                       overflow: 'auto',
                       fontSize: 13,
-                      lineHeight: 1.6,
-                      fontFamily: 'ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace',
+                      lineHeight: 1.5,
+                      fontFamily: "'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace",
                       whiteSpace: 'pre-wrap',
                       wordBreak: 'break-all',
                     }}
@@ -661,7 +661,7 @@ export default function GitHubGistsPage() {
         <Alert message="Error" description={error} type="error" closable onClose={() => setError(null)} style={{ marginBottom: 16 }} />
       )}
 
-      <Card style={{ marginBottom: 16 }}>
+      <Card size="small" style={{ marginBottom: 12 }}>
         <Space align="center" style={{ width: '100%', justifyContent: 'space-between' }}>
           <Space>
             <GithubOutlined style={{ fontSize: 20 }} />

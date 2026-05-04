@@ -195,7 +195,7 @@ export default function ChatTestPage() {
               type="error"
               showIcon
               closable
-              style={{ margin: 16 }}
+              style={{ margin: 12 }}
               onClose={() => setError(null)}
             />
           )}

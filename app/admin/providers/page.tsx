@@ -348,7 +348,9 @@ export default function ProvidersPage() {
       title: 'Model ID',
       dataIndex: 'id',
       key: 'id',
-      render: (text: string) => <code style={{ fontSize: '12px' }}>{text}</code>,
+      render: (text: string) => (
+        <code style={{ fontSize: '12px', background: '#fafafa', padding: '2px 6px', borderRadius: 3 }}>{text}</code>
+      ),
     },
     {
       title: '测速',
@@ -428,7 +430,7 @@ export default function ProvidersPage() {
           Refresh
         </Tag>
       </Space>
-      <Card>
+      <Card size="small">
         <Collapse defaultActiveKey={['openai', 'anthropic', 'gemini']}>
           {renderFamilyPanel('openai', data.providers.openai)}
           {renderFamilyPanel('anthropic', data.providers.anthropic)}
@@ -491,7 +493,7 @@ export default function ProvidersPage() {
                   key: 'id',
                   render: (text: string) => (
                     <Space>
-                      <code style={{ fontSize: '12px' }}>{text}</code>
+                      <code style={{ fontSize: '12px', background: '#fafafa', padding: '2px 6px', borderRadius: 3 }}>{text}</code>
                       {modalConfiguredModels.includes(text) && (
                         <Tag color="green" style={{ marginLeft: 4 }}>
                           Configured

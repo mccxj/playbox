@@ -424,8 +424,8 @@ export default function AnalyticsPage() {
         <Alert message="Error" description={error} type="error" closable onClose={() => setError(null)} style={{ marginBottom: 16 }} />
       )}
 
-      <Card style={{ marginBottom: 16 }}>
-        <Row gutter={16} align="middle">
+      <Card size="small" style={{ marginBottom: 12 }}>
+        <Row gutter={12} align="middle">
           <Col>
             <BarChartOutlined style={{ fontSize: 24, color: '#1890ff' }} />
           </Col>
@@ -447,7 +447,7 @@ export default function AnalyticsPage() {
             </Button>
           </Col>
         </Row>
-        <Row gutter={16} style={{ marginTop: 16 }}>
+        <Row gutter={12} style={{ marginTop: 12 }}>
           <Col span={6}>
             <Statistic title="Total Requests" value={totalRequests.toLocaleString()} />
           </Col>
@@ -469,9 +469,9 @@ export default function AnalyticsPage() {
         </div>
       ) : (
         <>
-          <Row gutter={16} style={{ marginBottom: 16 }}>
+          <Row gutter={12} style={{ marginBottom: 12 }}>
             <Col span={12}>
-              <Card title="Requests by Model" bordered={false}>
+              <Card title="Requests by Model" size="small">
                 <ResponsiveContainer width="100%" height={300}>
                   <PieChart>
                     <Pie
@@ -493,7 +493,7 @@ export default function AnalyticsPage() {
               </Card>
             </Col>
             <Col span={12}>
-              <Card title="Requests by Provider" bordered={false}>
+              <Card title="Requests by Provider" size="small">
                 <ResponsiveContainer width="100%" height={300}>
                   <BarChart data={providerBarData.slice(0, 10)}>
                     <CartesianGrid strokeDasharray="3 3" />
@@ -507,9 +507,9 @@ export default function AnalyticsPage() {
             </Col>
           </Row>
 
-          <Row gutter={16} style={{ marginBottom: 16 }}>
+          <Row gutter={12} style={{ marginBottom: 12 }}>
             <Col span={12}>
-              <Card title="Requests by API Key" bordered={false}>
+              <Card title="Requests by API Key" size="small">
                 <ResponsiveContainer width="100%" height={300}>
                   <BarChart data={apiKeyStats.slice(0, 10)}>
                     <CartesianGrid strokeDasharray="3 3" />
@@ -522,7 +522,7 @@ export default function AnalyticsPage() {
               </Card>
             </Col>
             <Col span={12}>
-              <Card title="Token Usage by API Key" bordered={false}>
+              <Card title="Token Usage by API Key" size="small">
                 <ResponsiveContainer width="100%" height={300}>
                   <BarChart data={apiKeyTokenStats.slice(0, 10)}>
                     <CartesianGrid strokeDasharray="3 3" />
@@ -539,7 +539,7 @@ export default function AnalyticsPage() {
           </Row>
 
           {timeSeriesChartData.length > 0 && (
-            <Card title="Daily Request Trend" bordered={false} style={{ marginBottom: 16 }}>
+            <Card title="Daily Request Trend" size="small" style={{ marginBottom: 12 }}>
               <ResponsiveContainer width="100%" height={300}>
                 <LineChart data={timeSeriesChartData}>
                   <CartesianGrid strokeDasharray="3 3" />
@@ -562,9 +562,9 @@ export default function AnalyticsPage() {
             </Card>
           )}
 
-          <Row gutter={16} style={{ marginBottom: 16 }}>
+          <Row gutter={12} style={{ marginBottom: 12 }}>
             <Col span={12}>
-              <Card title="Token Distribution by Model" bordered={false}>
+              <Card title="Token Distribution by Model" size="small">
                 <ResponsiveContainer width="100%" height={300}>
                   <PieChart>
                     <Pie
@@ -586,7 +586,7 @@ export default function AnalyticsPage() {
               </Card>
             </Col>
             <Col span={12}>
-              <Card title="Token Usage by Provider" bordered={false}>
+              <Card title="Token Usage by Provider" size="small">
                 <ResponsiveContainer width="100%" height={300}>
                   <BarChart data={tokenProviderBarData.slice(0, 10)}>
                     <CartesianGrid strokeDasharray="3 3" />
@@ -603,7 +603,7 @@ export default function AnalyticsPage() {
           </Row>
 
           {tokenTimeSeries.length > 0 && (
-            <Card title="Daily Token Trend" bordered={false} style={{ marginBottom: 16 }}>
+            <Card title="Daily Token Trend" size="small" style={{ marginBottom: 12 }}>
               <ResponsiveContainer width="100%" height={300}>
                 <LineChart
                   data={tokenTimeSeries.reduce(
@@ -639,7 +639,7 @@ export default function AnalyticsPage() {
             </Card>
           )}
 
-          <Card title="API Key Statistics" bordered={false} style={{ marginBottom: 16 }}>
+          <Card title="API Key Statistics" size="small" style={{ marginBottom: 12 }}>
             <Table
               columns={apiKeyMergedColumns}
               dataSource={apiKeyMergedData}
@@ -649,7 +649,7 @@ export default function AnalyticsPage() {
             />
           </Card>
 
-          <Card title="Model Statistics" bordered={false}>
+          <Card title="Model Statistics" size="small">
             <Table
               columns={modelStatsColumns}
               dataSource={modelStatsData}

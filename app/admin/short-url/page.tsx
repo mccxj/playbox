@@ -101,9 +101,9 @@ export default function ShortUrlPage() {
 
   return (
     <div>
-      {error && <Alert message="Error" description={error} type="error" closable style={{ marginBottom: 24 }} />}
+      {error && <Alert message="Error" description={error} type="error" closable style={{ marginBottom: 16 }} />}
 
-      <Card title="Create Short URL" style={{ marginBottom: 24 }}>
+      <Card title="Create Short URL" size="small" style={{ marginBottom: 16 }}>
         <Space.Compact style={{ width: '100%' }}>
           <Input
             placeholder="Enter URL to shorten (e.g., https://example.com/page)"
@@ -121,7 +121,7 @@ export default function ShortUrlPage() {
       </Card>
 
       {result && (
-        <Card title="Result" style={{ marginBottom: 24 }}>
+        <Card title="Result" size="small" style={{ marginBottom: 16 }}>
           <Space style={{ width: '100%' }} size="large" direction="vertical">
             <div>
               <Title level={5}>Short URL</Title>
@@ -154,7 +154,7 @@ export default function ShortUrlPage() {
         </Card>
       )}
 
-      <Card title="Recent URLs">
+      <Card title="Recent URLs" size="small">
         {recentUrls.length === 0 ? (
           <div style={{ color: '#999', textAlign: 'center', padding: 24 }}>No recent URLs</div>
         ) : (

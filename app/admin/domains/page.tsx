@@ -154,11 +154,11 @@ export default function DomainsPage() {
   return (
     <div>
       {error && (
-        <Alert message="Error" description={error} type="error" closable onClose={() => setError(null)} style={{ marginBottom: 16 }} />
+        <Alert message="Error" description={error} type="error" closable onClose={() => setError(null)} style={{ marginBottom: 12 }} />
       )}
 
-      <Card style={{ marginBottom: 16 }}>
-        <Space size="large" align="center" wrap>
+      <Card size="small" style={{ marginBottom: 12 }}>
+        <Space align="center" wrap>
           <GlobalOutlined style={{ fontSize: 24, color: '#1890ff' }} />
           <span style={{ color: '#666' }}>Total: {domains.length} domains</span>
           <div style={{ flex: 1 }} />

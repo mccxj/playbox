@@ -314,18 +314,16 @@ export default function KVAdminPage() {
         </div>
       )}
 
-      <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
-        <Table
-          columns={columns}
-          dataSource={keys}
-          rowKey="name"
-          loading={loading && keys.length === 0}
-          rowSelection={rowSelection}
-          pagination={false}
-          scroll={{ x: 600, y: 'calc(100vh - 350px)' }}
-          size="small"
-        />
-      </div>
+      <Table
+        columns={columns}
+        dataSource={keys}
+        rowKey="name"
+        loading={loading && keys.length === 0}
+        rowSelection={rowSelection}
+        pagination={false}
+        scroll={{ x: 600, y: 'calc(100vh - 350px)' }}
+        size="small"
+      />
 
       {!listComplete && (
         <div style={{ textAlign: 'center', marginTop: 16 }}>
