@@ -40,7 +40,7 @@ export function DownloadForm({ onDownload }: DownloadFormProps) {
   };
 
   return (
-    <Card title="Quick Download" style={{ marginBottom: 24 }}>
+    <Card title="Quick Download" style={{ marginBottom: 16 }}>
       <Space.Compact style={{ width: '100%' }}>
         <Input
           placeholder="Enter URL to download (e.g., https://example.com/file.pdf)"

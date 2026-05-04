@@ -251,14 +251,14 @@ const ViewGistModal = dynamic(
                   </div>
                   <pre
                     style={{
-                      background: '#f5f5f5',
+                      background: '#fafafa',
                       padding: 16,
-                      borderRadius: 8,
+                      borderRadius: '8px',
                       maxHeight: 400,
                       overflow: 'auto',
                       fontSize: 13,
                       lineHeight: 1.6,
-                      fontFamily: 'ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace',
+                      fontFamily: 'ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace',
                       whiteSpace: 'pre-wrap',
                       wordBreak: 'break-all',
                     }}

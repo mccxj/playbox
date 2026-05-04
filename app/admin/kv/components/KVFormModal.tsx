@@ -119,7 +119,11 @@ export default function KVFormModal({ open, namespace, editingKey, onClose, onSu
         )}
 
         <Form.Item name="value" label="Value" rules={[{ required: true, message: 'Value is required' }]}>
-          <Input.TextArea rows={6} placeholder="Enter value" style={{ fontFamily: 'monospace' }} />
+          <Input.TextArea
+            rows={6}
+            placeholder="Enter value"
+            style={{ fontFamily: 'ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace' }}
+          />
         </Form.Item>
 
         <Form.Item

@@ -106,7 +106,7 @@ export default function DataTable({
           </Popconfirm>
         </div>
       )}
-      <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
+      <div style={{ overflowX: 'auto' }}>
         <Table
           columns={tableColumns}
           dataSource={rows}
@@ -137,17 +137,6 @@ export default function DataTable({
           size="small"
         />
       </div>
-      <style jsx>{`
-        @media (max-width: 768px) {
-          div::-webkit-scrollbar {
-            height: 4px;
-          }
-          div::-webkit-scrollbar-thumb {
-            background: #ccc;
-            border-radius: 2px;
-          }
-        }
-      `}</style>
     </div>
   );
 }

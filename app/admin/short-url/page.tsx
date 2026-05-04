@@ -101,9 +101,9 @@ export default function ShortUrlPage() {
 
   return (
     <div>
-      {error && <Alert message="Error" description={error} type="error" closable style={{ marginBottom: 24 }} />}
+      {error && <Alert message="Error" description={error} type="error" closable style={{ marginBottom: 16 }} />}
 
-      <Card title="Create Short URL" style={{ marginBottom: 24 }}>
+      <Card title="Create Short URL" style={{ marginBottom: 16 }}>
         <Space.Compact style={{ width: '100%' }}>
           <Input
             placeholder="Enter URL to shorten (e.g., https://example.com/page)"
@@ -117,11 +117,11 @@ export default function ShortUrlPage() {
             Create
           </Button>
         </Space.Compact>
-        <div style={{ marginTop: 8, color: '#999', fontSize: 12 }}>Short URLs expire after 10 minutes</div>
+        <div style={{ marginTop: 8, color: '#666666', fontSize: 12 }}>Short URLs expire after 10 minutes</div>
       </Card>
 
       {result && (
-        <Card title="Result" style={{ marginBottom: 24 }}>
+        <Card title="Result" style={{ marginBottom: 16 }}>
           <Space style={{ width: '100%' }} size="large" direction="vertical">
             <div>
               <Title level={5}>Short URL</Title>
@@ -168,12 +168,12 @@ export default function ShortUrlPage() {
                   justifyContent: 'space-between',
                   padding: 12,
                   border: '1px solid #f0f0f0',
-                  borderRadius: 8,
+                  borderRadius: '8px',
                 }}
               >
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontWeight: 500, marginBottom: 4 }}>/s/{item.id}</div>
-                  <div style={{ color: '#666', fontSize: 12, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  <div style={{ color: '#666666', fontSize: 12, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                     {item.originalUrl}
                   </div>
                 </div>

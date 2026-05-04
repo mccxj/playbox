@@ -348,7 +348,7 @@ export default function ProvidersPage() {
       title: 'Model ID',
       dataIndex: 'id',
       key: 'id',
-      render: (text: string) => <code style={{ fontSize: '12px' }}>{text}</code>,
+      render: (text: string) => <code style={{ fontSize: 12 }}>{text}</code>,
     },
     {
       title: '测速',
@@ -399,7 +399,7 @@ export default function ProvidersPage() {
                     size="small"
                   />
                   {searchTerm && (
-                    <span style={{ color: '#666', fontSize: '12px' }}>
+                    <span style={{ color: '#666666', fontSize: 12 }}>
                       ({filteredModels.length} of {configuredModels.length})
                     </span>
                   )}
@@ -474,7 +474,7 @@ export default function ProvidersPage() {
                 size="small"
               />
               {modalSearchTerm && (
-                <span style={{ color: '#666', fontSize: '12px' }}>
+                <span style={{ color: '#666666', fontSize: 12 }}>
                   ({filterModels(modalModels, modalSearchTerm).length} of {modalModels.length})
                 </span>
               )}
@@ -491,7 +491,7 @@ export default function ProvidersPage() {
                   key: 'id',
                   render: (text: string) => (
                     <Space>
-                      <code style={{ fontSize: '12px' }}>{text}</code>
+                      <code style={{ fontSize: 12 }}>{text}</code>
                       {modalConfiguredModels.includes(text) && (
                         <Tag color="green" style={{ marginLeft: 4 }}>
                           Configured

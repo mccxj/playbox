@@ -204,6 +204,24 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       theme={{
         token: {
           colorPrimary: '#1890ff',
+          colorInfo: '#1890ff',
+          colorSuccess: '#52c41a',
+          colorWarning: '#faad14',
+          colorError: '#ff4d4f',
+          colorText: '#0f172a',
+          colorTextSecondary: '#666666',
+          colorTextTertiary: '#475569',
+          colorBorder: '#f0f0f0',
+          colorSplit: '#f0f0f0',
+          colorBgContainer: '#ffffff',
+          colorBgLayout: '#fafafa',
+          borderRadius: 4,
+          borderRadiusLG: 8,
+          borderRadiusSM: 3,
+          controlHeight: 32,
+          fontSize: 14,
+          fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+          fontFamilyCode: 'ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace',
         },
       }}
     >
@@ -233,26 +251,14 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             </Sider>
           )}
           {isMobile && (
-            <Drawer
-              title="Admin"
-              placement="left"
-              closable
-              onClose={() => setDrawerOpen(false)}
-              open={drawerOpen}
-              width={250}
-            >
+            <Drawer title="Admin" placement="left" closable onClose={() => setDrawerOpen(false)} open={drawerOpen} width={250}>
               <Menu mode="inline" selectedKeys={[getSelectedKey()]} items={menuItems} onClick={handleMenuClick} />
             </Drawer>
           )}
           <Layout>
             <Header style={{ ...HEADER_STYLE, padding: isMobile ? '0 12px' : '0 24px' }}>
               {isMobile && (
-                <Button
-                  type="text"
-                  icon={<MenuUnfoldOutlined />}
-                  onClick={() => setDrawerOpen(true)}
-                  style={{ marginRight: 12 }}
-                />
+                <Button type="text" icon={<MenuUnfoldOutlined />} onClick={() => setDrawerOpen(true)} style={{ marginRight: 12 }} />
               )}
               <Title level={isMobile ? 5 : 4} style={{ margin: 0, flex: 1 }}>
                 {getPageTitle()}

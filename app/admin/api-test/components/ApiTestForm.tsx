@@ -112,7 +112,7 @@ export default function ApiTestForm({ request, onChange, onExecute, loading }: A
                 value={request.body}
                 onChange={(e) => updateField('body', e.target.value)}
                 rows={10}
-                style={{ fontFamily: 'monospace' }}
+                style={{ fontFamily: 'ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace' }}
               />
             </Space>
           </TabPane>

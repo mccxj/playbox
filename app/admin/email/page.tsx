@@ -219,7 +219,7 @@ export default function EmailTestPage() {
                   }
                   type="info"
                   showIcon
-                  style={{ marginBottom: 24 }}
+                  style={{ marginBottom: 16 }}
                 />
                 <Form form={form} layout="vertical" onFinish={handleSend}>
                   <Form.Item label="Recipients">

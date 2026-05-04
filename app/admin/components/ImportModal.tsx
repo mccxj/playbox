@@ -112,11 +112,11 @@ export default function ImportModal({ open, table, onClose, onSuccess }: ImportM
             <Paragraph
               ellipsis={{ rows: 6, expandable: true }}
               style={{
-                background: '#f5f5f5',
+                background: '#fafafa',
                 padding: 12,
-                borderRadius: 4,
+                borderRadius: '4px',
                 marginTop: 8,
-                fontFamily: 'monospace',
+                fontFamily: 'ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace',
                 fontSize: 12,
               }}
             >
@@ -125,7 +125,7 @@ export default function ImportModal({ open, table, onClose, onSuccess }: ImportM
           </div>
         )}
 
-        <div style={{ background: '#fffbe6', padding: 12, borderRadius: 4 }}>
+        <div style={{ background: '#fffbe6', padding: 12, borderRadius: '4px' }}>
           <Text type="secondary">
             <FileTextOutlined style={{ marginRight: 8 }} />
             {format === 'json'

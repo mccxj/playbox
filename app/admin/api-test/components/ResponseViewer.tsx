@@ -54,7 +54,12 @@ export default function ResponseViewer({ response }: ResponseViewerProps) {
 
       <Tabs defaultActiveKey="body">
         <Tabs.TabPane tab="Body" key="body">
-          <TextArea value={displayBody} rows={15} readOnly style={{ fontFamily: 'monospace', fontSize: 13 }} />
+          <TextArea
+            value={displayBody}
+            rows={15}
+            readOnly
+            style={{ fontFamily: 'ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace', fontSize: 13 }}
+          />
         </Tabs.TabPane>
 
         <Tabs.TabPane tab="Headers" key="headers">

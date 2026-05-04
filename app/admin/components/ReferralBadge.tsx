@@ -17,21 +17,18 @@ export default function ReferralBadge() {
         alignItems: 'center',
         gap: 10,
         padding: '6px 14px',
-        border: '1px solid #d6dbe7',
+        border: '1px solid #f0f0f0',
         borderRadius: 12,
         background: '#ffffff',
         color: '#0f172a',
         textDecoration: 'none',
-        boxShadow: '0 1px 2px rgba(15,23,42,0.06)',
-        transition: 'box-shadow 0.2s, border-color 0.2s',
+        transition: 'border-color 0.2s',
       }}
       onMouseEnter={(e) => {
         e.currentTarget.style.borderColor = '#1890ff';
-        e.currentTarget.style.boxShadow = '0 2px 8px rgba(24,144,255,0.15)';
       }}
       onMouseLeave={(e) => {
-        e.currentTarget.style.borderColor = '#d6dbe7';
-        e.currentTarget.style.boxShadow = '0 1px 2px rgba(15,23,42,0.06)';
+        e.currentTarget.style.borderColor = '#f0f0f0';
       }}
     >
       <Tag
