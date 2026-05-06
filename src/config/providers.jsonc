@@ -2,7 +2,6 @@
   // Default provider configuration for the AI API Gateway
   // Edit this file to add/remove providers and models
   // No restart needed for local dev — changes picked up on next request
-
   "providers": {
     // Ollama — local/self-hosted models via Ollama
     "ollama": {
@@ -11,15 +10,14 @@
       "endpoint": "https://ollama.com",
       "key": "Ollama",
       "models": [
-				"gemma4:31b",
+        "gemma4:31b",
         "glm-4.7",
         "minimax-m2.5",
         "qwen3-vl:235b",
         "qwen3-coder:480b",
-				"qwen3-vl:235b-instruct"
+        "qwen3-vl:235b-instruct"
       ]
     },
-
     // LongCat — primary OpenAI-compatible provider
     "longcat": {
       "type": "openai",
@@ -36,7 +34,6 @@
         "Sphynx"
       ]
     },
-
     // LongCat (Anthropic protocol)
     "longcat_claude": {
       "type": "anthropic",
@@ -54,7 +51,6 @@
       ],
       "authType": "bearer"
     },
-
     // Cerebras — high-speed inference
     // "cerebras": {
     //   "type": "openai",
@@ -63,7 +59,6 @@
     //   "key": "Cerebras",
     //   "models": ["qwen-3-235b-a22b-instruct-2507"]
     // },
-
     // Google Gemini (native API)
     // "gemini": {
     //   "type": "google",
@@ -72,7 +67,6 @@
     //   "key": "Gemini",
     //   "models": ["gemini-flash-latest", "gemini-3-flash-preview", "gemini-3.1-flash-lite-preview", "gemini-2.5-flash", "gemini-flash-lite-latest", "gemini-2.5-flash-lite", "gemma-4-31b-it"]
     // },
-
     // Gemini CLI — OAuth-based access
     // "gemini-cli": {
     //   "type": "gemini-cli",
@@ -81,7 +75,6 @@
     //   "key": "Gemini",
     //   "models": ["gemini-3-flash-preview", "gemini-3.1-flash-lite-preview", "gemini-2.5-flash", "gemini-2.5-flash-lite"]
     // },
-
     // ModelScope — Chinese model hub
     "modelscope": {
       "type": "openai",
@@ -102,7 +95,6 @@
         "ZhipuAI/GLM-4.7-Flash"
       ]
     },
-
     // NVIDIA NIM
     "nvidia": {
       "type": "openai",
@@ -123,16 +115,16 @@
         "deepseek-ai/deepseek-v4-pro"
       ]
     },
-
     // Doubao (ByteDance)
     "doubao": {
       "type": "openai",
       "family": "openai",
       "endpoint": "https://ark.cn-beijing.volces.com/api/coding/v3",
       "key": "Doubao",
-      "models": ["ark-code-latest"]
+      "models": [
+        "ark-code-latest"
+      ]
     }
-
     // Cloudflare AI Workers
     // "cloudflare": {
     //   "type": "worker",
@@ -142,7 +134,6 @@
     //   "models": ["@cf/moonshotai/kimi-k2.6"]
     // }
   },
-
   // Default provider when model is not found
   "default_provider": "longcat"
 }
