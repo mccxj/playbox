@@ -12,12 +12,16 @@ export function createOpenAIProtocol(): ProtocolAdapter {
       _model: string,
       _isStream: boolean,
       _apiKey: string,
-      isEmbedding?: boolean
+      isEmbedding?: boolean,
+      isRerank?: boolean
     ): Promise<string> => {
       const baseUrl = provider.endpoint ?? 'https://api.openai.com';
       const suffix = baseUrl.match(/\/v\d+$/) ? '' : '/v1';
       if (isEmbedding) {
         return `${baseUrl}${suffix}/embeddings`;
+      }
+      if (isRerank) {
+        return `${baseUrl}${suffix}/rerank`;
       }
       return `${baseUrl}${suffix}/chat/completions`;
     },

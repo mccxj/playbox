@@ -77,7 +77,7 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
 
     let models: ModelInfo[] = [];
     try {
-      if (provider.family === 'openai') {
+      if (provider.family === 'openai' || provider.family === 'rerank') {
         models = await fetchOpenAIModels(provider.endpoint, apiKey);
       } else if (provider.family === 'gemini') {
         models = await fetchGeminiModels(provider.endpoint, apiKey);

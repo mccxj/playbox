@@ -36,6 +36,7 @@ interface ProvidersResponse {
     openai: ProviderModels[];
     anthropic: ProviderModels[];
     gemini: ProviderModels[];
+    rerank: ProviderModels[];
   };
 }
 
@@ -63,12 +64,14 @@ const familyColors: Record<string, string> = {
   openai: '#52c41a',
   anthropic: '#fa8c16',
   gemini: '#1890ff',
+  rerank: '#722ed1',
 };
 
 const familyLabels: Record<string, string> = {
   openai: 'OpenAI Compatible',
   anthropic: 'Anthropic',
   gemini: 'Google Gemini',
+  rerank: 'Rerank',
 };
 
 function speedTestKey(provider: string, model: string) {
@@ -429,10 +432,11 @@ export default function ProvidersPage() {
         </Tag>
       </Space>
       <Card>
-        <Collapse defaultActiveKey={['openai', 'anthropic', 'gemini']}>
+        <Collapse defaultActiveKey={['openai', 'anthropic', 'gemini', 'rerank']}>
           {renderFamilyPanel('openai', data.providers.openai)}
           {renderFamilyPanel('anthropic', data.providers.anthropic)}
           {renderFamilyPanel('gemini', data.providers.gemini)}
+          {renderFamilyPanel('rerank', data.providers.rerank)}
         </Collapse>
       </Card>
 

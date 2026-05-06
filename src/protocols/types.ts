@@ -21,7 +21,14 @@ export interface ProtocolAdapter {
   name: string;
   getAttempt(): number;
   getApiKey(env: Env, provider: Provider, ctx: ExecutionContext): Promise<string>;
-  getEndpoint(provider: Provider, model: string, isStream: boolean, apiKey: string, isEmbedding?: boolean): Promise<string>;
+  getEndpoint(
+    provider: Provider,
+    model: string,
+    isStream: boolean,
+    apiKey: string,
+    isEmbedding?: boolean,
+    isRerank?: boolean
+  ): Promise<string>;
   getHeaders(provider: Provider, env: Env, ctx: ExecutionContext, apiKey: string): Promise<Record<string, string>>;
 
   // Optional: Request/response conversion (only for protocol-to-protocol conversion)

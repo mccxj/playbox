@@ -68,6 +68,7 @@ export async function GET(_request: NextRequest) {
       anthropic: [],
       gemini: [],
       embedding: [],
+      rerank: [],
     };
 
     for (const [name, provider] of Object.entries(config.providers)) {
@@ -94,7 +95,7 @@ export async function GET(_request: NextRequest) {
       }
 
       try {
-        if (p.family === 'openai' || p.family === 'embedding') {
+        if (p.family === 'openai' || p.family === 'embedding' || p.family === 'rerank') {
           providerInfo.fetched = await fetchOpenAIModels(p.endpoint, apiKey);
         } else if (p.family === 'gemini') {
           providerInfo.fetched = await fetchGeminiModels(p.endpoint, apiKey);

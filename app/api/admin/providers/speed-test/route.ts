@@ -112,7 +112,7 @@ export async function POST(request: NextRequest) {
     }
 
     const upstreamRequest =
-      provider.family === 'openai'
+      provider.family === 'openai' || provider.family === 'rerank'
         ? buildOpenAIRequest(model, provider.endpoint, apiKey)
         : provider.family === 'anthropic'
           ? buildAnthropicRequest(model, provider.endpoint, apiKey, provider.authType)
