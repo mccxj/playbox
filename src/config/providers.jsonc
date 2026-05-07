@@ -3,6 +3,14 @@
   // Edit this file to add/remove providers and models
   // No restart needed for local dev — changes picked up on next request
   "providers": {
+    // Sensenova
+    "sensenova": {
+      "type": "openai",
+      "family": "openai",
+      "endpoint": "https://token.sensenova.cn",
+      "key": "Sensenova",
+      "models": ["sensenova-6.7-flash-lite", "sensenova-u1-fast", "deepseek-v4-flash"]
+    },
     // Ollama — local/self-hosted models via Ollama
     "ollama": {
       "type": "openai",
