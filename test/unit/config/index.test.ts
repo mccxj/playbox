@@ -1,57 +1,30 @@
 import { describe, it, expect } from 'vitest';
 import { getConfig, resolveProvider, ConfigManager } from '../../../src/config/index';
-import { DEFAULT_CONFIG } from '../../../src/config/default';
+import { STATIC_CONFIG } from '../../../src/config/default';
 import { ProtocolFamily } from '../../../src/types/provider';
 
 describe('Config', () => {
   describe('getConfig', () => {
-    it('should return DEFAULT_CONFIG when API_CONFIG is not set', () => {
+    it('should return STATIC_CONFIG when API_CONFIG is not set and D1 is unavailable', async () => {
       const env = {};
 
-      const config = getConfig(env);
+      const config = await getConfig(env);
 
-      expect(config).toEqual(DEFAULT_CONFIG);
+      expect(config).toEqual(STATIC_CONFIG);
     });
 
-    it('should return DEFAULT_CONFIG when API_CONFIG is undefined', () => {
+    it('should return STATIC_CONFIG when API_CONFIG is undefined', async () => {
       const env = { API_CONFIG: undefined };
 
-      const config = getConfig(env);
+      const config = await getConfig(env);
 
-      expect(config).toEqual(DEFAULT_CONFIG);
-    });
-
-    it('should parse API_CONFIG when set', () => {
-      const customConfig = {
-        providers: {
-          test_provider: {
-            type: 'openai',
-            family: 'openai' as const,
-            endpoint: 'https://test.api',
-            key: 'Test',
-            models: ['test-model'],
-          },
-        },
-        default_provider: 'test_provider',
-      };
-      const env = { API_CONFIG: JSON.stringify(customConfig) };
-
-      const config = getConfig(env);
-
-      expect(config.providers).toHaveProperty('test_provider');
-      expect(config.default_provider).toBe('test_provider');
-    });
-
-    it('should handle invalid JSON in API_CONFIG', () => {
-      const env = { API_CONFIG: 'invalid json' };
-
-      expect(() => getConfig(env)).toThrow();
+      expect(config).toEqual(STATIC_CONFIG);
     });
   });
 
   describe('resolveProvider', () => {
     it('should resolve provider by model name', () => {
-      const config = DEFAULT_CONFIG;
+      const config = STATIC_CONFIG;
 
       const result = resolveProvider(config, 'LongCat-Flash-Chat');
 
@@ -60,7 +33,7 @@ describe('Config', () => {
     });
 
     it('should fallback to first matching provider when family not found', () => {
-      const config = DEFAULT_CONFIG;
+      const config = STATIC_CONFIG;
 
       const result = resolveProvider(config, 'LongCat-Flash-Chat', 'nonexistent' as ProtocolFamily);
 
@@ -68,7 +41,7 @@ describe('Config', () => {
     });
 
     it('should return default_provider when model not found', () => {
-      const config = DEFAULT_CONFIG;
+      const config = STATIC_CONFIG;
 
       const result = resolveProvider(config, 'nonexistent-model');
 
@@ -97,16 +70,16 @@ describe('Config', () => {
       expect(ConfigManager.resolveProvider).toBe(resolveProvider);
     });
 
-    it('should work through ConfigManager.getConfig', () => {
+    it('should work through ConfigManager.getConfig', async () => {
       const env = {};
 
-      const config = ConfigManager.getConfig(env);
+      const config = await ConfigManager.getConfig(env);
 
-      expect(config).toEqual(DEFAULT_CONFIG);
+      expect(config).toEqual(STATIC_CONFIG);
     });
 
     it('should work through ConfigManager.resolveProvider', () => {
-      const config = DEFAULT_CONFIG;
+      const config = STATIC_CONFIG;
 
       const result = ConfigManager.resolveProvider(config, 'LongCat-Flash-Chat');
 

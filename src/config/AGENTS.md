@@ -31,7 +31,7 @@ config/
 - **Provider types**: `openai`, `anthropic`, `google`, `gemini-cli`
 - **Model matching**: First match wins, prefers `preferredType` if specified
 - **Fallback**: Uses `default_provider` if model not found
-- **Env override**: `API_CONFIG` env var overrides DEFAULT_CONFIG
+- **Priority**: D1 `providers` table > `providers.json` fallback
 
 ## ANTI-PATTERNS
 

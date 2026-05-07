@@ -81,7 +81,7 @@ export async function POST(request: NextRequest) {
   try {
     const { env: rawEnv, ctx } = getCloudflareContext();
     const env = rawEnv as unknown as Env;
-    const config = getConfig(env);
+    const config = await getConfig(env);
 
     const body = (await request.json()) as SpeedTestRequest;
     const { provider: providerName, model } = body;

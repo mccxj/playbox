@@ -54,7 +54,7 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
     const { provider: providerName } = await params;
     const { env: rawEnv, ctx } = getCloudflareContext();
     const env = rawEnv as unknown as Env;
-    const config = getConfig(env);
+    const config = await getConfig(env);
 
     const provider = config.providers[providerName] as ProviderConfig | undefined;
     if (!provider) {

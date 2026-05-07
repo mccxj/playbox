@@ -46,7 +46,7 @@ export async function POST(request: NextRequest) {
     const requestedModel = rawBody.model;
     const isStream = rawBody.stream === true;
 
-    const config = getConfig(env);
+    const config = await getConfig(env);
     const { name: providerName, provider, realModel } = resolveProvider(config, requestedModel, 'anthropic');
     if (!provider) {
       throw new Error(`No provider found for model: ${requestedModel}`);

@@ -2,7 +2,8 @@ import { NextRequest } from 'next/server';
 import { getTypedContext } from '@/lib/cloudflare-context';
 import { createJsonResponse, createInternalErrorResponse } from '@/lib/response-helpers';
 import { extract, ExampleData } from 'langextract';
-import { DEFAULT_CONFIG } from '@/config/default';
+import { STATIC_CONFIG } from '@/config/default';
+import type { ProviderConfig } from '@/types/provider';
 import type { D1Database } from '@cloudflare/workers-types';
 
 export const dynamic = 'force-dynamic';
@@ -103,10 +104,9 @@ export async function POST(request: NextRequest) {
     if (apiKey) extractOptions.apiKey = apiKey;
     if (modelId) extractOptions.modelId = modelId;
 
-    // Set baseURL/modelUrl from provider endpoint in DEFAULT_CONFIG
     if (providerKey) {
-      const providerEntry = Object.entries(DEFAULT_CONFIG.providers).find(([, p]) => p.key === providerKey);
-      const providerEndpoint = providerEntry?.[1]?.endpoint;
+      const providerEntry = Object.entries(STATIC_CONFIG.providers).find(([, p]) => (p as ProviderConfig).key === providerKey);
+      const providerEndpoint = (providerEntry?.[1] as ProviderConfig | undefined)?.endpoint;
 
       if (modelType === 'openai' && providerEndpoint) {
         extractOptions.baseURL = providerEndpoint;
@@ -159,14 +159,17 @@ export async function POST(request: NextRequest) {
 
 export async function GET() {
   try {
-    const openaiProviders = Object.entries(DEFAULT_CONFIG.providers)
-      .filter(([, p]) => p.type === 'openai')
-      .map(([name, p]) => ({
-        type: 'openai',
-        label: name,
-        defaultModel: p.models?.[0] || 'minimax-m2.7',
-        key: p.key,
-      }));
+    const openaiProviders = Object.entries(STATIC_CONFIG.providers)
+      .filter(([, p]) => (p as ProviderConfig).type === 'openai')
+      .map(([name, p]) => {
+        const pc = p as ProviderConfig;
+        return {
+          type: 'openai' as const,
+          label: name,
+          defaultModel: pc.models?.[0] || 'minimax-m2.7',
+          key: pc.key,
+        };
+      });
 
     const supportedProviders = [
       ...openaiProviders,

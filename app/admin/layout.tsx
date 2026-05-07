@@ -121,7 +121,7 @@ const PAGE_TITLE_MAP: Record<string, string> = {
   'llm-keys': 'API Key Management',
   'kv': 'KV Storage Management',
   'r2': 'R2 Storage Management',
-  'providers': 'Provider Models',
+  'providers': 'Providers',
   'download': 'File Download Proxy',
   'chat': 'Chat Test',
   'api-test': 'API Test',

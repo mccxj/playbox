@@ -110,7 +110,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     const requestedModel = pathModel || rawBody.model || 'gemini-2.5-flash';
     const isStream = action === 'streamGenerateContent' || url.searchParams.get('alt') === 'sse';
 
-    const config = getConfig(env);
+    const config = await getConfig(env);
     const { name: providerName, provider, realModel } = resolveProvider(config, requestedModel, 'gemini');
 
     if (!provider) {

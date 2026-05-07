@@ -61,7 +61,7 @@ async function fetchGeminiModels(baseUrl: string, apiKey: string): Promise<Model
 export async function GET(_request: NextRequest) {
   try {
     const { env, ctx } = getTypedContext();
-    const config = getConfig(env);
+    const config = await getConfig(env);
 
     const providersByFamily: Record<ProtocolFamily, ProviderModels[]> = {
       openai: [],
