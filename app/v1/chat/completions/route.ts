@@ -38,19 +38,13 @@ export async function POST(request: NextRequest) {
     return createUnauthorizedResponse();
   }
 
-  // Check debug mode from URL query parameter or header
-  const url = new URL(request.url);
-  const debugParam = url.searchParams.get('debug');
-  const debugHeader = request.headers.get('x-debug');
-  const isDebug = debugParam === 'true' || debugParam === '1' || debugHeader === 'true' || debugHeader === '1';
-
   try {
     const rawBody = (await request.json()) as ChatBody;
     const rawBodyObj = rawBody as unknown as Record<string, unknown>;
     delete rawBodyObj.store;
 
     const requestedModel = rawBody.model;
-    const isStream = !isDebug && rawBody.stream === true;
+    const isStream = rawBody.stream === true;
 
     const config = await getConfig(env);
     const { name: providerName, provider, realModel } = resolveProvider(config, requestedModel, 'openai');
@@ -188,32 +182,6 @@ export async function POST(request: NextRequest) {
       });
     } else if (lastResponse) {
       const upstreamJson = await lastResponse.json();
-
-      if (isDebug) {
-        const responseHeaders: Record<string, string> = {};
-        lastResponse.headers.forEach((value, key) => {
-          responseHeaders[key] = value;
-        });
-        const debugResponse = {
-          debug: true,
-          upstream: {
-            status: lastResponse.status,
-            statusText: lastResponse.statusText,
-            headers: responseHeaders,
-            url: fetchUrl,
-            request: upstreamRequest,
-            body: upstreamJson,
-          },
-          provider: {
-            name: providerName,
-            type: provider.type,
-          },
-          model: requestedModel,
-        };
-        return new Response(JSON.stringify(debugResponse, null, 2), {
-          headers: { ...resHeaders, 'Content-Type': 'application/json' },
-        });
-      }
 
       const standardResponse = upstreamProtocol.toStandardResponse(upstreamJson as ProtocolBody, realModel);
 
