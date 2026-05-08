@@ -4,7 +4,7 @@ import { KeyManager } from '../managers/key';
 export function createOpenAIProtocol(): ProtocolAdapter {
   return {
     name: 'openai',
-    getAttempt: () => 3,
+    getAttempt: () => 2,
     getApiKey: async (env: Env, provider: Provider, ctx: ExecutionContext): Promise<string> =>
       KeyManager.getRandomApiKey(env, provider, ctx),
     getEndpoint: async (

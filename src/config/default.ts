@@ -52,10 +52,33 @@ async function loadProvidersFromD1(env: Env): Promise<Config | null> {
   }
 }
 
+const CONFIG_CACHE_KEY = 'config:default';
+const CONFIG_CACHE_TTL = 3600;
+
 export async function getDefaultConfig(env: Env): Promise<Config> {
+  if (env.PLAYBOX_KV) {
+    try {
+      const cached = await env.PLAYBOX_KV.get(CONFIG_CACHE_KEY, { type: 'json' });
+      if (cached) {
+        return cached as Config;
+      }
+    } catch {
+      // Cache read failed, fall through to D1
+    }
+  }
+
   const config = await loadProvidersFromD1(env);
   if (!config) {
     throw new Error('No provider configuration found. Please configure providers in D1 database.');
   }
+
+  if (env.PLAYBOX_KV) {
+    try {
+      await env.PLAYBOX_KV.put(CONFIG_CACHE_KEY, JSON.stringify(config), { expirationTtl: CONFIG_CACHE_TTL });
+    } catch {
+      // Cache write failed, but we still have the config
+    }
+  }
+
   return config;
 }
