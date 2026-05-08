@@ -1,19 +1,19 @@
 import { Provider, ProviderConfig } from '../types/provider';
 import type { Env } from '../types';
+import { createStorageAdapters, StorageAdapters } from '../storage/factory';
+import type { D1Storage } from '../storage/interface';
 
 export interface Config {
   providers: Provider;
   default_provider: string;
 }
 
-async function loadProvidersFromD1(env: Env): Promise<Config | null> {
-  const db = env.PLAYBOX_D1;
-  if (!db) return null;
-
+async function loadProvidersFromD1(d1: D1Storage): Promise<Config | null> {
   try {
-    const { results } = await db
-      .prepare('SELECT name, type, family, endpoint, key, models, auth_type FROM providers WHERE enabled = 1 ORDER BY sort_order ASC')
-      .all();
+    const { results } = await d1.query(
+      'SELECT name, type, family, endpoint, key, models, auth_type FROM providers WHERE enabled = 1 ORDER BY sort_order ASC',
+      []
+    );
 
     if (!results || results.length === 0) {
       return null;
@@ -56,28 +56,26 @@ const CONFIG_CACHE_KEY = 'config:default';
 const CONFIG_CACHE_TTL = 3600;
 
 export async function getDefaultConfig(env: Env): Promise<Config> {
-  if (env.PLAYBOX_KV) {
-    try {
-      const cached = await env.PLAYBOX_KV.get(CONFIG_CACHE_KEY, { type: 'json' });
-      if (cached) {
-        return cached as Config;
-      }
-    } catch {
-      // Cache read failed, fall through to D1
+  const adapters = createStorageAdapters(env);
+
+  try {
+    const cached = await adapters.kv.get(CONFIG_CACHE_KEY, { type: 'json' }) as Config | null;
+    if (cached) {
+      return cached;
     }
+  } catch {
+    // Cache read failed, fall through to D1
   }
 
-  const config = await loadProvidersFromD1(env);
+  const config = await loadProvidersFromD1(adapters.d1);
   if (!config) {
     throw new Error('No provider configuration found. Please configure providers in D1 database.');
   }
 
-  if (env.PLAYBOX_KV) {
-    try {
-      await env.PLAYBOX_KV.put(CONFIG_CACHE_KEY, JSON.stringify(config), { expirationTtl: CONFIG_CACHE_TTL });
-    } catch {
-      // Cache write failed, but we still have the config
-    }
+  try {
+    await adapters.kv.put(CONFIG_CACHE_KEY, JSON.stringify(config), { expirationTtl: CONFIG_CACHE_TTL });
+  } catch {
+    // Cache write failed, but we still have the config
   }
 
   return config;

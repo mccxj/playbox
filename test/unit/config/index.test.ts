@@ -34,24 +34,26 @@ describe('Config', () => {
 
     it('should load config from D1 when available', async () => {
       const env = {
+        PLAYBOX_KV: {},
         PLAYBOX_D1: {
-          prepare: () => ({
-            all: () =>
-              Promise.resolve({
-                results: [
-                  {
-                    name: 'longcat',
-                    type: 'openai',
-                    family: 'openai',
-                    endpoint: 'https://api.longcat.chat/openai',
-                    key: 'LongCat',
-                    models: JSON.stringify(['LongCat-Flash-Chat']),
-                    auth_type: 'bearer',
-                  },
-                ],
-              }),
+          prepare: vi.fn().mockReturnValue({
+            bind: vi.fn(),
+            all: vi.fn().mockResolvedValue({
+              results: [
+                {
+                  name: 'longcat',
+                  type: 'openai',
+                  family: 'openai',
+                  endpoint: 'https://api.longcat.chat/openai',
+                  key: 'LongCat',
+                  models: JSON.stringify(['LongCat-Flash-Chat']),
+                  auth_type: 'bearer',
+                },
+              ],
+            }),
           }),
         },
+        PLAYBOX_R2: {},
       };
 
       const config = await getConfig(env);

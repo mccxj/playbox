@@ -1,4 +1,5 @@
 import type { Env } from '../types';
+import { createStorageAdapters } from '../storage/factory';
 
 interface Provider {
   key: string;
@@ -24,15 +25,16 @@ interface OAuthCredentials {
 
 export const KeyManager = {
   async getRandomOAuthCredentials(env: Env, provider: string, ctx: ExecutionContext): Promise<OAuthCredentials> {
+    const adapters = createStorageAdapters(env);
     const cacheKey = `oauth_cache_${provider}`;
 
     // Try to get from KV cache first
-    let credList = (await env.PLAYBOX_KV.get(cacheKey, { type: 'json' })) as OAuthCredentials[] | null;
+    let credList = await adapters.kv.get(cacheKey, { type: 'json' }) as OAuthCredentials[] | null;
 
     if (!credList || !Array.isArray(credList) || credList.length === 0) {
       // Fetch from D1 database
       const query = `SELECT content FROM security_keys WHERE type = 'OAUTH_JSON' AND provider = ? ORDER BY RANDOM() LIMIT 100`;
-      const { results } = await env.PLAYBOX_D1.prepare(query).bind(provider).all();
+      const { results } = await adapters.d1.query(query, [provider]);
 
       if (!results || results.length === 0) {
         throw new Error(`No OAuth credentials found for provider: ${provider}`);
@@ -44,7 +46,7 @@ export const KeyManager = {
       });
 
       // Cache with 300s TTL
-      ctx.waitUntil(env.PLAYBOX_KV.put(cacheKey, JSON.stringify(credList), { expirationTtl: 300 }));
+      ctx.waitUntil(adapters.kv.put(cacheKey, JSON.stringify(credList), { expirationTtl: 300 }));
     }
 
     // Return random credentials
@@ -86,7 +88,8 @@ export const KeyManager = {
   },
 
   async getValidAccessToken(env: Env, provider: string, ctx: ExecutionContext): Promise<string> {
-    const cached = (await env.PLAYBOX_KV.get('gemini_cli_access_token', { type: 'json' })) as TokenCache | null;
+    const adapters = createStorageAdapters(env);
+    const cached = await adapters.kv.get('gemini_cli_access_token', { type: 'json' }) as TokenCache | null;
 
     if (cached && cached.expiresAt > Date.now() + 60 * 1000) {
       return cached.accessToken;
@@ -94,22 +97,23 @@ export const KeyManager = {
 
     const newToken = await this.refreshGeminiAccessToken(env, provider, ctx);
 
-    ctx.waitUntil(env.PLAYBOX_KV.put('gemini_cli_access_token', JSON.stringify(newToken), { expirationTtl: 3500 }));
+    ctx.waitUntil(adapters.kv.put('gemini_cli_access_token', JSON.stringify(newToken), { expirationTtl: 3500 }));
 
     return newToken.accessToken;
   },
 
   async getRandomApiKey(env: Env, provider: Provider, ctx: ExecutionContext): Promise<string> {
+    const adapters = createStorageAdapters(env);
     const providerKey = provider.key.trim();
     const cacheKey = `keys_cache_${providerKey}`;
 
     // Try to get from KV cache first
-    let keyList = (await env.PLAYBOX_KV.get(cacheKey, { type: 'json' })) as string[] | null;
+    let keyList = await adapters.kv.get(cacheKey, { type: 'json' }) as string[] | null;
 
     if (!keyList || !Array.isArray(keyList) || keyList.length === 0) {
       // Fetch from D1 database
       const query = `SELECT content FROM security_keys WHERE type = 'API_KEY' AND provider = ? ORDER BY RANDOM() LIMIT 100`;
-      const { results } = await env.PLAYBOX_D1.prepare(query).bind(providerKey).all();
+      const { results } = await adapters.d1.query(query, [providerKey]);
 
       if (!results || results.length === 0) {
         throw new Error(`No API keys found for provider: ${providerKey}`);
@@ -121,7 +125,7 @@ export const KeyManager = {
       });
 
       // Cache with 300s TTL
-      ctx.waitUntil(env.PLAYBOX_KV.put(cacheKey, JSON.stringify(keyList), { expirationTtl: 300 }));
+      ctx.waitUntil(adapters.kv.put(cacheKey, JSON.stringify(keyList), { expirationTtl: 300 }));
     }
 
     // Return random key

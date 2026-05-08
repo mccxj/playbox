@@ -55,6 +55,17 @@ describe('Auth', () => {
           is_active: 1,
           last_used_at: null,
         }),
+        all: vi.fn().mockResolvedValue({
+          results: [{
+            id: 'key-123',
+            api_key: apiKey,
+            name: 'Test Key',
+            expires_at: null,
+            created_at: '2024-01-01T00:00:00.000Z',
+            is_active: 1,
+            last_used_at: null,
+          }],
+        }),
         run: vi.fn().mockResolvedValue({}),
       };
 
@@ -73,6 +84,7 @@ describe('Auth', () => {
         prepare: vi.fn().mockReturnThis(),
         bind: vi.fn().mockReturnThis(),
         first: vi.fn().mockResolvedValue(null),
+        all: vi.fn().mockResolvedValue({ results: [] }),
       };
 
       const headers = createTestHeaders('invalid-key');
@@ -108,6 +120,17 @@ describe('Auth', () => {
           is_active: 1,
           last_used_at: null,
         }),
+        all: vi.fn().mockResolvedValue({
+          results: [{
+            id: 'key-123',
+            api_key: apiKey,
+            name: 'Expired Key',
+            expires_at: '2020-01-01T00:00:00.000Z',
+            created_at: '2019-01-01T00:00:00.000Z',
+            is_active: 1,
+            last_used_at: null,
+          }],
+        }),
       };
 
       const headers = createTestHeaders(apiKey);
@@ -126,6 +149,7 @@ describe('Auth', () => {
         prepare: vi.fn().mockReturnThis(),
         bind: vi.fn().mockReturnThis(),
         first: vi.fn().mockResolvedValue(null),
+        all: vi.fn().mockResolvedValue({ results: [] }),
       };
 
       const headers = createTestHeaders(apiKey);
@@ -153,8 +177,8 @@ describe('Auth', () => {
       const mockRun = vi.fn().mockResolvedValue({});
 
       const mockDb = {
-        prepare: vi.fn().mockReturnThis().mockReturnThis().mockReturnThis().mockReturnThis(),
-        bind: vi.fn().mockReturnThis().mockReturnThis().mockReturnThis().mockReturnThis(),
+        prepare: vi.fn().mockReturnThis(),
+        bind: vi.fn().mockReturnThis(),
         first: vi.fn().mockResolvedValue({
           id: 'key-123',
           api_key: apiKey,
@@ -163,6 +187,17 @@ describe('Auth', () => {
           created_at: '2024-01-01T00:00:00.000Z',
           is_active: 1,
           last_used_at: null,
+        }),
+        all: vi.fn().mockResolvedValue({
+          results: [{
+            id: 'key-123',
+            api_key: apiKey,
+            name: 'Used Key',
+            expires_at: null,
+            created_at: '2024-01-01T00:00:00.000Z',
+            is_active: 1,
+            last_used_at: null,
+          }],
         }),
         run: mockRun,
       };

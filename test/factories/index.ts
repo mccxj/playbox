@@ -35,6 +35,12 @@ export interface MockEnv {
     prepare: ReturnType<typeof vi.fn>;
     batch: ReturnType<typeof vi.fn>;
   };
+  PLAYBOX_R2: {
+    put: ReturnType<typeof vi.fn>;
+    get: ReturnType<typeof vi.fn>;
+    delete: ReturnType<typeof vi.fn>;
+    list: ReturnType<typeof vi.fn>;
+  };
   GEMINI_CLI_CLIENT_ID: string;
   GEMINI_CLI_CLIENT_SECRET: string;
   GEMINI_CLI_REFRESH_TOKEN: string;
@@ -86,6 +92,12 @@ export function createMockEnv(customEnv?: Partial<MockEnv>): MockEnv {
     PLAYBOX_D1: {
       prepare: vi.fn(),
       batch: vi.fn(),
+    },
+    PLAYBOX_R2: {
+      put: vi.fn(),
+      get: vi.fn(),
+      delete: vi.fn(),
+      list: vi.fn(),
     },
     GEMINI_CLI_CLIENT_ID: 'test-client-id',
     GEMINI_CLI_CLIENT_SECRET: 'test-client-secret',

@@ -5,6 +5,7 @@
 
 import { CORS_HEADERS } from '../utils/constants';
 import type { Env } from '../types';
+import { createStorageAdapters } from '../storage/factory';
 
 export interface ApiKeyRecord {
   id: string;
@@ -29,21 +30,27 @@ export async function authenticate(request: Request, env: Env): Promise<boolean>
   const apiKey = extractApiKey(request);
   if (!apiKey) return false;
 
-  const db = env.PLAYBOX_D1;
-  if (!db) return false;
+  const adapters = createStorageAdapters(env);
+  const db = adapters.d1;
 
-  const result = await db.prepare('SELECT * FROM llm_api_keys WHERE api_key = ? AND is_active = 1').bind(apiKey).first();
+  const result = await db.query(
+    'SELECT * FROM llm_api_keys WHERE api_key = ? AND is_active = 1',
+    [apiKey]
+  );
 
-  if (!result) return false;
+  if (!result.results || result.results.length === 0) return false;
 
-  const record = result as unknown as ApiKeyRecord;
+  const record = result.results[0] as unknown as ApiKeyRecord;
 
   if (record.expires_at) {
     const now = new Date().toISOString();
     if (now > record.expires_at) return false;
   }
 
-  await db.prepare('UPDATE llm_api_keys SET last_used_at = datetime("now") WHERE id = ?').bind(record.id).run();
+  await db.execute(
+    'UPDATE llm_api_keys SET last_used_at = datetime("now") WHERE id = ?',
+    [record.id]
+  );
 
   return true;
 }
