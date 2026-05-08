@@ -1,7 +1,5 @@
 import type { D1Storage } from '../interface';
 
-type D1Database = any;
-
 export class CloudflareD1Adapter implements D1Storage {
   private d1: any;
 

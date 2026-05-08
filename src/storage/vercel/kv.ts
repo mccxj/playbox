@@ -1,9 +1,9 @@
 import type { KVStorage } from '../interface';
 
-type StoredValue = {
+interface StoredValue {
   value: any;
   expiry?: number;
-};
+}
 
 export class VercelKVAdapter implements KVStorage {
   private store = new Map<string, StoredValue>();

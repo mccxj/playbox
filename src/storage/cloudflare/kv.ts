@@ -1,7 +1,5 @@
 import type { KVStorage } from '../interface';
 
-type KVNamespace = any;
-
 export class CloudflareKVAdapter implements KVStorage {
   private kv: any;
 

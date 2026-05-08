@@ -1,7 +1,6 @@
 import type { R2Storage } from '../interface';
 
-type R2Bucket = any;
-type R2Object = { key: string };
+interface R2Object { key: string; }
 
 export class CloudflareR2Adapter implements R2Storage {
   private r2: any;

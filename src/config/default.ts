@@ -1,6 +1,6 @@
 import { Provider, ProviderConfig } from '../types/provider';
 import type { Env } from '../types';
-import { createStorageAdapters, StorageAdapters } from '../storage/factory';
+import { createStorageAdapters } from '../storage/factory';
 import type { D1Storage } from '../storage/interface';
 
 export interface Config {
