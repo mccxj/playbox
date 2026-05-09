@@ -1,15 +1,11 @@
 import { NextRequest } from 'next/server';
-import { authenticate, extractApiKey } from '@/lib/auth';
+import { authenticate } from '@/lib/auth';
 import { createJsonResponse, createUnauthorizedResponse, createInternalErrorResponse } from '@/lib/response-helpers';
 import { getConfig, resolveProvider } from '@/config';
 import { ProtocolFactory } from '@/protocols';
 import { CORS_HEADERS } from '@/utils/constants';
 import { createLogger } from '@/utils/logger';
 import { getTypedContext } from '@/lib/cloudflare-context';
-
-interface AnalyticsEngineDataset {
-  writeDataPoint(event?: { blobs?: (string | ArrayBuffer | null)[]; doubles?: number[]; indexes?: (string | ArrayBuffer | null)[] }): void;
-}
 
 export const dynamic = 'force-dynamic';
 
@@ -46,19 +42,6 @@ export async function POST(request: NextRequest) {
     }
 
     logger.info('Rerank request routed', { model: requestedModel, realModel, providerName, providerType: provider.type });
-
-    // Record analytics data point (async, non-blocking)
-    const apiKey = extractApiKey(request) || 'anonymous';
-    (env as unknown as { PLAYBOX_EVENTS?: AnalyticsEngineDataset }).PLAYBOX_EVENTS?.writeDataPoint({
-      blobs: [
-        'llm_api', // blob1: fixed tag for filtering
-        '/v1/rerank', // blob2: request path
-        requestedModel, // blob3: model name
-        'rerank', // blob4: request type
-        providerName, // blob5: provider name
-      ],
-      indexes: [apiKey], // index for sampling (masked for security)
-    });
 
     const upstreamProtocol = ProtocolFactory.get(provider.type);
 

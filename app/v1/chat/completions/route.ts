@@ -1,5 +1,5 @@
 import { NextRequest } from 'next/server';
-import { authenticate, extractApiKey } from '@/lib/auth';
+import { authenticate } from '@/lib/auth';
 import { createUnauthorizedResponse } from '@/lib/response-helpers';
 import { getConfig, resolveProvider } from '@/config';
 import { ProtocolFactory } from '@/protocols';
@@ -8,16 +8,6 @@ import type { ProtocolBody } from '@/types/protocol';
 import { CORS_HEADERS } from '@/utils/constants';
 import { createLogger } from '@/utils/logger';
 import { getTypedContext } from '@/lib/cloudflare-context';
-
-interface AnalyticsEngineDataset {
-  writeDataPoint(event?: { blobs?: (string | ArrayBuffer | null)[]; doubles?: number[]; indexes?: (string | ArrayBuffer | null)[] }): void;
-}
-
-interface TokenUsage {
-  prompt_tokens: number;
-  completion_tokens: number;
-  total_tokens: number;
-}
 
 export const dynamic = 'force-dynamic';
 
@@ -59,19 +49,6 @@ export async function POST(request: NextRequest) {
     }
 
     logger.info('Request routed', { model: requestedModel, realModel, isStream, providerName, providerType: provider.type });
-
-    // Record analytics data point (async, non-blocking)
-    const apiKey = extractApiKey(request) || 'anonymous';
-    (env as unknown as { PLAYBOX_EVENTS?: AnalyticsEngineDataset }).PLAYBOX_EVENTS?.writeDataPoint({
-      blobs: [
-        'llm_api', // blob1: fixed tag for filtering
-        '/v1/chat/completions', // blob2: request path
-        requestedModel, // blob3: model name
-        isStream ? 'stream' : 'non-stream', // blob4: stream type
-        providerName, // blob5: provider name
-      ],
-      indexes: [apiKey], // index for sampling (masked for security)
-    });
 
     const clientProtocol = ProtocolFactory.get('openai');
     const upstreamProtocol = ProtocolFactory.get(provider.type);
@@ -121,61 +98,8 @@ export async function POST(request: NextRequest) {
         throw new Error('Response body is null');
       }
 
-      // Parse usage inline instead of tee()+background reader (race condition:
-      // flush() fired before background reader finished, losing analytics).
-      let tokenUsage: TokenUsage | null = null;
-      const decoder = new TextDecoder();
-      const tokenCaptureStream = new TransformStream({
-        transform(chunk, controller) {
-          // OpenAI streaming: last chunk before [DONE] contains json.usage
-          try {
-            const text = decoder.decode(chunk, { stream: true });
-            const lines = text.split('\n');
-            for (const line of lines) {
-              if (line.startsWith('data: ') && line !== 'data: [DONE]') {
-                try {
-                  const json = JSON.parse(line.slice(6));
-                  if (json.usage) {
-                    tokenUsage = {
-                      prompt_tokens: json.usage.prompt_tokens || 0,
-                      completion_tokens: json.usage.completion_tokens || 0,
-                      total_tokens: json.usage.total_tokens || 0,
-                    };
-                  }
-                } catch (_e) {
-                  // Ignore parse errors for individual lines
-                }
-              }
-            }
-          } catch (_e) {
-            // Ignore decode errors
-          }
-          controller.enqueue(chunk);
-        },
-        flush() {
-          // transform() processes all chunks before flush(), so tokenUsage is set
-          if (tokenUsage) {
-            (env as unknown as { PLAYBOX_EVENTS?: AnalyticsEngineDataset }).PLAYBOX_EVENTS?.writeDataPoint({
-              blobs: [
-                'llm_api_tokens', // blob1: event type for token tracking
-                requestedModel, // blob2: model name
-                providerName, // blob3: provider name
-                'stream', // blob4: stream type
-              ],
-              doubles: [
-                tokenUsage.prompt_tokens, // double1: prompt tokens
-                tokenUsage.completion_tokens, // double2: completion tokens
-                tokenUsage.total_tokens, // double3: total tokens
-              ],
-              indexes: [apiKey],
-            });
-          }
-        },
-      });
-
       stream = stream.pipeThrough(upstreamProtocol.createToStandardStream(realModel));
       stream = stream.pipeThrough(clientProtocol.createFromStandardStream());
-      stream = stream.pipeThrough(tokenCaptureStream);
 
       return new Response(stream, {
         headers: { ...resHeaders, 'Cache-Control': 'no-cache', 'Connection': 'keep-alive' },
@@ -184,25 +108,6 @@ export async function POST(request: NextRequest) {
       const upstreamJson = await lastResponse.json();
 
       const standardResponse = upstreamProtocol.toStandardResponse(upstreamJson as ProtocolBody, realModel);
-
-      // Extract token usage from response
-      const usage = (standardResponse as Record<string, unknown>).usage as Record<string, number> | undefined;
-      if (usage) {
-        (env as unknown as { PLAYBOX_EVENTS?: AnalyticsEngineDataset }).PLAYBOX_EVENTS?.writeDataPoint({
-          blobs: [
-            'llm_api_tokens', // blob1: event type for token tracking
-            requestedModel, // blob2: model name
-            providerName, // blob3: provider name
-            'non-stream', // blob4: stream type
-          ],
-          doubles: [
-            usage.prompt_tokens || 0, // double1: prompt tokens
-            usage.completion_tokens || 0, // double2: completion tokens
-            usage.total_tokens || 0, // double3: total tokens
-          ],
-          indexes: [apiKey],
-        });
-      }
 
       const clientResponse = clientProtocol.fromStandardResponse(standardResponse);
 

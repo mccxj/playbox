@@ -4,15 +4,12 @@ import { useState, useEffect } from 'react';
 import { ConfigProvider, App as AntApp, Layout, Menu, Typography, Button, Drawer } from 'antd';
 import {
   DatabaseOutlined,
-  CloudOutlined,
-  MessageOutlined,
-  BarChartOutlined,
-  MenuFoldOutlined,
-  MenuUnfoldOutlined,
   ApiOutlined,
   AppstoreOutlined,
   GlobalOutlined,
   GithubOutlined,
+  MenuFoldOutlined,
+  MenuUnfoldOutlined,
 } from '@ant-design/icons';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -34,24 +31,9 @@ const menuItems = [
     label: <Link href="/admin/llm-keys">API Keys</Link>,
   },
   {
-    key: 'kv',
-    icon: <CloudOutlined />,
-    label: <Link href="/admin/kv">KV Storage</Link>,
-  },
-  {
     key: 'providers',
     icon: <AppstoreOutlined />,
     label: <Link href="/admin/providers">Providers</Link>,
-  },
-  {
-    key: 'chat',
-    icon: <MessageOutlined />,
-    label: <Link href="/admin/chat">Chat Test</Link>,
-  },
-  {
-    key: 'analytics',
-    icon: <BarChartOutlined />,
-    label: <Link href="/admin/analytics">Analytics</Link>,
   },
   {
     key: 'domains',
@@ -67,10 +49,7 @@ const menuItems = [
 
 const PATH_KEY_MAP: Record<string, string> = {
   'llm-keys': 'llm-keys',
-  'kv': 'kv',
   'providers': 'providers',
-  'chat': 'chat',
-  'analytics': 'analytics',
   'domains': 'domains',
   'github-gists': 'github-gists',
 };
@@ -78,10 +57,7 @@ const PATH_KEY_MAP: Record<string, string> = {
 const PAGE_TITLE_MAP: Record<string, string> = {
   'tables': 'Database Management',
   'llm-keys': 'API Key Management',
-  'kv': 'KV Storage Management',
   'providers': 'Providers',
-  'chat': 'Chat Test',
-  'analytics': 'API Analytics',
   'domains': 'Domain Query',
   'github-gists': 'GitHub Gists',
 };

@@ -51,13 +51,6 @@
       "binding": "PLAYBOX_KV"
     }
   ],
-  "analytics_engine_datasets": [
-    {
-      "binding": "PLAYBOX_EVENTS",
-      "dataset": "playbox_events"
-    }
-  ],
-
   /**
    * Environment Variables
    * https://developers.cloudflare.com/workers/wrangler/configuration/#environment-variables

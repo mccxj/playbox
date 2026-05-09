@@ -6,8 +6,7 @@ ad60b84 (opencode/issue121-20260504145018)
 ## OVERVIEW
 
 AI API Gateway & Protocol Converter — converts between AI provider protocols (OpenAI, Anthropic, Google, Gemini CLI) on
-Next.js with Cloudflare Workers deployment. Multi-protocol support with OAuth token management, D1 key storage, KV
-caching, and Cloudflare Analytics Engine integration.
+Next.js with Cloudflare Workers deployment. Multi-protocol support with OAuth token management and D1 key storage.
 
 ## STRUCTURE
 
@@ -26,15 +25,11 @@ caching, and Cloudflare Analytics Engine integration.
 │   │   └── admin/ # Admin API endpoints — [AGENTS.md]
 │   │       ├── kv/ # KV namespace CRUD
 │   │       ├── tables/ # D1 table CRUD
-│   │       ├── analytics/ # Cloudflare Analytics Engine
 │   │       ├── llm-keys/ # LLM API key management
 │   │       ├── github-gists/ # GitHub Gists management
 │   │       ├── domains/ # Domain management
 │   │       └── providers/ # Provider config + speed test + models
 │   ├── admin/ # Admin UI (React + Ant Design) — [AGENTS.md]
-│   │   ├── kv/ # KV management UI
-│   │   ├── chat/ # Chat test interface
-│   │   ├── analytics/ # API usage analytics (Recharts)
 │   │   ├── llm-keys/ # LLM key management UI
 │   │   ├── github-gists/ # GitHub Gists management UI
 │   │   ├── providers/ # Provider configuration UI
@@ -42,7 +37,6 @@ caching, and Cloudflare Analytics Engine integration.
 │   │   ├── components/ # Shared admin components — [AGENTS.md]
 │   │   └── types/ # Shared admin types
 │   ├── components/ # React components — [AGENTS.md]
-│   │   └── Chat/ # Chat UI components
 │   └── lib/ # Client-side utilities
 ├── src/
 │   ├── protocols/ # Protocol adapters (OpenAI, Anthropic, Google, Gemini CLI) — [AGENTS.md]
@@ -75,8 +69,6 @@ caching, and Cloudflare Analytics Engine integration.
 | Public API endpoints          | `app/v1/`                         | Chat completions, models, messages                                   |
 | Gemini native endpoints       | `app/v1beta/`                     | Standard Google Gemini REST paths (`models/{model}:generateContent`) |
 | Admin UI pages                | `app/admin/`                      | React + Ant Design components                                        |
-| Analytics API                 | `app/api/admin/analytics/`        | Cloudflare Analytics Engine queries                                  |
-| Analytics UI                  | `app/admin/analytics/`            | Charts with Recharts                                                 |
 | KV/D1 bindings                | `wrangler.jsonc`                  | PLAYBOX_KV, PLAYBOX_D1                                               |
 | Test factories                | `test/factories/`                 | Mock env, requests, providers                                        |
 | LLM key management            | `app/api/admin/llm-keys/`         | CRUD for LLM API keys                                                |
@@ -214,8 +206,6 @@ caching, and Cloudflare Analytics Engine integration.
 - **OpenNext for Cloudflare**: Uses `@opennextjs/cloudflare` for deployment (NOT `@cloudflare/next-on-pages`)
 - **Dynamic rendering**: API routes use `export const dynamic = 'force-dynamic'`
 - **Ant Design**: Admin UI uses Ant Design components
-- **Recharts**: Analytics dashboard uses Recharts for visualizations
-- **Analytics Engine**: Cloudflare Analytics Engine for API usage tracking
 
 ## COMMANDS
 
@@ -240,10 +230,8 @@ npm test # Run Vitest tests
 - **SSRF protection**: Blocks private IPs, link-local, multicast, and blocked TLDs (.local, .internal, .localhost)
 - **D1 schema**: Managed via prisma/migrations/
 - **Cloudflare context**: Use `getCloudflareContext()` from `@opennextjs/cloudflare`
-- **Analytics**: Requires `ANALYTICS_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` secrets
 - **ESLint**: Uses `eslint.config.mjs` with TypeScript-ESLint, React, Prettier (not enforced in CI)
 - **Build entry**: `.open-next/worker.js` (OpenNext output), not `src/index.ts`
-- **Analytics Engine**: `PLAYBOX_EVENTS` binding for Cloudflare Analytics Engine
 - **D1 tables**: 4 tables — llm_api_keys, security_keys, providers, domains
 - **GitHub Gists**: Management UI at `/admin/github-gists`, API at `/api/admin/github-gists/`
 

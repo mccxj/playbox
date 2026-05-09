@@ -1,22 +1,12 @@
 import { NextRequest } from 'next/server';
 import { getTypedContext } from '@/lib/cloudflare-context';
-import { authenticate, extractApiKey } from '@/lib/auth';
+import { authenticate } from '@/lib/auth';
 import { createUnauthorizedResponse } from '@/lib/response-helpers';
 import { getConfig, resolveProvider } from '@/config';
 import { ProtocolFactory } from '@/protocols';
 
 import { CORS_HEADERS } from '@/utils/constants';
 import { createLogger } from '@/utils/logger';
-
-interface AnalyticsEngineDataset {
-  writeDataPoint(event?: { blobs?: (string | ArrayBuffer | null)[]; doubles?: number[]; indexes?: (string | ArrayBuffer | null)[] }): void;
-}
-
-interface TokenUsage {
-  prompt_tokens: number;
-  completion_tokens: number;
-  total_tokens: number;
-}
 
 export const dynamic = 'force-dynamic';
 
@@ -123,12 +113,6 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 
     logger.info('Gemini request routed', { model: requestedModel, realModel, isStream, providerName, providerType: provider.type, action });
 
-    const apiKey = extractApiKey(request) || 'anonymous';
-    (env as unknown as { PLAYBOX_EVENTS?: AnalyticsEngineDataset }).PLAYBOX_EVENTS?.writeDataPoint({
-      blobs: ['llm_api', `/v1beta/models/${requestedModel}:${action}`, requestedModel, isStream ? 'stream' : 'non-stream', providerName],
-      indexes: [apiKey],
-    });
-
     const protocol = ProtocolFactory.get(provider.type);
 
     const geminiRequest: Record<string, unknown> = {
@@ -216,71 +200,13 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     }
 
     if (isStream && lastResponse?.body) {
-      let stream = lastResponse.body;
-
-      // Parse usage inline instead of tee()+background reader (race condition:
-      // flush() fired before background reader finished, losing analytics).
-      let tokenUsage: TokenUsage | null = null;
-      const decoder = new TextDecoder();
-      const tokenCaptureStream = new TransformStream({
-        transform(chunk, controller) {
-          // Gemini streaming: final chunk contains json.usageMetadata
-          try {
-            const text = decoder.decode(chunk, { stream: true });
-            const lines = text.split('\n');
-            for (const line of lines) {
-              if (line.startsWith('data: ') && line !== 'data: [DONE]') {
-                try {
-                  const json = JSON.parse(line.slice(6));
-                  if (json.usageMetadata) {
-                    tokenUsage = {
-                      prompt_tokens: json.usageMetadata.promptTokenCount || 0,
-                      completion_tokens: json.usageMetadata.candidatesTokenCount || 0,
-                      total_tokens: json.usageMetadata.totalTokenCount || 0,
-                    };
-                  }
-                } catch (_e) {
-                  // Ignore parse errors
-                }
-              }
-            }
-          } catch (_e) {
-            // Ignore decode errors
-          }
-          controller.enqueue(chunk);
-        },
-        flush() {
-          // transform() processes all chunks before flush(), so tokenUsage is set
-          if (tokenUsage) {
-            (env as unknown as { PLAYBOX_EVENTS?: AnalyticsEngineDataset }).PLAYBOX_EVENTS?.writeDataPoint({
-              blobs: ['llm_api_tokens', requestedModel, providerName, 'stream'],
-              doubles: [tokenUsage.prompt_tokens, tokenUsage.completion_tokens, tokenUsage.total_tokens],
-              indexes: [apiKey],
-            });
-          }
-        },
-      });
-
-      stream = stream.pipeThrough(tokenCaptureStream);
+      const stream = lastResponse.body;
 
       return new Response(stream, { headers: { ...resHeaders, 'Cache-Control': 'no-cache', 'Connection': 'keep-alive' } });
     }
 
     if (lastResponse) {
       const responseJson = await lastResponse.json();
-
-      // Extract token usage from Gemini response
-      const responseData = responseJson as Record<string, unknown>;
-      const usageMetadata = responseData.usageMetadata as
-        | { promptTokenCount?: number; candidatesTokenCount?: number; totalTokenCount?: number }
-        | undefined;
-      if (usageMetadata) {
-        (env as unknown as { PLAYBOX_EVENTS?: AnalyticsEngineDataset }).PLAYBOX_EVENTS?.writeDataPoint({
-          blobs: ['llm_api_tokens', requestedModel, providerName, 'non-stream'],
-          doubles: [usageMetadata.promptTokenCount || 0, usageMetadata.candidatesTokenCount || 0, usageMetadata.totalTokenCount || 0],
-          indexes: [apiKey],
-        });
-      }
 
       return new Response(JSON.stringify(responseJson), { headers: resHeaders });
     }

@@ -30,20 +30,12 @@ management automatically.
 │   │   └── models/         # Gemini API: models listing + generateContent/streamGenerateContent
 │   ├── api/
 │   │   ├── admin/          # Admin API endpoints
-│   │   │   ├── kv/         # KV namespace management
-│   │   │   ├── tables/     # D1 table management
-│   │   │   ├── download/history/  # Download history
-│   │   │   └── analytics/  # Cloudflare Analytics Engine API
-│   │   ├── download/       # Download proxy endpoint
+│   │   │   └── tables/     # D1 table management
 │   ├── admin/              # Admin UI (React + Ant Design)
 │   │   ├── kv/             # KV management UI
-│   │   ├── download/       # Download proxy management
 │   │   ├── chat/           # Chat test interface
-│   │   ├── api-test/       # API testing interface
-│   │   ├── analytics/      # API usage analytics
 │   │   └── components/     # Shared admin components
 │   ├── components/         # React components
-│   │   └── Chat/           # Chat UI components
 │   └── lib/                # Client-side utilities
 ├── src/
 │   ├── protocols/          # Protocol adapters (OpenAI, Anthropic, Google, Gemini CLI)
@@ -69,8 +61,6 @@ management automatically.
 - **Token Caching**: KV-based caching for access tokens with automatic refresh
 - **CORS Support**: Configurable CORS headers for cross-origin requests
 - **Admin Dashboard**: React + Ant Design UI for management
-- **Analytics**: Cloudflare Analytics Engine integration with Recharts visualizations
-- **Download Proxy**: Secure file downloads with SSRF protection
 
 ## Getting Started
 
@@ -142,8 +132,6 @@ POST /v1beta/models/{model}:streamGenerateContent
 ### Admin Endpoints
 
 ```bash
-# KV management
-GET/POST/DELETE /api/admin/kv/{namespace}/{key}
 
 # Download history
 GET /api/admin/download/history
@@ -167,13 +155,11 @@ GET /api/admin/analytics
 
 ### Google
 
-- Chat API
 - Streaming support
 
 ### Gemini CLI
 
 - OAuth-based authentication
-- Token caching in KV
 - Automatic token refresh
 
 ## Development

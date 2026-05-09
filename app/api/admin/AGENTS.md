@@ -2,7 +2,7 @@
 
 ## OVERVIEW
 
-Admin API endpoints for KV, D1 tables, analytics, and more with full CRUD and batch operations.
+Admin API endpoints for D1 tables with full CRUD and batch operations.
 
 ## STRUCTURE
 
@@ -20,7 +20,6 @@ api/admin/
 │       ├── rows/route.ts           # List/create rows (GET, POST)
 │       ├── rows/[rowid]/route.ts   # Row CRUD (GET, PUT, DELETE)
 │       └── batch/route.ts          # Batch delete/import (POST)
-├── analytics/route.ts              # Analytics Engine queries (GET)
 ├── llm-keys/route.ts               # LLM key management (GET, POST)
 ├── llm-keys/[id]/route.ts          # Single key operations (GET, PUT, DELETE)
 ├── github-gists/route.ts            # GitHub Gists management (GET, POST)
@@ -33,16 +32,14 @@ api/admin/
 
 ## WHERE TO LOOK
 
-| Task               | Location             | Notes                                                             |
-| ------------------ | -------------------- | ----------------------------------------------------------------- |
-| Add KV operation   | `kv/[namespace]/`    | Follow CRUD pattern with `getRequestContext()`                    |
-| Add table endpoint | `tables/[table]/`    | Use `validateTable()` helper, `escapeColumnName()` for SQL safety |
-| Batch operations   | `*/batch/route.ts`   | Support JSON/CSV import, batch delete                             |
-| Analytics query    | `analytics/route.ts` | Cloudflare Analytics Engine SQL API                               |
-| LLM key management | `llm-keys/`          | CRUD for LLM API keys in D1                                       |
-| GitHub Gists       | `github-gists/`      | GitHub Gists management                                           |
-| Domain management  | `domains/`           | Domain CRUD                                                       |
-| Provider config    | `providers/`         | Provider CRUD + speed test + models                               |
+| Task               | Location           | Notes                                                             |
+| ------------------ | ------------------ | ----------------------------------------------------------------- |
+| Add table endpoint | `tables/[table]/`  | Use `validateTable()` helper, `escapeColumnName()` for SQL safety |
+| Batch operations   | `*/batch/route.ts` | Support JSON/CSV import, batch delete                             |
+| LLM key management | `llm-keys/`        | CRUD for LLM API keys in D1                                       |
+| GitHub Gists       | `github-gists/`    | GitHub Gists management                                           |
+| Domain management  | `domains/`         | Domain CRUD                                                       |
+| Provider config    | `providers/`       | Provider CRUD + speed test + models                               |
 
 ## CONVENTIONS
 

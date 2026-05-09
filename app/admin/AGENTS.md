@@ -4,8 +4,7 @@
 
 ## OVERVIEW
 
-Admin interface for D1 database, KV storage, chat testing, and analytics with Ant Design components and Recharts
-visualizations.
+Admin interface for D1 database management with Ant Design components.
 
 ## STRUCTURE
 
@@ -17,8 +16,6 @@ admin/
 ├── kv/ # KV namespace management
 ├── chat/ # Chat test interface
 │   └── page.tsx # Chat testing page
-├── analytics/ # API usage analytics
-│   └── page.tsx # Analytics dashboard with charts
 ├── llm-keys/ # LLM API key management
 │   └── page.tsx # Key management page
 ├── github-gists/ # GitHub Gists management
@@ -32,23 +29,21 @@ admin/
 
 ## WHERE TO LOOK
 
-| Task                | Location                | Notes                                                |
-| ------------------- | ----------------------- | ---------------------------------------------------- |
-| Add menu item       | `layout.tsx`            | Menu items array                                     |
-| Add new admin page  | Create dir + `page.tsx` | Follow existing patterns                             |
-| Chat test page      | `chat/page.tsx`         | Chat interface with model selector                   |
-| Analytics dashboard | `analytics/page.tsx`    | Charts with Recharts (PieChart, BarChart, LineChart) |
-| Shared components   | `components/`           | Reusable admin widgets                               |
-| LLM key management  | `llm-keys/page.tsx`     | LLM API key CRUD                                     |
-| GitHub Gists        | `github-gists/page.tsx` | GitHub Gists management                              |
-| Provider config     | `providers/page.tsx`    | Provider configuration + speed test                  |
-| Domain management   | `domains/page.tsx`      | Domain CRUD                                          |
-| KV management       | `kv/page.tsx`           | KV namespace management                              |
+| Task               | Location                | Notes                               |
+| ------------------ | ----------------------- | ----------------------------------- |
+| Add menu item      | `layout.tsx`            | Menu items array                    |
+| Add new admin page | Create dir + `page.tsx` | Follow existing patterns            |
+| Chat test page     | `chat/page.tsx`         | Chat interface with model selector  |
+| Shared components  | `components/`           | Reusable admin widgets              |
+| LLM key management | `llm-keys/page.tsx`     | LLM API key CRUD                    |
+| GitHub Gists       | `github-gists/page.tsx` | GitHub Gists management             |
+| Provider config    | `providers/page.tsx`    | Provider configuration + speed test |
+| Domain management  | `domains/page.tsx`      | Domain CRUD                         |
+| KV management      | `kv/page.tsx`           | KV namespace management             |
 
 ## CONVENTIONS
 
 - **Ant Design**: All UI uses Ant Design components
-- **Recharts**: Analytics page uses Recharts for visualizations
 - **Custom hooks**: State management via hooks in subdirectories
 
 ## ANTI-PATTERNS

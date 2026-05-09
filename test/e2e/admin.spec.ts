@@ -3,10 +3,7 @@ import { test, expect } from '@playwright/test';
 const ADMIN_PAGES = [
   { path: '/admin', menuTitle: 'Tables (D1)', header: 'Database Management' },
   { path: '/admin/llm-keys', menuTitle: 'API Keys', header: 'API Key Management' },
-  { path: '/admin/kv', menuTitle: 'KV Storage', header: 'KV Storage Management' },
   { path: '/admin/providers', menuTitle: 'Providers', header: 'Provider Models' },
-  { path: '/admin/chat', menuTitle: 'Chat Test', header: 'Chat Test' },
-  { path: '/admin/analytics', menuTitle: 'Analytics', header: 'API Analytics' },
   { path: '/admin/domains', menuTitle: 'Domains', header: 'Domain Query' },
   { path: '/admin/github-gists', menuTitle: 'GitHub Gists', header: 'GitHub Gists' },
 ] as const;
@@ -56,21 +53,7 @@ async function mockAdminAPIs(page: any) {
     });
   });
 
-  // Mock KV API
-  await page.route('**/api/admin/kv', (route: any) => {
-    route.fulfill({
-      status: 200,
-      contentType: 'application/json',
-      body: JSON.stringify({ success: true, keys: [], list: [] }),
-    });
-  });
-
-  // Mock Analytics API
-  await page.route('**/api/admin/analytics/**', (route: any) => {
-    route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ success: true, data: [], series: [] }) });
-  });
-
-  // Mock GitHub Gists API
+  // Mock Tables/D1 API
   await page.route('**/api/admin/github-gists', (route: any) => {
     route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ success: true, gists: [] }) });
   });
@@ -88,7 +71,7 @@ test.describe('Admin Sidebar', () => {
     await page.waitForLoadState('networkidle');
   });
 
-  test('侧边栏显示所有 8 个菜单项', async ({ page }) => {
+  test('侧边栏显示所有 5 个菜单项', async ({ page }) => {
     for (const { menuTitle } of ADMIN_PAGES) {
       await expect(page.locator(`.ant-menu-item:has-text("${menuTitle}")`).first()).toBeVisible();
     }
@@ -140,13 +123,6 @@ test.describe('Admin 页面直接导航渲染', () => {
     await expect(page.locator('text=Test Key')).toBeVisible();
   });
 
-  test('KV Storage 页面', async ({ page }) => {
-    await page.goto('/admin/kv', { waitUntil: 'domcontentloaded' });
-    await page.waitForTimeout(2000);
-    await expect(page.locator('h4').filter({ hasText: 'KV Storage Management' })).toBeVisible();
-    await expect(page.locator('.ant-layout-content')).toBeVisible();
-  });
-
   test('Providers 页面', async ({ page }) => {
     await page.goto('/admin/providers', { waitUntil: 'domcontentloaded' });
     await expect(page.locator('.ant-tabs')).toBeVisible();
@@ -154,21 +130,6 @@ test.describe('Admin 页面直接导航渲染', () => {
     await page.locator('.ant-tabs-tab').filter({ hasText: '模型' }).click();
     await page.waitForTimeout(3000);
     await expect(page.locator('.ant-layout-content')).toBeVisible();
-  });
-
-  test('Chat Test 页面', async ({ page }) => {
-    await page.goto('/admin/chat', { waitUntil: 'domcontentloaded' });
-    await page.waitForTimeout(2000);
-    await expect(page.locator('h4').filter({ hasText: 'Chat Test' })).toBeVisible();
-    await expect(page.locator('.ant-layout-content')).toBeVisible();
-  });
-
-  test('Analytics 页面', async ({ page }) => {
-    await page.goto('/admin/analytics', { waitUntil: 'domcontentloaded' });
-    await page.waitForTimeout(2000);
-    await expect(page.locator('h4').filter({ hasText: 'API Analytics' })).toBeVisible();
-    // Analytics chart sections
-    await expect(page.locator('text=Requests by Model').first()).toBeVisible();
   });
 
   test('Domains 页面', async ({ page }) => {
@@ -184,28 +145,6 @@ test.describe('Admin 页面直接导航渲染', () => {
     await page.goto('/admin/github-gists', { waitUntil: 'domcontentloaded' });
     await page.waitForTimeout(2000);
     await expect(page.locator('h4').filter({ hasText: 'GitHub Gists' })).toBeVisible();
-    await expect(page.locator('.ant-layout-content')).toBeVisible();
-  });
-});
-
-test.describe('Admin 页面交互', () => {
-  test.beforeEach(async ({ page }) => {
-    await mockAdminAPIs(page);
-  });
-
-  test('页面间导航 - 通过侧边栏菜单', async ({ page }) => {
-    await page.goto('/admin');
-    await page.waitForTimeout(1500);
-
-    // Tables -> KV (click sidebar menu)
-    const kvMenuItem = page.locator('.ant-menu-item').filter({ hasText: 'KV Storage' });
-    if (await kvMenuItem.isVisible()) {
-      await Promise.all([page.waitForURL('**/admin/kv', { timeout: 10000 }), kvMenuItem.click()]);
-    }
-
-    // Navigate back to Tables
-    await page.goto('/admin');
-    await page.waitForTimeout(1500);
     await expect(page.locator('.ant-layout-content')).toBeVisible();
   });
 });
