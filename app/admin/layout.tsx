@@ -12,7 +12,6 @@ import {
   MenuUnfoldOutlined,
   ApiOutlined,
   AppstoreOutlined,
-  CloudServerOutlined,
   MailOutlined,
   GlobalOutlined,
   LinkOutlined,
@@ -42,11 +41,6 @@ const menuItems = [
     key: 'kv',
     icon: <CloudOutlined />,
     label: <Link href="/admin/kv">KV Storage</Link>,
-  },
-  {
-    key: 'r2',
-    icon: <CloudServerOutlined />,
-    label: <Link href="/admin/r2">R2 Storage</Link>,
   },
   {
     key: 'providers',
@@ -103,7 +97,6 @@ const menuItems = [
 const PATH_KEY_MAP: Record<string, string> = {
   'llm-keys': 'llm-keys',
   'kv': 'kv',
-  'r2': 'r2',
   'providers': 'providers',
   'download': 'download',
   'chat': 'chat',
@@ -120,7 +113,6 @@ const PAGE_TITLE_MAP: Record<string, string> = {
   'tables': 'Database Management',
   'llm-keys': 'API Key Management',
   'kv': 'KV Storage Management',
-  'r2': 'R2 Storage Management',
   'providers': 'Providers',
   'download': 'File Download Proxy',
   'chat': 'Chat Test',

@@ -15,7 +15,6 @@ admin/
 ├── page.tsx # D1 Tables page (default)
 ├── components/ # Shared admin components — [AGENTS.md]
 ├── kv/ # KV namespace management
-├── r2/ # R2 storage management
 ├── download/ # Download proxy management
 │   ├── page.tsx # Main download page
 │   ├── types.ts # Download interfaces
@@ -63,7 +62,6 @@ admin/
 | Provider config      | `providers/page.tsx`             | Provider configuration + speed test                  |
 | Domain management    | `domains/page.tsx`               | Domain CRUD                                          |
 | Email settings       | `email/page.tsx`                 | Email configuration                                  |
-| R2 management        | `r2/page.tsx`                    | Object browser with prefix navigation                |
 | KV management        | `kv/page.tsx`                    | KV namespace management                              |
 
 ## CONVENTIONS

@@ -7,7 +7,7 @@ ad60b84 (opencode/issue121-20260504145018)
 
 AI API Gateway & Protocol Converter — converts between AI provider protocols (OpenAI, Anthropic, Google, Gemini CLI) on
 Next.js with Cloudflare Workers deployment. Multi-protocol support with OAuth token management, D1 key storage, KV
-caching, R2 object storage, download proxy with SSRF protection, and Cloudflare Analytics Engine integration.
+caching, download proxy with SSRF protection, and Cloudflare Analytics Engine integration.
 
 ## STRUCTURE
 
@@ -25,7 +25,6 @@ caching, R2 object storage, download proxy with SSRF protection, and Cloudflare 
 │ ├── api/
 │ │ ├── admin/ # Admin API endpoints — [AGENTS.md]
 │ │ │ ├── kv/ # KV namespace CRUD
-│ │ │ ├── r2/ # R2 bucket CRUD
 │ │ │ ├── tables/ # D1 table CRUD
 │ │ │ ├── download/history/ # Download history
 │ │ │ ├── analytics/ # Cloudflare Analytics Engine
@@ -42,7 +41,6 @@ caching, R2 object storage, download proxy with SSRF protection, and Cloudflare 
 │ │ └── docker/[...path]/ # Docker proxy
 │ ├── admin/ # Admin UI (React + Ant Design) — [AGENTS.md]
 │ │ ├── kv/ # KV management UI
-│ │ ├── r2/ # R2 storage management UI
 │ │ ├── download/ # Download proxy management — [AGENTS.md]
 │ │ ├── chat/ # Chat test interface
 │ │ ├── api-test/ # API testing interface
@@ -67,13 +65,13 @@ caching, R2 object storage, download proxy with SSRF protection, and Cloudflare 
 │ ├── config/ # ConfigManager, provider configs — [AGENTS.md]
 │ ├── utils/ # Logger, CORS constants, SSRF protection — [AGENTS.md]
 │ ├── lib/ # Auth middleware, response helpers — [AGENTS.md]
-│ └── types/ # Protocol, request, response, R2 types — [AGENTS.md]
+│ └── types/ # Protocol, request, response types — [AGENTS.md]
 ├── test/ # Vitest + Cloudflare Workers pool — [AGENTS.md]
 │ ├── unit/ # Protocol + manager + lib + config + utils tests
 │ └── factories/ # Mock data generators
 ├── prisma/migrations/ # D1 schema migrations (6 tables)
 ├── scripts/ # Utility scripts (smoke-test.mjs)
-├── wrangler.jsonc # Cloudflare Workers config (D1, KV, R2, secrets)
+├── wrangler.jsonc # Cloudflare Workers config (D1, KV, secrets)
 └── vitest.config.mts # Test config with CF pool
 ```
 
@@ -95,9 +93,7 @@ caching, R2 object storage, download proxy with SSRF protection, and Cloudflare 
 | API testing UI                | `app/admin/api-test/`             | Interactive API testing interface                                                              |
 | Analytics API                 | `app/api/admin/analytics/`        | Cloudflare Analytics Engine queries                                                            |
 | Analytics UI                  | `app/admin/analytics/`            | Charts with Recharts                                                                           |
-| KV/D1/R2 bindings             | `wrangler.jsonc`                  | PLAYBOX_KV, PLAYBOX_D1, PLAYBOX_R2                                                             |
-| R2 operations                 | `app/api/admin/r2/`               | List, upload, download, delete objects                                                         |
-| R2 UI                         | `app/admin/r2/`                   | Object browser with prefix navigation                                                          |
+| KV/D1 bindings                | `wrangler.jsonc`                  | PLAYBOX_KV, PLAYBOX_D1                                                                         |
 | Test factories                | `test/factories/`                 | Mock env, requests, providers                                                                  |
 | SSRF protection               | `src/utils/ssrf-protection.ts`    | `validateSafeUrl()` function                                                                   |
 | Download proxy                | `app/api/download/route.ts`       | File download with SSRF protection                                                             |
@@ -241,7 +237,6 @@ caching, R2 object storage, download proxy with SSRF protection, and Cloudflare 
 
 - **Multi-protocol**: Supports OpenAI, Anthropic, Google, Gemini CLI formats
 - **KV caching**: Access tokens cached in PLAYBOX_KV with automatic refresh
-- **R2 storage**: Object storage via PLAYBOX_R2 bucket binding
 - **CORS headers**: All responses include CORS headers from `utils/constants.ts`
 - **OpenNext for Cloudflare**: Uses `@opennextjs/cloudflare` for deployment (NOT `@cloudflare/next-on-pages`)
 - **Dynamic rendering**: API routes use `export const dynamic = 'force-dynamic'`

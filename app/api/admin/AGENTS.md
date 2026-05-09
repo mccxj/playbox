@@ -14,10 +14,6 @@ api/admin/
 │   ├── [namespace]/[key]/route.ts  # Key CRUD (GET, PUT, DELETE)
 │   ├── [namespace]/batch/route.ts  # Batch delete (POST)
 │   └── [namespace]/import/route.ts # Bulk import (POST)
-├── r2/
-│   ├── route.ts                    # List buckets (GET)
-│   ├── [bucket]/route.ts           # Bucket operations (GET)
-│   └── [bucket]/[key]/route.ts     # Object operations (GET, PUT, DELETE)
 ├── tables/
 │   ├── route.ts                    # List tables with schemas (GET)
 │   └── [table]/
@@ -46,8 +42,6 @@ api/admin/
 | Task               | Location             | Notes                                                             |
 | ------------------ | -------------------- | ----------------------------------------------------------------- |
 | Add KV operation   | `kv/[namespace]/`    | Follow CRUD pattern with `getRequestContext()`                    |
-| Add R2 operation   | `r2/[bucket]/`       | List/upload/download/delete objects                               |
-| R2 operations      | `r2/[bucket]/[key]/` | Object-level PUT/GET/DELETE                                       |
 | Add table endpoint | `tables/[table]/`    | Use `validateTable()` helper, `escapeColumnName()` for SQL safety |
 | Batch operations   | `*/batch/route.ts`   | Support JSON/CSV import, batch delete                             |
 | Analytics query    | `analytics/route.ts` | Cloudflare Analytics Engine SQL API                               |

@@ -4,7 +4,6 @@ const ADMIN_PAGES = [
   { path: '/admin', menuTitle: 'Tables (D1)', header: 'Database Management' },
   { path: '/admin/llm-keys', menuTitle: 'API Keys', header: 'API Key Management' },
   { path: '/admin/kv', menuTitle: 'KV Storage', header: 'KV Storage Management' },
-  { path: '/admin/r2', menuTitle: 'R2 Storage', header: 'R2 Storage Management' },
   { path: '/admin/providers', menuTitle: 'Providers', header: 'Provider Models' },
   { path: '/admin/download', menuTitle: 'Download', header: 'File Download Proxy' },
   { path: '/admin/chat', menuTitle: 'Chat Test', header: 'Chat Test' },
@@ -69,11 +68,6 @@ async function mockAdminAPIs(page: any) {
       contentType: 'application/json',
       body: JSON.stringify({ success: true, keys: [], list: [] }),
     });
-  });
-
-  // Mock R2 API
-  await page.route('**/api/admin/r2/**', (route: any) => {
-    route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ success: true, objects: [] }) });
   });
 
   // Mock Analytics API
@@ -155,13 +149,6 @@ test.describe('Admin 页面直接导航渲染', () => {
     await page.goto('/admin/kv', { waitUntil: 'domcontentloaded' });
     await page.waitForTimeout(2000);
     await expect(page.locator('h4').filter({ hasText: 'KV Storage Management' })).toBeVisible();
-    await expect(page.locator('.ant-layout-content')).toBeVisible();
-  });
-
-  test('R2 Storage 页面', async ({ page }) => {
-    await page.goto('/admin/r2', { waitUntil: 'domcontentloaded' });
-    await page.waitForTimeout(2000);
-    await expect(page.locator('h4').filter({ hasText: 'R2 Storage Management' })).toBeVisible();
     await expect(page.locator('.ant-layout-content')).toBeVisible();
   });
 
