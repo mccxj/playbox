@@ -1,4 +1,18 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+
+vi.mock('@opennextjs/cloudflare', () => ({
+  getCloudflareContext: vi.fn(),
+}));
+
+const { mockGetDefaultConfigCached } = vi.hoisted(() => ({
+  mockGetDefaultConfigCached: vi.fn(),
+}));
+
+vi.mock('../../../src/config/default', () => ({
+  getDefaultConfigCached: mockGetDefaultConfigCached,
+  getDefaultConfig: vi.fn(() => mockGetDefaultConfigCached()),
+}));
+
 import { getConfig, resolveProvider, ConfigManager } from '../../../src/config/index';
 import type { Config } from '../../../src/config/default';
 import { ProtocolFamily } from '../../../src/types/provider';
@@ -25,36 +39,35 @@ const mockConfig: Config = {
 };
 
 describe('Config', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
   describe('getConfig', () => {
     it('should throw error when D1 is unavailable', async () => {
-      const env = {};
+      mockGetDefaultConfigCached.mockRejectedValue(
+        new Error('No provider configuration found. Please configure providers in D1 database.')
+      );
 
-      await expect(getConfig(env)).rejects.toThrow('No provider configuration found');
+      await expect(getConfig()).rejects.toThrow('No provider configuration found');
     });
 
     it('should load config from D1 when available', async () => {
-      const env = {
-        PLAYBOX_D1: {
-          prepare: () => ({
-            all: () =>
-              Promise.resolve({
-                results: [
-                  {
-                    name: 'longcat',
-                    type: 'openai',
-                    family: 'openai',
-                    endpoint: 'https://api.longcat.chat/openai',
-                    key: 'LongCat',
-                    models: JSON.stringify(['LongCat-Flash-Chat']),
-                    auth_type: 'bearer',
-                  },
-                ],
-              }),
-          }),
+      mockGetDefaultConfigCached.mockResolvedValue({
+        providers: {
+          longcat: {
+            type: 'openai',
+            family: 'openai',
+            endpoint: 'https://api.longcat.chat/openai',
+            key: 'LongCat',
+            models: ['LongCat-Flash-Chat'],
+            authType: 'bearer',
+          },
         },
-      };
+        default_provider: 'longcat',
+      });
 
-      const config = await getConfig(env);
+      const config = await getConfig();
       expect(config.providers['longcat']).toBeDefined();
       expect(config.default_provider).toBe('longcat');
     });
@@ -118,9 +131,11 @@ describe('Config', () => {
     });
 
     it('should work through ConfigManager.getConfig', async () => {
-      const env = {};
+      mockGetDefaultConfigCached.mockRejectedValue(
+        new Error('No provider configuration found. Please configure providers in D1 database.')
+      );
 
-      await expect(ConfigManager.getConfig(env)).rejects.toThrow('No provider configuration found');
+      await expect(ConfigManager.getConfig()).rejects.toThrow('No provider configuration found');
     });
 
     it('should work through ConfigManager.resolveProvider', () => {

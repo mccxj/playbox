@@ -1,4 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+
+vi.mock('../../../src/managers/key', () => ({
+  KeyManager: {
+    getRandomApiKey: vi.fn().mockResolvedValue('mock-api-key'),
+  },
+}));
+
 import { createAnthropicProtocol } from '../../../src/protocols/anthropic';
 import { createMockEnv, createMockExecutionContext, createMockProviderConfig } from '../../factories';
 
@@ -400,16 +407,8 @@ describe('Anthropic Protocol Adapter', () => {
 
   describe('getApiKey', () => {
     it('should return random API key via KeyManager', async () => {
-      mockEnv.PLAYBOX_KV.get = vi.fn().mockResolvedValue(['test-key-1', 'test-key-2']);
-      mockEnv.PLAYBOX_D1 = {
-        prepare: vi.fn().mockReturnValue({
-          bind: vi.fn().mockReturnThis(),
-          all: vi.fn().mockResolvedValue({ results: [] }),
-        }),
-      } as any;
-
-      const key = await protocol.getApiKey(mockEnv, mockProvider, mockCtx);
-      expect(['test-key-1', 'test-key-2']).toContain(key);
+      const key = await protocol.getApiKey(mockEnv, mockProvider);
+      expect(key).toBe('mock-api-key');
     });
   });
 
@@ -428,14 +427,14 @@ describe('Anthropic Protocol Adapter', () => {
 
   describe('getHeaders', () => {
     it('should return x-api-key header by default', async () => {
-      const headers = await protocol.getHeaders(mockProvider, mockEnv, mockCtx, 'test-api-key');
+      const headers = await protocol.getHeaders(mockProvider, mockEnv, 'test-api-key');
       expect(headers['x-api-key']).toBe('test-api-key');
       expect(headers['anthropic-version']).toBe('2023-06-01');
     });
 
     it('should return Authorization header for bearer authType', async () => {
       const providerWithBearer = { ...mockProvider, authType: 'bearer' };
-      const headers = await protocol.getHeaders(providerWithBearer, mockEnv, mockCtx, 'test-api-key');
+      const headers = await protocol.getHeaders(providerWithBearer, mockEnv, 'test-api-key');
       expect(headers['Authorization']).toBe('Bearer test-api-key');
     });
   });

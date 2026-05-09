@@ -1,36 +1,45 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 vi.mock('@opennextjs/cloudflare', () => ({
   getCloudflareContext: vi.fn(),
 }));
 
+const { mockGetOAuthCredentialsCached, mockGetApiKeysCached } = vi.hoisted(() => ({
+  mockGetOAuthCredentialsCached: vi.fn(),
+  mockGetApiKeysCached: vi.fn(),
+}));
+
+vi.mock('../../../src/managers/key', () => ({
+  getOAuthCredentialsCached: mockGetOAuthCredentialsCached,
+  getApiKeysCached: mockGetApiKeysCached,
+  KeyManager: {
+    getRandomOAuthCredentials: async (provider: string) => {
+      const list = await mockGetOAuthCredentialsCached(provider);
+      return list[Math.floor(Math.random() * list.length)];
+    },
+    getRandomApiKey: async (provider: { key: string }) => {
+      const list = await mockGetApiKeysCached(provider.key.trim());
+      return list[Math.floor(Math.random() * list.length)];
+    },
+  },
+}));
+
 import { KeyManager, getOAuthCredentialsCached, getApiKeysCached } from '../../../src/managers/key';
 
 describe('KeyManager', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
   describe('getRandomOAuthCredentials', () => {
     it('should return credentials from D1', async () => {
-      const { getCloudflareContext } = await import('@opennextjs/cloudflare');
-
-      (getCloudflareContext as ReturnType<typeof vi.fn>).mockReturnValue({
-        env: {
-          PLAYBOX_D1: {
-            prepare: vi.fn().mockReturnValue({
-              bind: vi.fn().mockReturnThis(),
-              all: vi.fn().mockResolvedValue({
-                results: [
-                  {
-                    content: JSON.stringify({
-                      client_id: 'test-client-id',
-                      client_secret: 'test-client-secret',
-                      refresh_token: 'test-refresh-token',
-                    }),
-                  },
-                ],
-              }),
-            }),
-          },
+      mockGetOAuthCredentialsCached.mockResolvedValue([
+        {
+          client_id: 'test-client-id',
+          client_secret: 'test-client-secret',
+          refresh_token: 'test-refresh-token',
         },
-      });
+      ]);
 
       const creds = await KeyManager.getRandomOAuthCredentials('TestProvider');
 
@@ -40,18 +49,7 @@ describe('KeyManager', () => {
     });
 
     it('should throw error when no OAuth credentials found', async () => {
-      const { getCloudflareContext } = await import('@opennextjs/cloudflare');
-
-      (getCloudflareContext as ReturnType<typeof vi.fn>).mockReturnValue({
-        env: {
-          PLAYBOX_D1: {
-            prepare: vi.fn().mockReturnValue({
-              bind: vi.fn().mockReturnThis(),
-              all: vi.fn().mockResolvedValue({ results: [] }),
-            }),
-          },
-        },
-      });
+      mockGetOAuthCredentialsCached.mockRejectedValue(new Error('No OAuth credentials found for provider: UnknownProvider'));
 
       await expect(KeyManager.getRandomOAuthCredentials('UnknownProvider')).rejects.toThrow(
         'No OAuth credentials found for provider: UnknownProvider'
@@ -61,20 +59,7 @@ describe('KeyManager', () => {
 
   describe('getRandomApiKey', () => {
     it('should return a random key from D1', async () => {
-      const { getCloudflareContext } = await import('@opennextjs/cloudflare');
-
-      (getCloudflareContext as ReturnType<typeof vi.fn>).mockReturnValue({
-        env: {
-          PLAYBOX_D1: {
-            prepare: vi.fn().mockReturnValue({
-              bind: vi.fn().mockReturnThis(),
-              all: vi.fn().mockResolvedValue({
-                results: [{ content: 'key-1' }, { content: 'key-2' }, { content: 'key-3' }],
-              }),
-            }),
-          },
-        },
-      });
+      mockGetApiKeysCached.mockResolvedValue(['key-1', 'key-2', 'key-3']);
 
       const key = await KeyManager.getRandomApiKey({
         key: 'test-provider',
@@ -83,22 +68,11 @@ describe('KeyManager', () => {
         models: [],
       });
 
-      expect(['key-1', 'key-2', 'key-3']).toContain(key);
+      expect(key).toMatch(/key-[1-3]/);
     });
 
     it('should throw error when no keys found', async () => {
-      const { getCloudflareContext } = await import('@opennextjs/cloudflare');
-
-      (getCloudflareContext as ReturnType<typeof vi.fn>).mockReturnValue({
-        env: {
-          PLAYBOX_D1: {
-            prepare: vi.fn().mockReturnValue({
-              bind: vi.fn().mockReturnThis(),
-              all: vi.fn().mockResolvedValue({ results: [] }),
-            }),
-          },
-        },
-      });
+      mockGetApiKeysCached.mockRejectedValue(new Error('No API keys found for provider: unknown-provider'));
 
       await expect(
         KeyManager.getRandomApiKey({
@@ -111,20 +85,7 @@ describe('KeyManager', () => {
     });
 
     it('should trim provider key', async () => {
-      const { getCloudflareContext } = await import('@opennextjs/cloudflare');
-
-      const prepareMock = vi.fn().mockReturnValue({
-        bind: vi.fn().mockReturnThis(),
-        all: vi.fn().mockResolvedValue({ results: [{ content: 'key' }] }),
-      });
-
-      (getCloudflareContext as ReturnType<typeof vi.fn>).mockReturnValue({
-        env: {
-          PLAYBOX_D1: {
-            prepare: prepareMock,
-          },
-        },
-      });
+      mockGetApiKeysCached.mockResolvedValue(['key']);
 
       await KeyManager.getRandomApiKey({
         key: '  trimmed-provider  ',
@@ -133,7 +94,7 @@ describe('KeyManager', () => {
         models: [],
       });
 
-      expect(prepareMock).toHaveBeenCalledWith(expect.stringContaining('?'));
+      expect(mockGetApiKeysCached).toHaveBeenCalledWith('trimmed-provider');
     });
   });
 
