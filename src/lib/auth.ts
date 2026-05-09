@@ -4,6 +4,8 @@
  */
 
 import { CORS_HEADERS } from '../utils/constants';
+import { getPlatformDb } from '../platforms';
+import { createSqlClient } from '../db/factory';
 import type { Env } from '../types';
 
 export interface ApiKeyRecord {
@@ -25,11 +27,32 @@ export function extractApiKey(request: Request): string | null {
   );
 }
 
-export async function authenticate(request: Request, env: Env): Promise<boolean> {
+/**
+ * Authenticate a request using API key from headers
+ *
+ * Uses platform abstraction to access database, supporting both
+ * Cloudflare (env.PLAYBOX_D1) and future platforms (Vercel, etc.)
+ *
+ * @param request - The incoming request
+ * @param env - Optional Cloudflare env (for backward compatibility)
+ * @returns true if valid, false otherwise
+ */
+export async function authenticate(request: Request, env?: Env): Promise<boolean> {
   const apiKey = extractApiKey(request);
   if (!apiKey) return false;
 
-  const db = env.PLAYBOX_D1;
+  // Try platform abstraction first, fall back to env if provided
+  let db = getPlatformDb();
+
+  if (!db && env) {
+    // Backward compatibility: use env.PLAYBOX_D1 directly
+    // Use unknown cast to avoid type conflicts with Env definition
+    const d1 = (env as unknown as { PLAYBOX_D1?: unknown }).PLAYBOX_D1;
+    if (d1) {
+      db = createSqlClient({ d1: d1 as Parameters<typeof createSqlClient>[0]['d1'] });
+    }
+  }
+
   if (!db) return false;
 
   const result = await db.prepare('SELECT * FROM llm_api_keys WHERE api_key = ? AND is_active = 1').bind(apiKey).first();
