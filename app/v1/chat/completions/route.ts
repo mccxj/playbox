@@ -45,6 +45,8 @@ export async function POST(request: NextRequest) {
     const upstreamProtocol = ProtocolFactory.get('openai');
 
     const upstreamRequest = upstreamProtocol.toStandardRequest(rawBodyObj as ProtocolBody);
+    // Override model with realModel from resolveProvider
+    upstreamRequest.model = realModel;
 
     if (!db) {
       return createJsonResponse({ error: 'D1 database not configured' }, 500);
