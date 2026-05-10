@@ -10,6 +10,7 @@
  */
 
 import { createSqlClient } from '../db/factory';
+import { d1RestAdapter } from '../db/index';
 import type { PlatformContext, PlatformEnv, PlatformType } from './types';
 
 // Module-level singleton
@@ -100,19 +101,37 @@ function createCloudflareContext(): PlatformContext {
 
 /**
  * Create Vercel platform context
- * Uses environment variables
+ * Uses D1 REST API via Cloudflare credentials
  */
 function createVercelContext(): PlatformContext {
+  // Read D1 REST API configuration from environment variables
+  const accountId = process.env.CLOUDFLARE_ACCOUNT_ID;
+  const databaseId = process.env.CLOUDFLARE_DATABASE_ID;
+  const apiToken = process.env.CLOUDFLARE_API_TOKEN;
+
+  // Check if all required environment variables are present
+  const hasD1Config = accountId && databaseId && apiToken;
+
   return {
     getDatabase: () => {
-      // For Vercel, use DATABASE_URL if available
-      const dbUrl = process.env.DATABASE_URL;
-      if (!dbUrl) return null;
+      if (!hasD1Config) {
+        console.warn(
+          '[Vercel] D1 REST API not configured. ' +
+            'Set CLOUDFLARE_ACCOUNT_ID, CLOUDFLARE_DATABASE_ID, and CLOUDFLARE_API_TOKEN environment variables.'
+        );
+        return null;
+      }
 
-      // TODO: Implement PostgreSQL adapter for Vercel
-      // For now, return null to maintain backward compatibility
-      console.warn('Vercel database support not yet implemented');
-      return null;
+      try {
+        return d1RestAdapter({
+          accountId: accountId!,
+          databaseId: databaseId!,
+          apiToken: apiToken!,
+        });
+      } catch (error) {
+        console.warn('[Vercel] Failed to create D1 REST client:', error);
+        return null;
+      }
     },
 
     getPlatformType: () => 'vercel',
@@ -121,7 +140,13 @@ function createVercelContext(): PlatformContext {
 
     getEnv: (): PlatformEnv => ({
       platformType: 'vercel',
-      primaryDb: null,
+      primaryDb: hasD1Config
+        ? d1RestAdapter({
+            accountId: accountId!,
+            databaseId: databaseId!,
+            apiToken: apiToken!,
+          })
+        : null,
       authToken: process.env.AUTH_TOKEN,
     }),
   };
