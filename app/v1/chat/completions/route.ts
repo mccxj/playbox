@@ -37,7 +37,7 @@ export async function POST(request: NextRequest) {
     const isStream = rawBody.stream === true;
 
     const config = await getConfig();
-    const { provider, realModel } = resolveProvider(config, requestedModel, 'openai');
+    const { name: providerName, provider, realModel } = resolveProvider(config, requestedModel, 'openai');
 
     const upstreamProtocol = ProtocolFactory.get('openai');
 
@@ -66,7 +66,13 @@ export async function POST(request: NextRequest) {
     }
 
     if (lastResponse && !lastResponse.ok) {
-      logger.error('Upstream request failed', { status: lastResponse.status, statusText: lastResponse.statusText });
+      logger.error('Upstream request failed', { 
+        status: lastResponse.status, 
+        statusText: lastResponse.statusText,
+        url: fetchUrl,
+        provider: providerName,
+        model: realModel,
+      });
     }
 
     const resHeaders = {
