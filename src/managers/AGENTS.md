@@ -5,39 +5,37 @@
 ## OVERVIEW
 
 Core business logic for authentication and API key management. Handles request verification, token refresh, key
-rotation, and D1/KV caching.
+rotation, and D1 storage.
 
 ## STRUCTURE
 
 ```
 managers/
-├── auth.ts # AuthManager: request verification (Bearer, x-api-key, x-goog-api-key)
-└── key.ts  # KeyManager: token refresh, D1/KV operations
+├── auth.ts # AuthManager: request verification (Bearer, x-api-key, x-goog-api-key, ?key query param)
+└── key.ts # KeyManager: token refresh, D1 operations, OAuth credential rotation
 ```
 
 ## WHERE TO LOOK
 
-| Task             | Location  | Notes                               |
-| ---------------- | --------- | ----------------------------------- |
-| Request auth     | `auth.ts` | `AuthManager.verify(request, env)`  |
-| Token refresh    | `key.ts`  | `KeyManager.getValidAccessToken()`  |
-| API key rotation | `key.ts`  | `KeyManager.getRandomApiKey()`      |
-| D1 key queries   | `key.ts`  | `security_keys` table               |
-| KV caching       | `key.ts`  | 300s TTL for keys, 3500s for tokens |
+| Task              | Location  | Notes                                                 |
+| ----------------- | --------- | ----------------------------------------------------- |
+| Request auth      | `auth.ts` | `AuthManager.verify(request, env)` — 4 auth methods   |
+| Token refresh     | `key.ts`  | `KeyManager.getValidAccessToken()` — auto-refresh     |
+| API key rotation  | `key.ts`  | `KeyManager.getRandomApiKey()` — random from 100      |
+| OAuth credentials | `key.ts`  | `KeyManager.getRandomOAuthCredentials()` — OAuth keys |
+| D1 key queries    | `key.ts`  | `security_keys` table (API_KEY + EMAIL types)         |
 
 ## CONVENTIONS
 
 - **Exported objects**: `KeyManager` and `AuthManager` objects with async methods
-- **KV caching**: Tokens cached in `PLAYBOX_KV` with TTL
 - **D1 storage**: API keys stored in D1 `security_keys` table
-- **Gemini OAuth**: Automatic token refresh with 3500s cache TTL
+- **Gemini OAuth**: Automatic token refresh with Next.js unstable_cache
 - **Random key selection**: `getRandomApiKey()` fetches 100 keys, picks random one
 
 ## ANTI-PATTERNS
 
-- **DO NOT** skip KV caching — D1 queries are expensive
 - **DO NOT** return expired tokens — always check `expiresAt` with 60s buffer
-- **DO NOT** store keys in code — use D1 + KV only
+- **DO NOT** store keys in code — use D1 only
 
 ## NOTES
 

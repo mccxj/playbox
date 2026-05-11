@@ -1,4 +1,11 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
+
+vi.mock('../../../src/managers/key', () => ({
+  KeyManager: {
+    getRandomApiKey: vi.fn().mockResolvedValue('mock-api-key'),
+  },
+}));
+
 import { createGoogleProtocol } from '../../../src/protocols/google';
 import { createMockEnv, createMockExecutionContext, createMockProviderConfig } from '../../factories';
 
@@ -59,9 +66,8 @@ describe('Google Protocol Adapter', () => {
       };
       mockEnv.PLAYBOX_D1 = mockD1 as any;
 
-      const apiKey = await protocol.getApiKey(mockEnv, mockProvider, mockCtx);
-      expect(typeof apiKey).toBe('string');
-      expect(apiKey).toMatch(/^test-api-key-/);
+      const apiKey = await protocol.getApiKey(mockEnv, mockProvider);
+      expect(apiKey).toBe('mock-api-key');
     });
   });
 
@@ -90,7 +96,7 @@ describe('Google Protocol Adapter', () => {
 
   describe('getHeaders', () => {
     it('should return correct headers with API key', async () => {
-      const headers = await protocol.getHeaders(mockProvider, mockEnv, mockCtx, 'test-api-key');
+      const headers = await protocol.getHeaders(mockProvider, mockEnv, 'test-api-key');
       expect(headers).toEqual({
         'Content-Type': 'application/json',
         'x-goog-api-key': 'test-api-key',
@@ -98,7 +104,7 @@ describe('Google Protocol Adapter', () => {
     });
 
     it('should use provided API key in headers', async () => {
-      const headers = await protocol.getHeaders(mockProvider, mockEnv, mockCtx, 'different-key');
+      const headers = await protocol.getHeaders(mockProvider, mockEnv, 'different-key');
       expect(headers['x-goog-api-key']).toBe('different-key');
     });
   });

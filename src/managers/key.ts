@@ -1,6 +1,5 @@
-import type { Env } from '../types';
 import { unstable_cache } from 'next/cache';
-import { getCloudflareContext } from '@opennextjs/cloudflare';
+import { getPlatformDb } from '../platforms';
 
 interface Provider {
   key: string;
@@ -16,10 +15,12 @@ interface OAuthCredentials {
 }
 
 const _loadOAuthCredentials = async (provider: string): Promise<OAuthCredentials[]> => {
-  const raw = getCloudflareContext();
-  const env = raw.env as unknown as Env;
+  const db = getPlatformDb();
+  if (!db) {
+    throw new Error('D1 database not available');
+  }
   const query = `SELECT content FROM security_keys WHERE type = 'OAUTH_JSON' AND provider = ? ORDER BY RANDOM() LIMIT 100`;
-  const { results } = await env.PLAYBOX_D1.prepare(query).bind(provider).all();
+  const { results } = await db.prepare(query).bind(provider).all();
   if (!results || results.length === 0) {
     throw new Error(`No OAuth credentials found for provider: ${provider}`);
   }
@@ -30,10 +31,19 @@ const _loadOAuthCredentials = async (provider: string): Promise<OAuthCredentials
 };
 
 const _loadApiKeys = async (providerKey: string): Promise<string[]> => {
-  const raw = getCloudflareContext();
-  const env = raw.env as unknown as Env;
+  const db = getPlatformDb();
+  if (!db) {
+    console.warn('[KeyManager] D1 database not available');
+    return [];
+  }
   const query = `SELECT content FROM security_keys WHERE type = 'API_KEY' AND provider = ? ORDER BY RANDOM() LIMIT 100`;
-  const { results } = await env.PLAYBOX_D1.prepare(query).bind(providerKey).all();
+  console.log('[KeyManager] Query:', query, 'Provider:', providerKey);
+  const { results } = await db.prepare(query).bind(providerKey).all();
+  console.log('[KeyManager] Results count:', results?.length ?? 0);
+  console.log('[KeyManager] Keys:', results?.map((r: Record<string, unknown>) => {
+    const typedRow = r as unknown as { content: string };
+    return typedRow.content.substring(0, 20) + '...';
+  }));
   if (!results || results.length === 0) {
     throw new Error(`No API keys found for provider: ${providerKey}`);
   }

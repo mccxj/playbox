@@ -1,40 +1,47 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
+
+vi.mock('../../../src/managers/key', () => ({
+  KeyManager: {
+    getRandomApiKey: vi.fn().mockResolvedValue('mock-api-key'),
+  },
+}));
+
 import { createOpenAIProtocol } from '../../../src/protocols/openai';
 import { createMockEnv, createMockExecutionContext, createMockProviderConfig } from '../../factories';
 import type { Env } from '../../../src/types';
 import type { Provider, ExecutionContext } from '../../../src/protocols/types';
 
 describe('OpenAI Protocol Adapter', () => {
-	let protocol: ReturnType<typeof createOpenAIProtocol>;
+  let protocol: ReturnType<typeof createOpenAIProtocol>;
 
-	beforeEach(() => {
-		protocol = createOpenAIProtocol();
-	});
+  beforeEach(() => {
+    protocol = createOpenAIProtocol();
+  });
 
-	it('should create protocol instance', () => {
-		expect(protocol).toBeDefined();
-		expect(protocol.name).toBe('openai');
-	});
+  it('should create protocol instance', () => {
+    expect(protocol).toBeDefined();
+    expect(protocol.name).toBe('openai');
+  });
 
-	it('should have required core methods', () => {
-		expect(typeof protocol.getAttempt).toBe('function');
-		expect(typeof protocol.getApiKey).toBe('function');
-		expect(typeof protocol.getEndpoint).toBe('function');
-		expect(typeof protocol.getHeaders).toBe('function');
-	});
+  it('should have required core methods', () => {
+    expect(typeof protocol.getAttempt).toBe('function');
+    expect(typeof protocol.getApiKey).toBe('function');
+    expect(typeof protocol.getEndpoint).toBe('function');
+    expect(typeof protocol.getHeaders).toBe('function');
+  });
 
-	it('should NOT have conversion methods (pass-through adapter)', () => {
-		expect(protocol.toStandardRequest).toBeUndefined();
-		expect(protocol.fromStandardRequest).toBeUndefined();
-		expect(protocol.toStandardResponse).toBeUndefined();
-		expect(protocol.fromStandardResponse).toBeUndefined();
-		expect(protocol.createToStandardStream).toBeUndefined();
-		expect(protocol.createFromStandardStream).toBeUndefined();
-	});
+  it('should NOT have conversion methods (pass-through adapter)', () => {
+    expect(protocol.toStandardRequest).toBeUndefined();
+    expect(protocol.fromStandardRequest).toBeUndefined();
+    expect(protocol.toStandardResponse).toBeUndefined();
+    expect(protocol.fromStandardResponse).toBeUndefined();
+    expect(protocol.createToStandardStream).toBeUndefined();
+    expect(protocol.createFromStandardStream).toBeUndefined();
+  });
 
-	it('should return default attempt count', () => {
-		expect(protocol.getAttempt()).toBe(3);
-	});
+  it('should return default attempt count', () => {
+    expect(protocol.getAttempt()).toBe(3);
+  });
 
   it('should handle getHeaders correctly', async () => {
     const mockProvider = {
@@ -45,10 +52,9 @@ describe('OpenAI Protocol Adapter', () => {
     } as Provider;
 
     const mockEnv = {} as Env;
-    const mockCtx = {} as ExecutionContext;
     const apiKey = 'test-api-key';
 
-    const headers = await protocol.getHeaders(mockProvider, mockEnv, mockCtx, apiKey);
+    const headers = await protocol.getHeaders(mockProvider, mockEnv, apiKey);
     expect(headers).toEqual({
       'Content-Type': 'application/json',
       'Authorization': 'Bearer test-api-key',
@@ -84,7 +90,6 @@ describe('OpenAI Protocol Adapter', () => {
     const mockCtx = createMockExecutionContext();
     const mockProvider = createMockProviderConfig({ type: 'openai', key: 'test-provider' });
 
-    mockEnv.PLAYBOX_KV.get = vi.fn().mockResolvedValue(['key-1', 'key-2']);
     mockEnv.PLAYBOX_D1 = {
       prepare: vi.fn().mockReturnValue({
         bind: vi.fn().mockReturnThis(),
@@ -92,7 +97,7 @@ describe('OpenAI Protocol Adapter', () => {
       }),
     } as any;
 
-    const apiKey = await protocol.getApiKey(mockEnv, mockProvider, mockCtx);
-    expect(['key-1', 'key-2']).toContain(apiKey);
+    const apiKey = await protocol.getApiKey(mockEnv, mockProvider);
+    expect(apiKey).toBe('mock-api-key');
   });
 });
