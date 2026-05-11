@@ -56,35 +56,12 @@ const _loadApiKeys = async (providerKey: string): Promise<string[]> => {
   });
 };
 
-type OAuthCacheFn = (provider: string) => Promise<OAuthCredentials[]>;
-type ApiKeysCacheFn = (providerKey: string) => Promise<string[]>;
+export const getOAuthCredentialsCached = unstable_cache(_loadOAuthCredentials, ['oauth-credentials'], {
+  tags: ['oauth-credentials'],
+  revalidate: 300,
+});
 
-const oauthCacheMap = new Map<string, OAuthCacheFn>();
-const apiKeysCacheMap = new Map<string, ApiKeysCacheFn>();
-
-export const getOAuthCredentialsCached = (provider: string): Promise<OAuthCredentials[]> => {
-  let cached = oauthCacheMap.get(provider);
-  if (!cached) {
-    cached = unstable_cache(_loadOAuthCredentials, ['oauth-credentials', provider], {
-      tags: [`oauth-credentials-${provider}`],
-      revalidate: 300,
-    }) as OAuthCacheFn;
-    oauthCacheMap.set(provider, cached);
-  }
-  return cached(provider);
-};
-
-export const getApiKeysCached = (providerKey: string): Promise<string[]> => {
-  let cached = apiKeysCacheMap.get(providerKey);
-  if (!cached) {
-    cached = unstable_cache(_loadApiKeys, ['api-keys', providerKey], {
-      tags: [`api-keys-${providerKey}`],
-      revalidate: 300,
-    }) as ApiKeysCacheFn;
-    apiKeysCacheMap.set(providerKey, cached);
-  }
-  return cached(providerKey);
-};
+export const getApiKeysCached = unstable_cache(_loadApiKeys, ['api-keys'], { tags: ['api-keys'], revalidate: 300 });
 
 export const KeyManager = {
   async getRandomOAuthCredentials(provider: string): Promise<OAuthCredentials> {
