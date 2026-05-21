@@ -26,7 +26,7 @@ config/
 
 ## CONVENTIONS
 
-- **Provider types**: `openai`, `anthropic`, `google`, `gemini-cli`
+- **Provider types**: `openai`, `anthropic`, `google`
 - **Model matching**: First match wins, prefers `preferredType` if specified
 - **Fallback**: Uses `default_provider` if model not found
 - **Priority**: D1 `providers` table (sole config source)

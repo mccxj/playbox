@@ -22,7 +22,6 @@ protocols/
 | Task                 | Location                                            | Notes                                               |
 | -------------------- | --------------------------------------------------- | --------------------------------------------------- |
 | Add new protocol     | Create `<name>.ts` + export factory from `index.ts` | Implement `ProtocolAdapter` interface               |
-| Modify OAuth logic   | `gemini-cli.ts`                                     | Uses `KeyManager.getValidAccessToken()`             |
 | Check interface      | `types.ts`                                          | `ProtocolAdapter` defines required/optional methods |
 | Streaming conversion | `anthropic.ts`                                      | Only adapter with full SSE ↔ SSE conversion         |
 

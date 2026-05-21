@@ -66,7 +66,6 @@ const typeOptions = [
   { value: 'openai', label: 'OpenAI' },
   { value: 'anthropic', label: 'Anthropic' },
   { value: 'google', label: 'Google' },
-  { value: 'gemini-cli', label: 'Gemini CLI' },
   { value: 'gemini', label: 'Gemini' },
   { value: 'worker', label: 'Worker' },
 ];
