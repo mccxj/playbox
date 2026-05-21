@@ -1,6 +1,6 @@
 # PROJECT KNOWLEDGE BASE
 
-**Stack:** Next.js 15 + TypeScript + Vitest + Wrangler + Ant Design + Recharts **Generated:** 2026-05-10 | **Commit:**
+**Stack:** Next.js 15 + TypeScript + Vitest + Wrangler + Ant Design + Recharts **Generated:** 2026-05-21 | **Commit:**
 8907e53 (main)
 
 ## OVERVIEW
